@@ -1,0 +1,33 @@
+// Radius of the Earth in km
+const R = 6371;
+
+/**
+ * Calculates distance in kilometers between two lat/lng points using the Haversine formula
+ */
+export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c; // Distance in km
+  return Number(distance.toFixed(2));
+}
+
+function deg2rad(deg: number): number {
+  return deg * (Math.PI / 180);
+}
+
+/**
+ * MVP Fare Calculation Logic:
+ * Base Fare: 100 BDT
+ * Per KM Fare: 15 BDT
+ */
+export function calculateFare(distanceKm: number): number {
+  const BASE_FARE = 100;
+  const PER_KM_RATE = 15;
+
+  const fare = BASE_FARE + distanceKm * PER_KM_RATE;
+  return Math.round(fare); // Return rounded BDT amount
+}
