@@ -1,14 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Geist } from "next/font/google";
+import { Inter, Noto_Sans_Bengali } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const inter = Inter({ 
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
-const inter = Inter({ subsets: ["latin"] });
+const notoBengali = Noto_Sans_Bengali({
+  subsets: ["bengali"],
+  variable: "--font-bangla",
+  display: "swap",
+});
 
 export const viewport: Viewport = {
-  themeColor: "#10b981",
+  themeColor: "#16A34A",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -25,15 +33,19 @@ export const metadata: Metadata = {
   },
 };
 
+import { LanguageProvider } from "@/context/LanguageContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
-      <body className={`${inter.className} min-h-screen bg-slate-50 pb-safe`}>
-        {children}
+    <html lang="en" className={cn("antialiased", inter.variable, notoBengali.variable)}>
+      <body className="min-h-screen bg-slate-50 pb-safe font-sans relative">
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

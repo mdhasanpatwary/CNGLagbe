@@ -5,7 +5,7 @@ const prisma = new PrismaClient()
 
 async function main() {
   // Demo User
-  await prisma.user.upsert({
+  const user = await prisma.user.upsert({
     where: { phone: '01700000000' },
     update: {},
     create: {
@@ -17,7 +17,7 @@ async function main() {
   // Demo Drivers
   const hashedPassword = bcrypt.hashSync('driver123', 10)
   
-  await prisma.driver.upsert({
+  const driver1 = await prisma.driver.upsert({
     where: { phone: '01711111111' },
     update: { passwordHash: hashedPassword },
     create: {
@@ -27,16 +27,54 @@ async function main() {
     },
   })
 
-  const hashedPassword2 = bcrypt.hashSync('driver456', 10)
+  // Dummy Bookings
+  console.log('Creating dummy bookings...')
 
-  await prisma.driver.upsert({
-    where: { phone: '01722222222' },
-    update: { passwordHash: hashedPassword2 },
-    create: {
-      name: 'Kamal Driver',
-      phone: '01722222222',
-      passwordHash: hashedPassword2,
-    },
+  // 1. Pending Bookings (Incoming Requests)
+  await prisma.booking.createMany({
+    data: [
+      {
+        userId: user.id,
+        pickupLat: 23.8103,
+        pickupLng: 90.4125,
+        destLat: 23.8203,
+        destLng: 90.4225,
+        pickupAddress: 'Dhanmondi 32',
+        destAddress: 'Banani 11',
+        distance: 5.2,
+        fare: 150,
+        status: 'PENDING',
+      },
+      {
+        userId: user.id,
+        pickupLat: 23.7503,
+        pickupLng: 90.3925,
+        destLat: 23.7703,
+        destLng: 90.4125,
+        pickupAddress: 'Farmgate',
+        destAddress: 'Gulshan 1',
+        distance: 3.5,
+        fare: 120,
+        status: 'PENDING',
+      }
+    ]
+  })
+
+  // 2. Ongoing Booking (Already Accepted by current driver)
+  await prisma.booking.create({
+    data: {
+      userId: user.id,
+      driverId: driver1.id,
+      pickupLat: 23.8103,
+      pickupLng: 90.4125,
+      destLat: 23.8503,
+      destLng: 90.4525,
+      pickupAddress: 'Uttara Sector 7',
+      destAddress: 'Airport',
+      distance: 2.1,
+      fare: 80,
+      status: 'ACCEPTED',
+    }
   })
 
   console.log('Database seeded successfully.')

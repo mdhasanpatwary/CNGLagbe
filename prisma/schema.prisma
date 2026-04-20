@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -23,6 +24,10 @@ model Driver {
   isOnline        Boolean   @default(false)
   currentLat      Float?
   currentLng      Float?
+  nidNumber       String?
+  licenseNumber   String?
+  vehicleNumber   String?
+  isApproved      Boolean   @default(false)
   bookings        Booking[]
   createdAt       DateTime  @default(now())
 }
@@ -44,4 +49,18 @@ model Booking {
   updatedAt       DateTime      @updatedAt
   user            User?         @relation(fields: [userId], references: [id])
   driver          Driver?       @relation(fields: [driverId], references: [id])
+
+  @@index([status, createdAt])
+  @@index([driverId, status])
+}
+
+model GeoCache {
+  id        String   @id @default(cuid())
+  lat       Float
+  lng       Float
+  address   String
+  createdAt DateTime @default(now())
+
+  @@unique([lat, lng], name: "lat_lng")
+  @@index([lat, lng])
 }

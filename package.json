@@ -1,12 +1,13 @@
 {
   "name": "apptemp",
+  "desc": "on time cng booking app",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",
@@ -29,6 +30,7 @@
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/google.maps": "^3.64.0",
+    "@types/minimatch": "^6.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     }
     
     if (booking.driverId !== payload.sub) {
-       return NextResponse.json({ error: "Forbidden: Not your ride" }, { status: 403 });
+       return NextResponse.json({ error: "Forbidden: Not your booking" }, { status: 403 });
     }
 
     if (booking.status !== "ACCEPTED") {

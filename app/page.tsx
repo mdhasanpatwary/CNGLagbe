@@ -1,59 +1,86 @@
+"use client";
+
 import Link from "next/link";
-import { MapPin, Navigation, Coins, ShieldCheck } from "lucide-react";
+import { MapPin, Navigation, Banknote, ShieldCheck, User, LayoutDashboard, Copyright } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useLang } from "@/hooks/useLang";
 
 export default function LandingPage() {
+  const { t } = useLang();
+
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="bg-emerald-500 text-white p-4 shadow-md sticky top-0 z-10 flex justify-between items-center">
-        <h1 className="text-2xl font-bold tracking-tight">CNGLagbe</h1>
-        <Link href="/driver/login" className="text-sm bg-white/20 px-3 py-1.5 rounded-full font-medium hover:bg-white/30 transition">
-          Driver Login
-        </Link>
+      <header className="bg-primary text-primary-foreground p-4 shadow-md sticky top-0 z-10 flex justify-between items-center">
+        <h1 className="text-xl font-bold tracking-tight">{t("app_name")}</h1>
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher />
+          <Link href="/driver/login" className={buttonVariants({ variant: "secondary", size: "sm", className: "rounded-full" })}>
+            <User className="w-4 h-4 mr-2" />
+            {t("driver_login")}
+          </Link>
+        </div>
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-md mx-auto w-full mt-8">
-        <div className="bg-emerald-100 p-6 rounded-full mb-6">
-          <Navigation className="w-16 h-16 text-emerald-600" />
+        <div className="flex flex-col items-center gap-2 mb-6">
+          <div className="bg-primary/20 p-6 rounded-full">
+            <Navigation className="w-16 h-16 text-primary" />
+          </div>
+          <span className="text-xs font-bold text-primary tracking-widest uppercase flex items-center gap-1">
+            <Navigation size={12} /> {t("explore")}
+          </span>
         </div>
         
-        <h2 className="text-3xl font-extrabold text-slate-800 mb-2">Need a CNG?</h2>
+        <h2 className="text-3xl font-extrabold text-slate-800 mb-2">{t("need_cng")}</h2>
         <p className="text-slate-500 mb-8 max-w-[280px]">
-          Book a rural CNG instantly with fixed fare. No haggling required.
+          {t("cng_desc")}
         </p>
 
-        <Link href="/user/map" className="btn-primary flex items-center justify-center gap-2 text-lg mb-10 w-full shadow-emerald-500/30">
-          <MapPin className="w-5 h-5" />
-          Set Pickup Location
+        <Link href="/user/map" className={buttonVariants({ size: "lg", className: "w-full text-lg mb-10 h-14 rounded-xl shadow-lg" })}>
+          <MapPin className="w-5 h-5 mr-2" />
+          {t("set_pickup")}
         </Link>
 
         {/* Feature Highlights */}
         <div className="grid gap-4 w-full">
-          <div className="card flex items-center gap-4 text-left">
-            <div className="bg-slate-100 p-3 rounded-full text-slate-700">
-              <Coins className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-bold text-slate-800">Fixed Fare</h3>
-              <p className="text-xs text-slate-500">Know exactly what you'll pay</p>
-            </div>
-          </div>
+          <Card className="border-slate-100 shadow-sm">
+            <CardContent className="flex items-center gap-4 text-left p-4">
+              <div className="bg-slate-100 p-3 rounded-full text-slate-700">
+                <Banknote className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-800 text-base flex items-center gap-1.5">
+                  {t("fixed_fare")}
+                </h3>
+                <p className="text-xs text-slate-500">{t("fare_desc")}</p>
+              </div>
+            </CardContent>
+          </Card>
           
-          <div className="card flex items-center gap-4 text-left">
-            <div className="bg-slate-100 p-3 rounded-full text-slate-700">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-bold text-slate-800">Reliable Drivers</h3>
-              <p className="text-xs text-slate-500">Verified local providers</p>
-            </div>
-          </div>
+          <Card className="border-slate-100 shadow-sm">
+            <CardContent className="flex items-center gap-4 text-left p-4">
+              <div className="bg-slate-100 p-3 rounded-full text-slate-700">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-800 text-base flex items-center gap-1.5">
+                  {t("reliable_drivers")}
+                </h3>
+                <p className="text-xs text-slate-500">{t("drivers_desc")}</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </main>
 
-      <footer className="text-center p-6 text-slate-400 text-xs">
-        <p>CNGLagbe MVP &copy; {new Date().getFullYear()}</p>
-        <Link href="/admin" className="underline mt-2 inline-block">
-          Admin Dashboard
+      <footer className="text-center p-6 text-slate-400 text-xs flex flex-col items-center gap-2">
+        <p className="flex items-center gap-1">
+          <Copyright size={10} /> {t("app_name")} {new Date().getFullYear()}
+        </p>
+        <Link href="/admin" className="underline inline-flex items-center gap-1 hover:text-slate-600 transition">
+          <LayoutDashboard size={12} /> {t("admin_dashboard")}
         </Link>
       </footer>
     </div>

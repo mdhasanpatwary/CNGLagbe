@@ -15,10 +15,15 @@ export async function GET() {
 
     const completedBookings = completedBookingsResponse._count;
     const totalRevenue = completedBookingsResponse._sum.fare || 0;
-    const adminCommission = totalRevenue * 0.10; // 10% commission
+    const adminCommission = totalRevenue * 0.20; // 20% commission
+    const driverPayout = totalRevenue - adminCommission;
 
     const activeDrivers = await prisma.driver.count({
       where: { isOnline: true }
+    });
+
+    const pendingBookings = await prisma.booking.count({
+      where: { status: "PENDING" }
     });
 
     return NextResponse.json({
@@ -28,6 +33,14 @@ export async function GET() {
         totalRevenue,
         adminCommission,
         activeDrivers,
+        revenue: {
+          total: totalRevenue,
+          commission: adminCommission,
+          driverPayout: driverPayout
+        },
+        bookings: {
+          pending: pendingBookings
+        }
       }
     });
   } catch (error) {

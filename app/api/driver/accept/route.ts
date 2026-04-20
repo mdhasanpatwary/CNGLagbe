@@ -21,7 +21,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing booking ID" }, { status: 400 });
     }
 
-    // Use transaction to ensure no race conditions where 2 drivers accept the same ride
+    // Use transaction to ensure no race conditions where 2 drivers accept the same booking
     const result = await prisma.$transaction(async (tx) => {
       const booking = await tx.booking.findUnique({ where: { id: bookingId }});
       
@@ -38,10 +38,11 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ booking: result });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Driver Accept Error:", error);
-    if (error.message === "Booking already accepted or cancelled") {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "Booking already accepted or cancelled") {
+      return NextResponse.json({ error: message }, { status: 400 });
     }
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }

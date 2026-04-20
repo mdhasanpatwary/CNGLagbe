@@ -18,31 +18,35 @@ export async function GET(request: Request) {
 
     // Find bookings that are PENDING and created in the last 15 minutes
     const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000);
-    
-    // Check if the driver already has an ACCEPTED ride
-    const currentRide = await prisma.booking.findFirst({
-      where: { 
-        driverId: payload.sub,
-        status: "ACCEPTED",
-      },
-    });
 
-    if (currentRide) {
-      return NextResponse.json({ 
-        requests: [], 
-        currentRide 
+    // Run both queries concurrently to reduce latency
+    const [activeBooking, pendingRequests] = await Promise.all([
+      prisma.booking.findFirst({
+        where: {
+          driverId: payload.sub,
+          status: "ACCEPTED",
+        },
+      }),
+      prisma.booking.findMany({
+        where: {
+          status: "PENDING",
+          createdAt: { gte: fifteenMinsAgo },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      }),
+    ]);
+
+    if (activeBooking) {
+      return NextResponse.json({
+        requests: [],
+        currentBooking: activeBooking,
       });
     }
 
-    const requests = await prisma.booking.findMany({
-      where: {
-        status: "PENDING",
-        createdAt: { gte: fifteenMinsAgo },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+    const requests = pendingRequests;
 
-    return NextResponse.json({ requests, currentRide: null });
+    return NextResponse.json({ requests, currentBooking: null });
   } catch (error) {
     console.error("Driver Requests Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
