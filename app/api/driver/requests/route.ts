@@ -1,39 +1,40 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/auth";
+import { getApprovedDriver } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
+    const driverId = await getApprovedDriver();
+
+    if (!driverId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const token = authHeader.substring(7);
-    const payload = await verifyToken(token);
+    // Find bookings that are PENDING and created in the last 5 minutes
+    const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
 
-    if (!payload || payload.role !== "DRIVER") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // Fire-and-forget: expire old pending requests
+    prisma.booking.updateMany({
+      where: {
+        status: "PENDING",
+        createdAt: { lt: fiveMinsAgo },
+      },
+      data: {
+        status: "TIMED_OUT",
+      },
+    }).catch(console.error);
 
-    // Find bookings that are PENDING and created in the last 15 minutes
-    const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000);
-
-    // Run both queries concurrently to reduce latency
-    const [activeBooking, pendingRequests] = await Promise.all([
+    // Get driver status and active booking concurrently
+    const [driver, activeBooking] = await Promise.all([
+      prisma.driver.findUnique({
+        where: { id: driverId },
+        select: { currentLat: true, currentLng: true },
+      }),
       prisma.booking.findFirst({
         where: {
-          driverId: payload.sub,
+          driverId,
           status: "ACCEPTED",
         },
-      }),
-      prisma.booking.findMany({
-        where: {
-          status: "PENDING",
-          createdAt: { gte: fifteenMinsAgo },
-        },
-        orderBy: { createdAt: "desc" },
-        take: 20,
       }),
     ]);
 
@@ -44,7 +45,35 @@ export async function GET(request: Request) {
       });
     }
 
-    const requests = pendingRequests;
+    let requests: any[] = [];
+    if (driver?.currentLat != null && driver?.currentLng != null) {
+      // Geospatial search using PostGIS raw SQL
+      // find online, available drivers within close radius (5km).
+      requests = await prisma.$queryRaw`
+        SELECT 
+          b.*,
+          ST_DistanceSphere(
+            ST_MakePoint(b."pickupLng", b."pickupLat"),
+            ST_MakePoint(${driver.currentLng}, ${driver.currentLat})
+          ) / 1000 AS "calculatedDistance"
+        FROM "Booking" b
+        LEFT JOIN "BookingRejection" br ON br."bookingId" = b."id" AND br."driverId" = ${driverId}
+        WHERE 
+          b."status" = 'PENDING'
+          AND b."createdAt" >= ${fiveMinsAgo}
+          AND br."id" IS NULL
+          AND ST_DistanceSphere(
+            ST_MakePoint(b."pickupLng", b."pickupLat"),
+            ST_MakePoint(${driver.currentLng}, ${driver.currentLat})
+          ) <= 5000
+        ORDER BY 
+          ST_DistanceSphere(
+            ST_MakePoint(b."pickupLng", b."pickupLat"),
+            ST_MakePoint(${driver.currentLng}, ${driver.currentLat})
+          ) ASC
+        LIMIT 20
+      `;
+    }
 
     return NextResponse.json({ requests, currentBooking: null });
   } catch (error) {

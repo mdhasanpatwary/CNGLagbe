@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
-import { Loader2, CheckCircle2, User as UserIcon, Phone, Search, Banknote, Navigation, XCircle, Info, Home } from "lucide-react";
+import { useEffect, useState, use, useCallback } from "react";
+import { Loader2, CheckCircle2, User as UserIcon, Phone, Search, Banknote, Navigation, XCircle, Info, Home, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants, Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLang } from "@/hooks/useLang";
 import { supabase } from "@/lib/supabase";
 import { useRef } from "react";
 import { StaticMap } from "@/components/StaticMap";
+import { ReportModal } from "@/components/ReportModal";
+import { CancelModal } from "@/components/CancelModal";
 
 interface Booking {
   id: string;
@@ -22,6 +24,8 @@ interface Booking {
   driver?: {
     name: string;
     phone: string;
+    vehicleNumber?: string;
+    photoUrl?: string;
   } | null;
 }
 
@@ -33,46 +37,55 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
   const [booking, setBooking] = useState<Booking | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [showReport, setShowReport] = useState(false);
+  const [showCancel, setShowCancel] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<google.maps.Map | null>(null);
   const driverMarker = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
 
-  useEffect(() => {
-    const fetchBooking = async () => {
-      try {
-        const res = await fetch(`/api/booking/${id}`);
-        if (!res.ok) throw new Error(t("error"));
-        const data = await res.json();
-        setBooking(data.booking);
-
-        if (data.booking.status === "COMPLETED" || data.booking.status === "CANCELLED") {
-           clearInterval(intervalId);
-        }
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Unknown error";
-        setError(message);
-        clearInterval(intervalId);
-      }
-    };
-
-    fetchBooking();
-    // Poll for status updates (less frequently now)
-    const intervalId = setInterval(fetchBooking, 10000);
-
-    return () => clearInterval(intervalId);
+  const fetchBooking = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/booking/${id}`);
+      if (!res.ok) throw new Error(t("error"));
+      const data = await res.json();
+      setBooking(data.booking);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      setError(message);
+    }
   }, [id, t]);
 
-  // ─── Real-time Driver Tracking ───────────────────────────────────────────
   useEffect(() => {
-    if (!booking || booking.status !== "ACCEPTED") return;
+    fetchBooking();
+    // Poll for status updates every 5s for reliability
+    const intervalId = setInterval(() => {
+      if (booking?.status === "COMPLETED" || booking?.status === "CANCELLED") {
+        clearInterval(intervalId);
+        return;
+      }
+      fetchBooking();
+    }, 5000);
 
-    // 1. Subscribe to location updates
+    return () => clearInterval(intervalId);
+  }, [fetchBooking, booking?.status]);
+
+  // ─── Real-time Driver Tracking & Status Sync ──────────────────────────────
+  useEffect(() => {
+    if (!booking) return;
+
+    // 1. Subscribe to location and status updates
     const channel = supabase.channel(`booking-${id}`)
       .on("broadcast", { event: "location" }, ({ payload }) => {
-        setDriverLocation(payload);
-        if (driverMarker.current) {
-          driverMarker.current.position = payload;
+        if (booking.status === "ACCEPTED") {
+          setDriverLocation(payload);
+          if (driverMarker.current) {
+            driverMarker.current.position = payload;
+          }
         }
+      })
+      .on("broadcast", { event: "status_change" }, () => {
+        // High priority re-fetch when status changes
+        fetchBooking();
       })
       .subscribe();
 
@@ -180,37 +193,48 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
         <div className="flex flex-col items-center justify-center py-8">
           {booking.status === "PENDING" && (
             <>
-              <div className="relative">
-                <div className="absolute inset-0 rounded-full animate-ping bg-emerald-400 opacity-20"></div>
-                <div className="bg-emerald-100 p-8 rounded-full relative">
-                  <Search className="w-16 h-16 text-emerald-600 animate-pulse" />
+              <div className="relative w-48 h-48 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-[ping_3s_linear_infinite]" />
+                <div className="absolute inset-4 rounded-full bg-emerald-500/10 animate-[ping_2s_linear_infinite]" />
+                <div className="bg-white p-10 rounded-full relative shadow-2xl border border-emerald-50 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin" />
+                  <Search className="w-12 h-12 text-emerald-600 animate-pulse" />
                 </div>
               </div>
-              <h2 className="text-2xl font-black text-slate-800 mt-8 mb-2">{t("wait_requests")}</h2>
-              <p className="text-slate-500 text-center text-sm px-4 font-medium">{t("cng_desc")}</p>
+              <h2 className="text-2xl font-black text-slate-800 mt-8 mb-2 tracking-tight">{t("finding_driver")}</h2>
+              <p className="text-slate-500 text-center text-sm px-4 font-medium opacity-70 uppercase tracking-widest">{t("wait_requests")}</p>
             </>
           )}
 
           {booking.status === "ACCEPTED" && (
             <div className="w-full">
-              <div ref={mapRef} className="w-full h-64 rounded-2xl shadow-inner border border-slate-200 overflow-hidden mb-6" />
+              <div ref={mapRef} className="w-full h-80 rounded-3xl shadow-2xl border-4 border-white overflow-hidden mb-8 relative">
+                 <div className="absolute top-4 left-4 z-10 bg-blue-600 text-white text-[10px] font-black px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 animate-bounce">
+                    <Navigation size={12} fill="white" /> {t("wait_driver")}
+                 </div>
+              </div>
               <div className="flex flex-col items-center">
-                <div className="bg-blue-100 p-8 rounded-full shadow-inner animate-in zoom-in-50 duration-500">
+                <div className="bg-blue-100 p-8 rounded-full shadow-inner animate-in zoom-in-50 duration-500 flex items-center justify-center">
                   <CheckCircle2 className="w-16 h-16 text-blue-600" />
                 </div>
-                <h2 className="text-2xl font-black text-slate-800 mt-8 mb-2">{t("driver_accepted")}</h2>
-                <p className="text-slate-500 text-center text-sm px-4 font-medium">{t("drivers_desc")}</p>
+                <h2 className="text-2xl font-black text-slate-800 mt-8 mb-2">{t("dr_on_way")}</h2>
+                <p className="text-slate-500 text-center text-xs px-4 font-black uppercase tracking-widest opacity-60 underline decoration-blue-500 decoration-2 underline-offset-4">{t("drivers_desc")}</p>
               </div>
             </div>
           )}
 
           {booking.status === "COMPLETED" && (
             <>
-              <div className="bg-emerald-100 p-8 rounded-full animate-in zoom-in-50 duration-500">
+              <div className="bg-emerald-100 p-8 rounded-[2.5rem] animate-in zoom-in-50 duration-500 shadow-2xl shadow-emerald-500/20">
                 <CheckCircle2 className="w-16 h-16 text-emerald-600" />
               </div>
-              <h2 className="text-2xl font-black text-slate-800 mt-8 mb-2">{t("finish")}</h2>
-              <p className="text-slate-500 text-center text-sm px-4 font-medium">{t("reliable_drivers")}</p>
+              <h2 className="text-3xl font-black text-emerald-600 mt-8 mb-2 uppercase tracking-tighter">{t("booking_done")}</h2>
+              <div className="bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100 mb-6">
+                <p className="text-emerald-700 text-center text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                   {t("driver_arrived_desc")}
+                </p>
+              </div>
             </>
           )}
           
@@ -227,19 +251,34 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
 
         {/* Driver Card */}
         {(booking.status === "ACCEPTED" || booking.status === "COMPLETED") && booking.driver && (
-          <Card className="mb-6 shadow-md border-slate-100 rounded-2xl overflow-hidden">
-             <CardContent className="p-5">
-               <div className="flex items-center gap-4 border-b border-slate-50 pb-4 mb-4">
-                  <div className="bg-slate-100 p-3 rounded-full">
-                    <UserIcon className="w-8 h-8 text-slate-500" />
+          <Card className="mb-6 shadow-2xl shadow-slate-200/50 border-none rounded-[2.5rem] overflow-hidden bg-white/80 backdrop-blur-sm">
+             <CardContent className="p-6">
+               <div className="flex items-center gap-5 border-b border-slate-100 pb-5 mb-5">
+                  <div className="relative">
+                    <div className="bg-slate-100 w-16 h-16 rounded-2xl flex items-center justify-center overflow-hidden border-2 border-white shadow-md">
+                      {booking.driver.photoUrl ? (
+                         // eslint-disable-next-line @next/next/no-img-element
+                         <img src={booking.driver.photoUrl} alt={booking.driver.name} className="w-full h-full object-cover" />
+                      ) : (
+                         <UserIcon className="w-8 h-8 text-slate-500" />
+                      )}
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 bg-emerald-500 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center shadow-sm">
+                       <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                    </div>
                   </div>
-                  <div>
-                     <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black mb-1">{t("reliable_drivers")}</p>
-                     <h3 className="font-bold text-xl text-slate-800">{booking.driver.name}</h3>
+                  <div className="flex-1 min-w-0">
+                     <p className="text-[10px] text-slate-400 uppercase tracking-[0.2em] font-black mb-1">{t("auto_rickshaw")}</p>
+                     <h3 className="font-black text-xl text-slate-800 truncate">{booking.driver.name}</h3>
+                     {booking.driver.vehicleNumber && (
+                        <div className="inline-flex items-center gap-1.5 bg-slate-900 text-white text-[9px] font-black px-2.5 py-1 rounded-md mt-2 shadow-sm uppercase tracking-wider">
+                           {t("vehicle_no")}: {booking.driver.vehicleNumber}
+                        </div>
+                     )}
                   </div>
                </div>
-               <a href={`tel:${booking.driver.phone}`} className="flex items-center justify-center gap-3 bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-emerald-700 transition active:scale-95">
-                  <Phone className="w-5 h-5" />
+               <a href={`tel:${booking.driver.phone}`} className="flex items-center justify-center gap-3 bg-blue-600 text-white py-4 rounded-2xl font-black shadow-xl shadow-blue-600/20 hover:bg-blue-700 transition active:scale-95 text-sm uppercase tracking-widest">
+                  <Phone className="w-4 h-4" />
                   {t("call_driver")}
                </a>
              </CardContent>
@@ -247,41 +286,66 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
         )}
 
         {/* Fare Card */}
-        <Card className="shadow-sm border-slate-100 rounded-2xl">
-           <CardContent className="p-6">
-             <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="bg-emerald-100 p-2 rounded-lg text-emerald-600">
-                    <Banknote size={16} />
+        <Card className={`mb-6 border-none shadow-2xl rounded-[2.5rem] overflow-hidden transition-all duration-500 ${
+          booking.status === "COMPLETED" ? "ring-4 ring-emerald-500/20 bg-emerald-50/50 scale-[1.02]" : "bg-white"
+        }`}>
+           <CardContent className="p-8">
+             <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="bg-emerald-100 p-2.5 rounded-2xl text-emerald-600 shadow-inner">
+                    <Banknote size={20} />
                   </div>
-                  <p className="text-xs text-slate-500 uppercase tracking-widest font-black">{t("fixed_fare")}</p>
+                  <div>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-[0.2em] font-black">{t("fixed_fare")}</p>
+                    {booking.status === "COMPLETED" && (
+                       <p className="text-[10px] text-emerald-600 font-black uppercase tracking-widest flex items-center gap-1">
+                          <CheckCircle2 size={10} /> {t("fare_final")}
+                       </p>
+                    )}
+                  </div>
                 </div>
                 {/* Tooltip icon */}
                 <div className="relative group">
-                  <div className="bg-slate-100 p-1.5 rounded-full text-slate-400 group-hover:bg-slate-200 group-hover:text-slate-600 transition cursor-help">
-                    <Info size={14} />
+                  <div className="bg-slate-50 p-2 rounded-full text-slate-300 group-hover:bg-slate-100 group-hover:text-slate-500 transition cursor-help border border-slate-100">
+                    <Info size={16} />
                   </div>
-                  <div className="absolute bottom-full right-0 mb-3 w-56 bg-slate-900/95 backdrop-blur-sm text-white text-[10px] leading-relaxed rounded-xl px-4 py-3 shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 translate-y-1 group-hover:translate-y-0 z-50 border border-white/10">
+                  <div className="absolute bottom-full right-0 mb-4 w-60 bg-slate-900/95 backdrop-blur-md text-white text-[10px] leading-relaxed rounded-2xl px-5 py-4 shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 translate-y-1 group-hover:translate-y-0 z-50 border border-white/10 ring-1 ring-white/5">
                     {t("fare_desc")}
-                    <div className="absolute top-full right-2 border-[6px] border-transparent border-t-slate-900/95" />
+                    <div className="absolute top-full right-3 border-[6px] border-transparent border-t-slate-900/95" />
                   </div>
                 </div>
              </div>
              
-             <div className="flex items-center justify-between">
-                <h3 className="text-4xl font-black text-slate-900 flex items-center gap-1">
-                  <span className="text-emerald-500 text-2xl font-bold">{t("currency")}</span>
-                  {booking.fare}
-                </h3>
-                <Badge variant="outline" className="text-[10px] px-2 py-0.5 rounded-md font-bold text-slate-400 border-slate-200 bg-slate-50">
-                  {t("currency_name")}
-                </Badge>
+             <div className="flex items-end justify-between gap-4">
+                <div className="flex flex-col">
+                  <h3 className="text-5xl font-black text-slate-900 flex items-center gap-1.5 tracking-tighter">
+                    <span className="text-emerald-500 text-3xl font-bold">{t("currency")}</span>
+                    {booking.fare}
+                  </h3>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 ml-1">{t("currency_name")}</p>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                   <Badge className="bg-emerald-600 text-white border-none font-black text-[10px] px-4 py-2 rounded-xl shadow-lg shadow-emerald-600/20 uppercase tracking-widest h-auto">
+                      {t("pay_cash")}
+                   </Badge>
+                   {booking.status === "COMPLETED" && (
+                      <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest animate-pulse opacity-60">
+                         {t("safe_trip")}
+                      </span>
+                   )}
+                </div>
              </div>
              
-             <div className="mt-4 pt-4 border-t border-slate-50 flex items-center gap-2 text-slate-400">
-                <CheckCircle2 size={12} className="text-emerald-500" />
-                <p className="text-[10px] font-bold uppercase tracking-wider">{t("fare_desc")}</p>
-             </div>
+             {booking.status === "COMPLETED" && (
+                <div className="mt-8 pt-6 border-t border-emerald-100 flex items-center justify-center gap-3">
+                   <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-lg">
+                      <Banknote size={16} />
+                   </div>
+                   <p className="text-sm font-black text-emerald-700 uppercase tracking-tight">
+                      {t("pay_cash")} {t("currency")}{booking.fare}
+                   </p>
+                </div>
+             )}
            </CardContent>
         </Card>
         
@@ -291,7 +355,49 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
            </Link>
         )}
 
+        {booking.status === "COMPLETED" && (
+           <Button 
+             variant="ghost" 
+             onClick={() => setShowReport(true)}
+             className="w-full mt-4 h-12 text-slate-400 font-black uppercase tracking-widest text-[10px] gap-2 hover:bg-slate-100"
+           >
+             <AlertTriangle size={14} /> {t("report_issue")}
+           </Button>
+        )}
+
+        {(booking.status === "CANCELLED" || (booking.status === "PENDING" && !booking.driver)) && (
+          <Link href="/" className={buttonVariants({ variant: "outline", className: "w-full mt-4 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest" })}>
+            {t("bk_another")}
+          </Link>
+        )}
+
+        {(booking.status === "PENDING" || booking.status === "ACCEPTED") && (
+          <Button 
+            variant="ghost" 
+            onClick={() => setShowCancel(true)}
+            className="w-full mt-4 h-12 text-red-400 font-black uppercase tracking-widest text-[10px] gap-2 hover:bg-red-50 hover:text-red-500"
+          >
+            <XCircle size={14} /> {t("cancel_booking")}
+          </Button>
+        )}
+
       </main>
+
+      {showReport && (
+        <ReportModal bookingId={id} onClose={() => setShowReport(false)} />
+      )}
+
+      {showCancel && (
+        <CancelModal 
+          bookingId={id} 
+          role="USER"
+          onClose={() => setShowCancel(false)} 
+          onSuccess={() => {
+            setShowCancel(false);
+            window.location.reload();
+          }} 
+        />
+      )}
       
       <footer className="p-6 text-center text-slate-400 text-[10px] font-medium tracking-widest uppercase">
         {t("app_name")} &copy; {new Date().getFullYear()}

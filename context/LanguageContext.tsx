@@ -27,6 +27,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const setLang = (newLang: Language) => {
     setLangState(newLang);
     localStorage.setItem("app-lang", newLang);
+    
+    // Also set a cookie for server-side access (like manifest.json)
+    const isProd = process.env.NODE_ENV === "production";
+    const domain = isProd ? ".cnglagbe.com" : "";
+    const domainString = domain ? `; domain=${domain}` : "";
+    document.cookie = `app-lang=${newLang}; path=/; max-age=31536000${domainString}; SameSite=Lax${isProd ? "; Secure" : ""}`;
   };
 
   return (

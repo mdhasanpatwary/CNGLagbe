@@ -1,18 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/auth";
+import { getApprovedDriver } from "@/lib/auth";
+import { broadcastStatusChange } from "@/lib/realtime";
 
 export async function POST(request: Request) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const driverId = await getApprovedDriver();
 
-    const token = authHeader.substring(7);
-    const payload = await verifyToken(token);
-
-    if (!payload || payload.role !== "DRIVER") {
+    if (!driverId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -27,7 +22,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
     
-    if (booking.driverId !== payload.sub) {
+    if (booking.driverId !== driverId) {
        return NextResponse.json({ error: "Forbidden: Not your booking" }, { status: 403 });
     }
 
@@ -37,8 +32,14 @@ export async function POST(request: Request) {
 
     const result = await prisma.booking.update({
       where: { id: bookingId },
-      data: { status: "COMPLETED" },
+      data: { 
+        status: "COMPLETED",
+        completedAt: new Date(),
+      },
     });
+
+    // Broadcast status change to user
+    broadcastStatusChange(bookingId, "COMPLETED");
 
     return NextResponse.json({ booking: result });
   } catch (error) {

@@ -8,7 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLang } from "@/hooks/useLang";
 
+export default function AdminPage() {
+  const { t } = useLang();
+  const [stats, setStats] = useState<any>(null);
+  const [bookings, setBookings] = useState<any[]>([]);
+
   interface PendingDriver {
+
     id: string;
     name: string;
     phone: string;
@@ -230,3 +236,4 @@ import { useLang } from "@/hooks/useLang";
     </div>
   );
 }
+

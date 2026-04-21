@@ -1,27 +1,51 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/auth";
+import { getAuthenticatedDriver } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const driverId = await getAuthenticatedDriver();
 
-    const token = authHeader.substring(7);
-    const payload = await verifyToken(token);
-
-    if (!payload || payload.role !== "DRIVER") {
+    if (!driverId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const driver = await prisma.driver.findUnique({
-      where: { id: payload.sub },
+      where: { id: driverId },
       select: { id: true, isOnline: true, isApproved: true, name: true }
     });
 
-    return NextResponse.json({ driver });
+    if (!driver) {
+      return NextResponse.json({ error: "Driver not found" }, { status: 404 });
+    }
+
+    // Calculate today's stats
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const todayBookings = await prisma.booking.findMany({
+      where: {
+        driverId,
+        status: "COMPLETED",
+        createdAt: {
+          gte: today,
+        },
+      },
+      select: {
+        fare: true,
+      },
+    });
+
+    const todayEarnings = todayBookings.reduce((sum, b) => sum + b.fare, 0);
+    const todayRides = todayBookings.length;
+
+    return NextResponse.json({ 
+      driver,
+      stats: {
+        todayEarnings,
+        todayRides
+      }
+    });
   } catch (error) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
@@ -29,21 +53,15 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const driverId = await getAuthenticatedDriver();
 
-    const token = authHeader.substring(7);
-    const payload = await verifyToken(token);
-
-    if (!payload || payload.role !== "DRIVER") {
+    if (!driverId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Check if approved before allowing online status
     const currentDriver = await prisma.driver.findUnique({
-      where: { id: payload.sub },
+      where: { id: driverId },
       select: { isApproved: true }
     });
 
@@ -54,7 +72,7 @@ export async function POST(request: Request) {
     }
 
     const driver = await prisma.driver.update({
-      where: { id: payload.sub },
+      where: { id: driverId },
       data: { isOnline: Boolean(isOnline) },
     });
 

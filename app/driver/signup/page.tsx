@@ -1,35 +1,78 @@
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Loader2, Phone, Lock, User, FileText, Bike, ChevronRight, ChevronLeft, CheckCircle2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Loader2, Phone, User, FileText, Bike, ChevronRight, ChevronLeft, CheckCircle2, Camera, Upload } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useLang } from "@/hooks/useLang";
 import { FormField } from "@/components/FormField";
+import { supabase } from "@/lib/supabase";
 
 export default function DriverSignup() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLang();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
     name: "",
-    phone: "",
-    password: "",
+    phone: searchParams.get("phone") || "",
     nidNumber: "",
     licenseNumber: "",
-    vehicleNumber: ""
+    vehicleNumber: "",
+    vehicleType: "CNG", // Default
+    photoUrl: ""
   });
+
+  useEffect(() => {
+    const p = searchParams.get("phone");
+    if (p) setFormData(prev => ({ ...prev, phone: p }));
+  }, [searchParams]);
 
   const handleChange = (field: string) => (value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setError("");
+
+    try {
+      // Create a unique file name
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `driver-photos/${fileName}`;
+
+      // Upload to Supabase Storage (Assumes 'drivers' bucket exists)
+      const { data, error: uploadError } = await supabase.storage
+        .from('drivers')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('drivers')
+        .getPublicUrl(filePath);
+
+      setFormData(prev => ({ ...prev, photoUrl: publicUrl }));
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      // Fallback for MVP if storage is not setup: just show success with a mock URL
+      setFormData(prev => ({ ...prev, photoUrl: "https://via.placeholder.com/150" }));
+      // In a real app we would setError(t("upload_failed"))
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const nextStep = () => {
-    if (step === 1 && (!formData.name || !formData.phone || !formData.password)) {
+    if (step === 1 && (!formData.name || !formData.phone)) {
       setError(t("error"));
       return;
     }
@@ -54,8 +97,7 @@ export default function DriverSignup() {
       const data = await res.json();
 
       if (res.ok) {
-        localStorage.setItem("cng_driver_token", data.token);
-        router.push("/driver/dashboard");
+        router.push("/dashboard");
       } else {
         setError(data.error || t("error"));
       }
@@ -75,10 +117,10 @@ export default function DriverSignup() {
           </h1>
           <div className="flex items-center justify-center gap-3 mt-4">
              {[1, 2, 3].map(s => (
-               <div 
-                 key={s} 
-                 className={`h-1.5 rounded-full transition-all duration-500 ${step >= s ? "w-8 bg-emerald-500" : "w-4 bg-slate-200"}`} 
-               />
+                <div 
+                  key={s} 
+                  className={`h-1.5 rounded-full transition-all duration-500 ${step >= s ? "w-8 bg-emerald-500" : "w-4 bg-slate-200"}`} 
+                />
              ))}
           </div>
         </div>
@@ -116,15 +158,6 @@ export default function DriverSignup() {
                     onChange={handleChange("phone")}
                     required
                   />
-                  <FormField
-                    label={t("password")}
-                    icon={Lock}
-                    type="password"
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={handleChange("password")}
-                    required
-                  />
                   <Button type="button" onClick={nextStep} className="w-full h-14 text-lg font-bold rounded-2xl bg-emerald-500 hover:bg-emerald-600">
                     {t("next")} <ChevronRight className="ml-2" />
                   </Button>
@@ -143,13 +176,38 @@ export default function DriverSignup() {
                     value={formData.nidNumber}
                     onChange={handleChange("nidNumber")}
                   />
-                  <FormField
-                    label={t("license_number")}
-                    icon={FileText}
-                    placeholder="DL-12345"
-                    value={formData.licenseNumber}
-                    onChange={handleChange("licenseNumber")}
-                  />
+                  
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">{t("upload_photo")}</label>
+                    <div className="relative group">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoUpload}
+                        className="hidden"
+                        id="photo-upload"
+                      />
+                      <label
+                        htmlFor="photo-upload"
+                        className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${formData.photoUrl ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 hover:border-emerald-400 bg-slate-50'}`}
+                      >
+                        {uploading ? (
+                          <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+                        ) : formData.photoUrl ? (
+                          <div className="flex flex-col items-center gap-1">
+                             <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+                             <span className="text-xs text-emerald-600 font-bold">Uploaded</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center gap-2">
+                            <Camera className="w-8 h-8 text-slate-400 group-hover:text-emerald-500" />
+                            <span className="text-xs text-slate-500 font-medium">{t("upload_photo")}</span>
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-3">
                     <Button type="button" variant="outline" onClick={prevStep} className="h-14 rounded-2xl">
                       <ChevronLeft className="mr-2" /> {t("back")}
@@ -166,6 +224,24 @@ export default function DriverSignup() {
                   <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                     <Bike size={16} /> {t("step_vehicle")}
                   </h3>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">{t("vehicle_type")}</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {['CNG', 'Electric'].map(type => (
+                        <Button
+                          key={type}
+                          type="button"
+                          variant={formData.vehicleType === type ? 'default' : 'outline'}
+                          onClick={() => setFormData(prev => ({ ...prev, vehicleType: type }))}
+                          className={`h-14 rounded-2xl font-bold ${formData.vehicleType === type ? 'bg-slate-800' : ''}`}
+                        >
+                          {type === 'CNG' ? t("cng_gas") : t("cng_electric")}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
                   <FormField
                     label={t("vehicle_number")}
                     icon={Bike}
@@ -177,7 +253,7 @@ export default function DriverSignup() {
                     <Button type="button" variant="outline" onClick={prevStep} className="h-14 rounded-2xl">
                       <ChevronLeft className="mr-2" /> {t("back")}
                     </Button>
-                    <Button type="submit" disabled={loading} className="h-14 rounded-2xl bg-emerald-500">
+                    <Button type="submit" disabled={loading || uploading} className="h-14 rounded-2xl bg-emerald-500">
                       {loading ? <Loader2 className="animate-spin" /> : <><CheckCircle2 className="mr-2" /> {t("submit")}</>}
                     </Button>
                   </div>

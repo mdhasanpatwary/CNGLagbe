@@ -27,8 +27,11 @@ model Driver {
   nidNumber       String?
   licenseNumber   String?
   vehicleNumber   String?
+  vehicleType     String?
+  photoUrl        String?
   isApproved      Boolean   @default(false)
   bookings        Booking[]
+  rejections      BookingRejection[]
   createdAt       DateTime  @default(now())
 }
 
@@ -44,15 +47,37 @@ model Booking {
   destAddress     String?
   distance        Float
   fare            Float
+  polyline        String?       // Encoded polyline from Google Maps
   status          String        @default("PENDING") // PENDING, ACCEPTED, COMPLETED, CANCELLED
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+  acceptedAt      DateTime?     // When a driver accepts the booking
+  completedAt     DateTime?     // When the ride is completed
   user            User?         @relation(fields: [userId], references: [id])
   driver          Driver?       @relation(fields: [driverId], references: [id])
+  cancelReason    String?
+  cancelledAt     DateTime?
+  cancelledBy     String?       // 'USER' or 'DRIVER'
+  rejections      BookingRejection[]
+  issueReports    IssueReport[]
 
   @@index([status, createdAt])
   @@index([driverId, status])
+  @@index([userId, status, cancelledAt])
+  @@index([driverId, status, cancelledAt])
 }
+
+model IssueReport {
+  id        String   @id @default(cuid())
+  bookingId String
+  userId    String
+  reason    String
+  details   String?
+  status    String   @default("OPEN") // OPEN, RESOLVED
+  createdAt DateTime @default(now())
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+}
+
 
 model GeoCache {
   id        String   @id @default(cuid())
@@ -63,4 +88,39 @@ model GeoCache {
 
   @@unique([lat, lng], name: "lat_lng")
   @@index([lat, lng])
+}
+
+model BookingRejection {
+  id        String   @id @default(cuid())
+  bookingId String
+  driverId  String
+  createdAt DateTime @default(now())
+
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+  driver    Driver   @relation(fields: [driverId], references: [id])
+
+  @@unique([bookingId, driverId])
+  @@index([driverId])
+}
+
+model IdempotencyKey {
+  id             String   @id @default(uuid())
+  key            String   @unique
+  userId         String
+  responseBody   String   // JSON stringified response
+  responseStatus Int
+  createdAt      DateTime @default(now())
+  
+  @@unique([key, userId])
+  @@index([key, userId])
+}
+
+model RateLimit {
+  id          String   @id @default(cuid())
+  key         String   @unique // e.g., "login:phone_number" or "login:ip"
+  attempts    Int      @default(0)
+  lastAttempt DateTime @default(now())
+  expiresAt   DateTime
+  
+  @@index([key, expiresAt])
 }

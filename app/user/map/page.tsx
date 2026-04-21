@@ -13,6 +13,7 @@ import {
   getBookingSession,
   clearBookingSession,
 } from "@/utils/bookingSession";
+import { apiFetch } from "@/utils/api";
 
 // Types
 type Point = { lat: number; lng: number; address?: string };
@@ -39,9 +40,6 @@ export default function UserMapPage() {
   const router = useRouter();
   const { t } = useLang();
   const mapRef = useRef<HTMLDivElement>(null);
-  const acContainerRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const autocompleteRef = useRef<any>(null);
   // Holds the route polyline drawn on the map
   const fallbackPolylineRef = useRef<google.maps.Polyline | null>(null);
 
@@ -59,7 +57,39 @@ export default function UserMapPage() {
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [sessionRestored, setSessionRestored] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
+  const [isRequesting, setIsRequesting] = useState(false);
   const restoredFromSession = useRef(false);
+
+  // ─── Step based camera movement ──────────────────────────────────────────
+  useEffect(() => {
+    if (step === "DESTINATION" && !destination && map) {
+      // Zoom out or stay centered to let user pick
+      map.setZoom(14);
+    }
+    if (step === "PICKUP" && pickup && map) {
+      map.panTo(pickup);
+      map.setZoom(15);
+    }
+  }, [step, map, pickup, destination]);
+
+  // ─── Check for active booking periodically ────────────────────────────────
+  useEffect(() => {
+    const checkActive = async () => {
+      try {
+        const res = await apiFetch("/api/booking/active");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.booking?.id) {
+          router.push(`/user/booking/${data.booking.id}`);
+        }
+      } catch (e) {
+        console.error("Failed to check active booking", e);
+      }
+    };
+    checkActive();
+    const intervalId = setInterval(checkActive, 10000); // Check every 10s
+    return () => clearInterval(intervalId);
+  }, [router]);
 
   // ─── Toast auto-dismiss ───────────────────────────────────────────────────
   useEffect(() => {
@@ -74,7 +104,7 @@ export default function UserMapPage() {
   const reverseGeocode = useCallback(
     async (pos: Point): Promise<string> => {
       try {
-        const res = await fetch(`/api/geocode?lat=${pos.lat}&lng=${pos.lng}`);
+        const res = await apiFetch(`/api/geocode?lat=${pos.lat}&lng=${pos.lng}`);
         if (!res.ok) throw new Error("Geocode API failed");
         const data = await res.json();
         return data.address;
@@ -122,62 +152,6 @@ export default function UserMapPage() {
     return container;
   }, []);
 
-  // ─── Initialise Places Autocomplete ─────────────────────────────────────────
-  const initAutocomplete = useCallback(
-    (mapInstance: google.maps.Map) => {
-      if (!acContainerRef.current || !window.google?.maps?.places) return;
-
-      if (autocompleteRef.current) {
-        try { acContainerRef.current.removeChild(autocompleteRef.current); } catch { /* ignore */ }
-        autocompleteRef.current = null;
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const PlaceAutoEl = (window.google.maps.places as any).PlaceAutocompleteElement;
-      if (!PlaceAutoEl) return;
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const ac: any = new PlaceAutoEl({
-        componentRestrictions: { country: "bd" },
-      });
-
-      ac.style.width = "100%";
-      ac.style.border = "none";
-      ac.style.outline = "none";
-      ac.style.background = "transparent";
-      ac.style.fontSize = "0.875rem";
-
-      acContainerRef.current.appendChild(ac);
-      autocompleteRef.current = ac;
-
-      ac.addEventListener("gmp-placeselect", async (event: CustomEvent) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const place = (event as any).place;
-        if (!place) return;
-
-        await place.fetchFields({ fields: ["location", "formattedAddress"] });
-
-        const loc = place.location;
-        if (!loc) return;
-
-        const pos: Point = {
-          lat: loc.lat(),
-          lng: loc.lng(),
-          address: place.formattedAddress ?? undefined,
-        };
-
-        clearBookingSession();
-        restoredFromSession.current = false;
-        setRouteInfo(null);
-        setSessionRestored(false);
-
-        setDestination(pos);
-        mapInstance.panTo(pos);
-        mapInstance.setZoom(15);
-      });
-    },
-    []
-  );
 
   // ─── Initialize Map ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -230,7 +204,6 @@ export default function UserMapPage() {
         );
 
         setMap(mapInstance);
-        initAutocomplete(mapInstance);
 
         // ── Restore session block ──────────────────────────────────────────
         const session = getBookingSession();
@@ -364,7 +337,7 @@ export default function UserMapPage() {
     } else {
       initMap();
     }
-  }, [reverseGeocode, initAutocomplete, createLabeledMarker, t]);
+  }, [reverseGeocode, createLabeledMarker, t]);
 
   // ─── Step navigation ──────────────────────────────────────────────────────
   const handleNextStep = async () => {
@@ -373,7 +346,7 @@ export default function UserMapPage() {
     } else if (step === "DESTINATION" && destination) {
       setLoading(true);
       try {
-        const res = await fetch("/api/fare/calculate", {
+        const res = await apiFetch("/api/fare/calculate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -394,9 +367,9 @@ export default function UserMapPage() {
         setLoading(false);
       }
     } else if (step === "CONFIRM") {
-      setLoading(true);
+      setIsRequesting(true);
       try {
-        const res = await fetch("/api/booking/create", {
+        const res = await apiFetch("/api/booking/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -404,19 +377,25 @@ export default function UserMapPage() {
             pickupLng: pickup?.lng,
             destLat: destination?.lat,
             destLng: destination?.lng,
-            distance: fareData?.distance,
-            fare: fareData?.fare,
+            pickupAddress: pickup?.address,
+            destAddress: destination?.address,
+            polyline: routeInfo?.encodedPolyline,
           }),
         });
         const data = await res.json();
         if (data.booking?.id) {
           clearBookingSession();
           router.push(`/user/booking/${data.booking.id}`);
+        } else if (data.bookingId) {
+          // Exists already
+          router.push(`/user/booking/${data.bookingId}`);
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error(e);
-      } finally {
-        setLoading(false);
+        if (e.message?.includes("CANCEL_COOLDOWN") || e.status === 429) {
+          alert(t("cancel_user_limit"));
+        }
+        setIsRequesting(false);
       }
     }
   };
@@ -432,8 +411,9 @@ export default function UserMapPage() {
     if (step === "PICKUP") router.push("/");
     if (step === "DESTINATION") {
       setDestination(null);
-      if (destMarker) {
-        setDestMarker(null);
+      if (destMarkerRef.current) {
+        destMarkerRef.current.map = null;
+        destMarkerRef.current = null;
       }
       clearRoute();
       setStep("PICKUP");
@@ -707,12 +687,17 @@ export default function UserMapPage() {
           {step === "DESTINATION" && (
             <div className="animate-in fade-in slide-in-from-bottom-2">
               <h2 className="text-xl font-bold mb-4">{t("where_to")}</h2>
-              <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-4 flex items-center gap-3 focus-within:ring-2 focus-within:ring-emerald-400 transition">
-                <Search className="text-slate-400" size={18} />
-                <div ref={acContainerRef} className="flex-1 min-w-0" />
-              </div>
               
-              {destination && (
+              {!destination ? (
+                <div className="bg-slate-50 border-2 border-dashed border-emerald-200 rounded-2xl p-8 mb-6 flex flex-col items-center justify-center text-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                    <Pin size={24} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-700">{t("tap_map_dest")}</p>
+                  </div>
+                </div>
+              ) : (
                 <div className="bg-red-50 p-4 rounded-xl border border-red-100 mb-6 flex items-center gap-3">
                   <div className="flex flex-col items-center gap-1">
                     <Pin className="text-red-500" size={18} />
@@ -800,9 +785,9 @@ export default function UserMapPage() {
                 </div>
               </div>
 
-              <Button size="lg" className="w-full h-16 rounded-2xl shadow-xl text-xl font-bold" onClick={handleNextStep} disabled={loading}>
-                {loading ? <Loader2 className="animate-spin mr-2" /> : <Navigation size={20} className="mr-2" />}
-                {loading ? t("finding_driver") : t("confirm_find_driver")}
+              <Button size="lg" className="w-full h-16 rounded-2xl shadow-xl text-xl font-bold" onClick={handleNextStep} disabled={isRequesting}>
+                {isRequesting ? <Loader2 className="animate-spin mr-2" /> : <Navigation size={20} className="mr-2" />}
+                {isRequesting ? t("finding_driver") : t("confirm_find_driver")}
               </Button>
             </div>
           )}

@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import { signToken } from "@/lib/auth";
+import { signToken, setAuthCookie } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
-    const { name, phone, password, nidNumber, licenseNumber, vehicleNumber } = await request.json();
+    const { name, phone, nidNumber, licenseNumber, vehicleNumber, vehicleType, photoUrl } = await request.json();
 
-    if (!name || !phone || !password) {
+    if (!name || !phone) {
       return NextResponse.json(
-        { error: "Required fields missing" },
+        { error: "Name and Phone are required" },
         { status: 400 }
       );
     }
@@ -26,16 +26,16 @@ export async function POST(request: Request) {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const driver = await prisma.driver.create({
       data: {
         name,
         phone,
-        passwordHash: hashedPassword,
+        passwordHash: "skipped", // MVP phone-only login
         nidNumber,
         licenseNumber,
         vehicleNumber,
+        vehicleType,
+        photoUrl,
         isApproved: false,
       },
     });
@@ -45,9 +45,10 @@ export async function POST(request: Request) {
       role: "DRIVER",
     });
 
+    await setAuthCookie(token);
+
     return NextResponse.json({
       success: true,
-      token,
       driver: {
         id: driver.id,
         name: driver.name,

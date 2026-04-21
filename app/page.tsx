@@ -1,14 +1,29 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { MapPin, Navigation, Banknote, ShieldCheck, User, LayoutDashboard, Copyright } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
+import { LogOut, User, MapPin, Navigation, Banknote, ShieldCheck, LayoutDashboard, Copyright } from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLang } from "@/hooks/useLang";
 
 export default function LandingPage() {
   const { t } = useLang();
+  const [user, setUser] = useState<{ name: string; role: string } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then(res => res.ok ? res.json() : null)
+      .then(data => data && setUser(data.user))
+      .catch(() => setUser(null));
+  }, []);
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    setUser(null);
+    window.location.reload();
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -16,10 +31,31 @@ export default function LandingPage() {
         <h1 className="text-xl font-bold tracking-tight">{t("app_name")}</h1>
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
-          <Link href="/driver/login" className={buttonVariants({ variant: "secondary", size: "sm", className: "rounded-full" })}>
-            <User className="w-4 h-4 mr-2" />
-            {t("driver_login")}
-          </Link>
+          {user ? (
+            <div className="flex items-center gap-3">
+              <Link href="/history" className="text-[10px] font-black uppercase tracking-widest text-primary-foreground/70 hover:text-white transition group flex items-center gap-1.5">
+                <Navigation size={12} className="group-hover:animate-bounce" /> {t("booking_history")}
+              </Link>
+              <div className="h-4 w-[1px] bg-white/20" />
+              <span className="text-[10px] font-black bg-white/10 px-3 py-1.5 rounded-full uppercase tracking-widest">
+                {user.role === "DRIVER" ? t("driver_portal") : t("welcome_user")}: {user.name}
+              </span>
+              <Button variant="ghost" size="sm" onClick={handleLogout} className="rounded-full hover:bg-white/10 h-8 p-2">
+                <LogOut size={16} />
+              </Button>
+            </div>
+          ) : (
+
+            <div className="flex gap-2">
+              <Link href="/login" className={buttonVariants({ variant: "ghost", size: "sm", className: "rounded-full text-white hover:bg-white/10 h-8 font-bold text-xs uppercase" })}>
+                {t("user_login")}
+              </Link>
+              <Link href="/driver/login" className={buttonVariants({ variant: "secondary", size: "sm", className: "rounded-full h-8 font-bold text-xs uppercase" })}>
+                <User className="w-3 h-3 mr-1" />
+                {t("driver_login")}
+              </Link>
+            </div>
+          )}
         </div>
       </header>
 

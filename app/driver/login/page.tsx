@@ -12,8 +12,7 @@ import { FormField } from "@/components/FormField";
 export default function DriverLogin() {
   const router = useRouter();
   const { t } = useLang();
-  const [phone, setPhone] = useState("01711111111"); // Seeded default for ease of testing
-  const [password, setPassword] = useState("driver123");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -26,14 +25,16 @@ export default function DriverLogin() {
       const res = await fetch("/api/auth/driver/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, password })
+        body: JSON.stringify({ phone })
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        localStorage.setItem("cng_driver_token", data.token);
-        router.push("/driver/dashboard");
+        router.push("/dashboard");
+      } else if (data.signupRequired) {
+        // Carry phone to signup
+        router.push(`/signup?phone=${phone}`);
       } else {
         setError(data.error || t("login_failed"));
       }
@@ -76,17 +77,6 @@ export default function DriverLogin() {
                   onChange={setPhone}
                   required
                 />
-                
-                <FormField
-                  label={t("password")}
-                  icon={Lock}
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={setPassword}
-                  required
-                />
-
 
                 <Button
                   type="submit"
@@ -98,8 +88,8 @@ export default function DriverLogin() {
                     <Loader2 className="w-6 h-6 animate-spin" />
                   ) : (
                     <div className="flex items-center gap-2">
-                      <LogIn className="w-5 h-5" />
-                      {t("login_btn")}
+                       {t("login_btn")}
+                      <ChevronRight className="w-5 h-5" />
                     </div>
                   )}
                 </Button>
@@ -107,13 +97,13 @@ export default function DriverLogin() {
           </CardContent>
         </Card>
         
-        <div className="mt-8 text-center">
-          <Button 
-            variant="ghost" 
-            onClick={() => router.push("/driver/signup")}
-            className="text-slate-500 font-bold hover:text-emerald-600 transition-colors gap-2"
+        <div className="mt-8 text-center text-slate-400 text-sm">
+           New driver? <Button 
+            variant="link" 
+            onClick={() => router.push("/signup")}
+            className="text-emerald-600 p-0 h-auto font-bold"
           >
-            {t("driver_signup")} <ChevronRight size={16} />
+            {t("signup_btn")}
           </Button>
         </div>
       </div>

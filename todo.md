@@ -22,131 +22,132 @@
 
 ## 🏗️ Architecture
 
-- [ ] Subdomain-based PWA split — `cnglagbe.com` (User) · `driver.cnglagbe.com` (Driver)
-- [ ] Single Next.js monolith — shared API routes for both apps
-- [ ] Middleware-based subdomain routing (detect `host` header → serve correct PWA shell)
-- [ ] Role-based auth redirect — driver visiting user subdomain (or vice versa) redirects correctly
-- [ ] Shared cookie domain set to `.cnglagbe.com` for cross-subdomain session sharing
-- [ ] Separate `manifest.json` per subdomain (different PWA name, icon, theme color)
-- [ ] App Role Detection — use `window.location.hostname` continuously on the client.
+- [x] Subdomain-based PWA split — `cnglagbe.com` (User) · `driver.cnglagbe.com` (Driver)
+- [x] Single Next.js monolith — shared API routes for both apps
+- [x] Middleware-based subdomain routing (detect `host` header → serve correct PWA shell)
+- [x] Role-based auth redirect — driver visiting user subdomain (or vice versa) redirects correctly
+- [x] Shared cookie domain set to `.cnglagbe.com` for cross-subdomain session sharing
+- [x] Separate `manifest.json` per subdomain (different PWA name, icon, theme color)
+- [x] App Role Detection — use `window.location.hostname` continuously on the client.
 
 ---
 
 ## 📱 User App (PWA)
 
 ### Auth
-- [ ] Simple phone number login (Skip OTP verification for MVP, but keep input)
+- [x] Simple phone number login (Skip OTP verification for MVP, but keep input)
 - [ ] [POST-MVP] OTP via SMS & Verification
-- [ ] Issue JWT in httpOnly cookie upon login
-- [ ] Auto-login on return visit (cookie persists)
-- [ ] Logout — clear cookie + invalidate server-side session
+- [x] Issue JWT in httpOnly cookie upon login
+- [x] Auto-login on return visit (cookie persists)
+- [x] Logout — clear cookie + invalidate server-side session
 
 ### Booking Flow
-- [ ] GPS auto-detect pickup location with manual override
-- [ ] Destination selection **ONLY via map marker drop** (no Google Places Autocomplete for MVP)
-- [ ] Map pin drag-to-adjust for both pickup and destination
-- [ ] Confirm location step before requesting — show map preview
-- [ ] **Fixed Fare** estimate shown before confirm (server-calculated, locked in at request time)
-- [ ] "Request CNG" button — disabled immediately after first tap
-- [ ] Active-booking lock — user cannot request a second booking while one is active
+- [x] GPS auto-detect pickup location with manual override
+- [x] Destination selection **ONLY via map marker drop** (no Google Places Autocomplete for MVP)
+- [x] Map pin drag-to-adjust for both pickup and destination
+- [x] Confirm location step before requesting — show map preview
+- [x] **Fixed Fare** estimate shown before confirm (server-calculated, locked in at request time)
+- [x] "Request CNG" button — disabled immediately after first tap
+- [x] Active-booking lock — user cannot request a second booking while one is active
 
 ### During Booking / Completion
-- [ ] Waiting screen — animated state, searching for driver
-- [ ] Driver assigned screen — driver name, vehicle number, photo, live location on map (load map once + move marker(marker will be cng icon) only (no repeated API calls))
-- [ ] "Driver has arrived" status push → **Marks booking as COMPLETED**
-- [ ] Booking ended screen — show final fixed fare to pay in cash
+- [x] Waiting screen — animated state, searching for driver
+- [x] Driver assigned screen — driver name, vehicle number, photo, live location on map (load map once + move marker(marker will be cng icon) only (no repeated API calls))
+- [x] "Driver has arrived" status push → **Marks booking as COMPLETED**
+- [x] Booking ended screen — show final fixed fare to pay in cash
 
 ### Post-Booking
-- [ ] Booking history list (date, pickup, destination, fare, driver)
-- [ ] Booking detail view
-- [ ] Report issue button (wrong fare, no-show, misconduct) — linked to booking ID
+- [x] Booking history list (date, pickup, destination, fare, driver)
+- [x] Booking detail view
+- [x] Report issue button (wrong fare, no-show, misconduct) — linked to booking ID
+
 
 ---
 
 ## 🚗 Driver App (PWA)
 
 ### Auth
-- [ ] Simple phone number login — role=driver in JWT (Skip OTP verification for MVP)
-- [ ] First-time profile setup: name, NID number, vehicle type, plate number, photo upload
-- [ ] Admin approval gate — driver cannot go online until approved
+- [x] Simple phone number login — role=driver in JWT (Skip OTP verification for MVP)
+- [x] First-time profile setup: name, NID number, vehicle type, plate number, photo upload
+- [x] Admin approval gate — driver cannot go online until approved
 
 ### Status & Availability
-- [ ] Online / Offline toggle — large, prominent, one-tap
-- [ ] Show today's bookings count + earnings on home screen (motivation to stay online)
+- [x] Online / Offline toggle — large, prominent, one-tap
+- [x] Show today's bookings count + earnings on home screen (motivation to stay online)
 
 ### Location Sending
-- [ ] Basic geolocation update (`setInterval` 5-10s) to securely push updates to the server.
-- [ ] Warn driver if location permission is denied.
+- [x] Basic geolocation update (`setInterval` 5-10s) to securely push updates to the server.
+- [x] Warn driver if location permission is denied.
 
 ### Booking Request Handling
-- [ ] Incoming request = fullscreen modal takeover, cannot be accidentally dismissed
-- [ ] Alert sound via Web Audio API
-- [ ] 20-second accept timer — auto-reject if no action
-- [ ] Show user pickup point on map before accepting
-- [ ] Accept → deep link to Google Maps for navigation to pickup
-- [ ] **"I've arrived" button → Completes the booking, ends system tracking, shows fare to collect.**
+- [x] Incoming request = fullscreen modal takeover, cannot be accidentally dismissed
+- [x] Alert sound via Web Audio API
+- [x] 20-second accept timer — auto-reject if no action
+- [x] Show user pickup point on map before accepting
+- [x] Accept → deep link to Google Maps for navigation to pickup
+- [x] **"I've arrived" button → Completes the booking, ends system tracking, shows fare to collect.**
 
 ### Post-Booking
-- [ ] Booking summary card — distance, fixed fare earned
-- [ ] Earnings accumulate in session total visible on home screen
+- [x] Booking summary card — distance, fixed fare earned
+- [x] Earnings accumulate in session total visible on home screen
 
 ---
 
 ## ⚙️ Backend & System Logic
 
 ### Auth & Identity
-- [ ] JWT with `role` claim (`user` | `driver`) — verified middleware on every protected route
-- [ ] Driver `approved` status checked server-side on every driver API call
+- [x] JWT with `role` claim (`user` | `driver`) — verified middleware on every protected route
+- [x] Driver `approved` status checked server-side on every driver API call
 
 ### Booking State Machine
 Enforce all transitions server-side. Never trust client-reported state.
 `REQUESTED → DRIVER_ASSIGNED → COMPLETED (On driver arrival)`
 `         ↘ TIMED_OUT (no driver) / CANCELLED`
 
-- [ ] Atomic booking assignment via DB transaction + row-level lock (prevents double-assignment)
-- [ ] One active booking per user max — server-side check
-- [ ] One active booking per driver max — server-side check
-- [ ] Booking request auto-expires to TIMED_OUT after 5 minutes with no assignment
+- [x] Atomic booking assignment via DB transaction + row-level lock (prevents double-assignment)
+- [x] One active booking per user max — server-side check
+- [x] One active booking per driver max — server-side check
+- [x] Booking request auto-expires to TIMED_OUT after 5 minutes with no assignment
 
 ### Fare System (Strictly Fixed)
-- [ ] Fare calculated server-side only — client never sends a fare, only receives it
-- [ ] Formula: `base_fare + (distance_km × per_km_rate)` ONLY. No dynamic pricing.
-- [ ] Fixed fare snapshot stored at booking creation. This is the **final immutable fare**.
+- [x] Fare calculated server-side only — client never sends a fare, only receives it
+- [x] Formula: `base_fare + (distance_km × per_km_rate)` ONLY. No dynamic pricing.
+- [x] Fixed fare snapshot stored at booking creation. This is the **final immutable fare**.
 
 ### Cancellation Policy
-- [ ] Cancel reason required
-- [ ] User limit: 3 cancels/hour → 30-min booking cooldown
-- [ ] Driver limit: 3 cancels/hour → forced offline + warning
-- [ ] All cancels stored with reason + timestamp
+- [x] Cancel reason required
+- [x] User limit: 3 cancels/hour → 30-min booking cooldown
+- [x] Driver limit: 3 cancels/hour → forced offline + warning
+- [x] All cancels stored with reason + timestamp
 
 ### Search & Matching (Basic Logic)
-- [ ] Simple Geospatial driver search using PostGIS — find online, available drivers within close radius.
-- [ ] Sort candidates by distance (nearest first).
-- [ ] Send request to nearest driver first.
-- [ ] Do not re-send to a driver who already rejected this booking.
+- [x] Simple Geospatial driver search using PostGIS — find online, available drivers within close radius.
+- [x] Sort candidates by distance (nearest first).
+- [x] Send request to nearest driver first.
+- [x] Do not re-send to a driver who already rejected this booking.
 
 ### Network Resilience (Basics Only)
-- [ ] Idempotency key on mutating API calls (UUID sent by client, server deduplicates)
-- [ ] Basic Client auto-retry on 500 errors.
+- [x] Idempotency key on mutating API calls (UUID sent by client, server deduplicates)
+- [x] Basic Client auto-retry on 500 errors.
 
 ### Booking Audit Log
-- [ ] Store per booking: user_id, driver_id, start timestamps, start/end coords, polyline, fixed fare.
-- [ ] Admin can look up any booking by ID.
+- [x] Store per booking: user_id, driver_id, start timestamps, start/end coords, polyline, fixed fare.
+- [x] Admin can look up any booking by ID.
 
 ---
 
 ## 🔔 Notifications & Real-time
 
-- [ ] Polling every 5 sec for driver/user state sync (simple & reliable).
-- [ ] Basic Server-Sent Events (SSE) if simple to implement for user-side updates, otherwise pure polling.
+- [x] Polling every 5 sec for driver/user state sync (simple & reliable).
+- [x] Basic Server-Sent Events (SSE) if simple to implement for user-side updates, otherwise pure polling.
 - [ ] Web Push Notifications for "New booking request nearby" as a backup (optional for early MVP).
 
 ---
 
 ## 🔐 Auth & Session
-- [ ] Cookies: `httpOnly`, `Secure`, `SameSite=None`
-- [ ] Cookie domain: `.cnglagbe.com`
-- [ ] Login rate limit
+- [x] Cookies: `httpOnly`, `Secure`, `SameSite=None`
+- [x] Cookie domain: `.cnglagbe.com`
+- [x] Login rate limit
 
 ---
 

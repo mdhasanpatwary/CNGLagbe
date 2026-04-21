@@ -1,19 +1,13 @@
 import { NextResponse } from "next/server";
-import { verifyToken } from "@/lib/auth";
+import { getApprovedDriver } from "@/lib/auth";
 
 // For MVP, rejecting just tells the client to hide the booking request locally 
 // so we don't have to maintain an array of 'rejectedBy' driver IDs in the DB
 export async function POST(request: Request) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const driverId = await getApprovedDriver();
 
-    const token = authHeader.substring(7);
-    const payload = await verifyToken(token);
-
-    if (!payload || payload.role !== "DRIVER") {
+    if (!driverId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -22,7 +16,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing booking ID" }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true, message: "Booking rejected locally" });
+    await prisma.bookingRejection.upsert({
+      where: {
+        bookingId_driverId: {
+          bookingId,
+          driverId,
+        },
+      },
+      update: {},
+      create: {
+        bookingId,
+        driverId,
+      },
+    });
+
+    return NextResponse.json({ success: true, message: "Booking rejected" });
   } catch (error) {
     console.error("Driver Reject Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

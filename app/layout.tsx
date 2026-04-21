@@ -15,23 +15,41 @@ const notoBengali = Noto_Sans_Bengali({
   display: "swap",
 });
 
-export const viewport: Viewport = {
-  themeColor: "#16A34A",
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-};
+import { headers } from "next/headers";
+import { getAppRole } from "@/lib/subdomain";
 
-export const metadata: Metadata = {
-  title: "CNGLagbe",
-  description: "Fixed fare rural CNG booking system",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    title: "CNGLagbe",
-    statusBarStyle: "default",
-  },
-};
+export async function generateViewport(): Promise<Viewport> {
+  const headersList = await headers();
+  const host = headersList.get("host");
+  const role = getAppRole(host);
+  const isDriver = role === "driver";
+  
+  return {
+    themeColor: isDriver ? "#10B981" : "#16A34A", // Emerald for Driver, Green for User
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  };
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const headersList = await headers();
+  const host = headersList.get("host");
+  const role = getAppRole(host);
+  const isDriver = role === "driver";
+  
+  return {
+    title: isDriver ? "CNGLagbe Driver" : "CNGLagbe",
+    description: isDriver ? "Manage your CNG rides" : "Fixed fare rural CNG booking system",
+    manifest: "/manifest.json",
+    appleWebApp: {
+      capable: true,
+      title: isDriver ? "CNG Driver" : "CNGLagbe",
+      statusBarStyle: "default",
+    },
+  };
+}
 
 import { LanguageProvider } from "@/context/LanguageContext";
 

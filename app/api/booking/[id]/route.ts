@@ -15,6 +15,8 @@ export async function GET(
             id: true,
             name: true,
             phone: true,
+            vehicleNumber: true,
+            photoUrl: true,
           },
         },
       },
@@ -22,6 +24,19 @@ export async function GET(
 
     if (!booking) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    }
+
+    if (booking.status === "PENDING") {
+      const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
+      if (booking.createdAt < fiveMinsAgo) {
+        // Auto-expire
+        await prisma.booking.update({
+          where: { id: booking.id },
+          data: { status: "TIMED_OUT" },
+        }).catch(console.error);
+        
+        booking.status = "TIMED_OUT";
+      }
     }
 
     return NextResponse.json({ booking });

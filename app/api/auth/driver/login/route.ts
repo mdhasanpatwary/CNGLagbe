@@ -1,16 +1,25 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import bcrypt from "bcryptjs";
-import { signToken } from "@/lib/auth";
+import { setAuthCookie, signToken } from "@/lib/auth";
+import { checkRateLimit, resetRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
-    const { phone, password } = await request.json();
+    const { phone } = await request.json();
 
-    if (!phone || !password) {
+    if (!phone) {
       return NextResponse.json(
-        { error: "Phone and password are required" },
+        { error: "Phone number is required" },
         { status: 400 }
+      );
+    }
+
+    // Rate Limit Check (5 attempts / 15 mins)
+    const rateLimitKey = `login:driver:${phone}`;
+    const { allowed } = await checkRateLimit(rateLimitKey, 5, 900);
+    
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many login attempts. Please try again in 15 minutes." },
+        { status: 429 }
       );
     }
 
@@ -19,13 +28,10 @@ export async function POST(request: Request) {
     });
 
     if (!driver) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-    }
-
-    const isMatch = await bcrypt.compare(password, driver.passwordHash);
-
-    if (!isMatch) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Driver not found. Please sign up.", signupRequired: true },
+        { status: 404 }
+      );
     }
 
     const token = await signToken({
@@ -33,12 +39,16 @@ export async function POST(request: Request) {
       role: "DRIVER",
     });
 
+    await setAuthCookie(token);
+    await resetRateLimit(rateLimitKey);
+
     return NextResponse.json({
-      token,
+      success: true,
       driver: {
         id: driver.id,
         name: driver.name,
         phone: driver.phone,
+        isApproved: driver.isApproved,
       },
     });
   } catch (error) {
