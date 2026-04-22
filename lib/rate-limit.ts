@@ -66,7 +66,7 @@ export async function resetRateLimit(key: string) {
     await prisma.rateLimit.delete({
       where: { key },
     });
-  } catch (error) {
+  } catch {
     // Ignore error if already deleted
   }
 }

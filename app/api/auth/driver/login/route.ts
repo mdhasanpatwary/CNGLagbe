@@ -1,3 +1,5 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { setAuthCookie, signToken } from "@/lib/auth";
 import { checkRateLimit, resetRateLimit } from "@/lib/rate-limit";
 

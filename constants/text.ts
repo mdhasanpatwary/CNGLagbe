@@ -59,21 +59,25 @@ export const TEXT = {
     en: "Commission",
     bn: "কমিশন"
   },
+  voided_revenue: {
+    en: "Voided Revenue",
+    bn: "বাতিলকৃত আয়"
+  },
   revenue_desc: {
     en: "From bookings",
     bn: "বুকিং থেকে"
   },
   commission_desc: {
-    en: "+20% fee",
-    bn: "+২০% ফি"
+    en: "Platform commission (20%)",
+    bn: "প্ল্যাটফর্ম কমিশন (২০%)"
   },
   driver_payouts: {
     en: "Driver Income",
     bn: "ড্রাইভার আয়"
   },
   payout_desc: {
-    en: "Drivers keep 80%",
-    bn: "ড্রাইভার পাবে ৮০%"
+    en: "Driver receives remainder",
+    bn: "ড্রাইভার বাকিটা পাবে"
   },
   active_drivers: {
     en: "On Duty",
@@ -149,7 +153,7 @@ export const TEXT = {
   reject: { en: "Reject", bn: "বাতিল" },
   accept: { en: "Accept", bn: "নিলাম" },
   incoming: { en: "New Bookings", bn: "নতুন বুকিং" },
-  finding: { en: "Finding...", bn: "খুঁজছি..." },
+  finding: { en: "Finding...", bn: "খোঁজা হচ্ছে..." },
   driver_signup: { en: "Join as Driver", bn: "ড্রাইভার রেজিস্ট্রেশন" },
   signup_btn: { en: "Sign Up", bn: "রেজিস্ট্রেশন করুন" },
   next: { en: "Next", bn: "পরবর্তী" },
@@ -214,6 +218,56 @@ export const TEXT = {
   reason_vehicle_issue: { en: "Vehicle issue", bn: "গাড়িতে সমস্যা" },
   reason_user_noshow: { en: "User no-show", bn: "কাস্টমার আসেনি" },
   reason_long_wait: { en: "Long wait time", bn: "অনেক সময় লাগছে" },
+  cash_only: { en: "Cash Only", bn: "শুধু নগদ" },
+  pay_driver: { en: "Pay Driver", bn: "ড্রাইভারকে দিন" },
+  collect_cash: { en: "Collect Cash", bn: "নগদ নিন" },
+  overview: { en: "Home", bn: "সারসংক্ষেপ" },
+  drivers: { en: "Drivers", bn: "ড্রাইভার" },
+  users: { en: "Users", bn: "ইউজার" },
+  logs: { en: "Rides", bn: "রাইড" },
+  refresh_status: { en: "Refresh", bn: "রিফ্রেশ" },
+  active_bookings: { en: "Active", bn: "চলমান" },
+  no_active_bookings: { en: "No active", bn: "রাইড নেই" },
+  online_drivers: { en: "Online", bn: "অনলাইন" },
+  no_online_drivers: { en: "No drivers", bn: "কেউ নেই" },
+  driver_management: { en: "Drivers", bn: "ড্রাইভার" },
+  user_management: { en: "Users", bn: "ইউজার" },
+  full_booking_log: { en: "Ride Logs", bn: "সব রাইড" },
+  filter: { en: "Filter", bn: "ফিল্টার" },
+  approved: { en: "Approved", bn: "চালু" },
+  pending: { en: "Pending", bn: "বাকি" },
+  suspended: { en: "Suspended", bn: "বন্ধ" },
+  lift_suspension: { en: "Open", bn: "চালু করুন" },
+  suspend: { en: "Stop", bn: "বন্ধ করুন" },
+  total: { en: "Total", bn: "মোট" },
+  driver: { en: "Driver", bn: "ড্রাইভার" },
+  user: { en: "User", bn: "ইউজার" },
+  identity_vehicle: { en: "Info", bn: "তথ্য" },
+  actions: { en: "Action", bn: "কাজ" },
+  unassigned: { en: "None", bn: "নাই" },
+  joined_date: { en: "Joined", bn: "শুরু" },
+  fare_distance: { en: "Price/Dist", bn: "ভাড়া/পথ" },
+  datetime: { en: "Time", bn: "সময়" },
+  new_label: { en: "New", bn: "নতুন" },
+  uploaded: { en: "Uploaded", bn: "জমা হয়েছে" },
+  change_photo: { en: "Change", bn: "পাল্টান" },
+  upload_failed: { en: "Upload Failed", bn: "আপলোড হয় নাই" },
+  no_active_rides_online: {
+    en: "No active rides right now",
+    bn: "এই মুহূর্তে কোন রাইড নেই"
+  },
+  incomplete_profile_warning: {
+    en: "Incomplete profile — cannot approve",
+    bn: "প্রোফাইল অসম্পূর্ণ — অনুমোদন সম্ভব নয়"
+  },
+  just_now: {
+    en: "Just now",
+    bn: "এইমাত্র"
+  },
+  no_pending_drivers: {
+    en: "No new drivers",
+    bn: "কোন নতুন ড্রাইভার নেই"
+  }
 } as const;
 
 

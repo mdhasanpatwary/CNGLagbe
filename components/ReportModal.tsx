@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { X, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { X, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
 
 interface ReportModalProps {
@@ -52,9 +52,9 @@ export function ReportModal({ bookingId, onClose }: ReportModalProps) {
               <AlertTriangle className="text-amber-500" size={24} />
               {t("report_issue")}
             </h2>
-            <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition text-slate-400">
+            <AppButton variant="ghost" onClick={onClose} className="p-0 w-10 h-10 rounded-full transition text-slate-400">
               <X size={20} />
-            </button>
+            </AppButton>
           </div>
 
           {success ? (
@@ -68,17 +68,18 @@ export function ReportModal({ bookingId, onClose }: ReportModalProps) {
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-3">
                 {reasons.map((r) => (
-                  <button
+                  <AppButton
                     key={r.id}
+                    variant={reason === r.id ? "primary" : "secondary"}
                     onClick={() => setReason(r.id)}
-                    className={`py-3 px-4 rounded-2xl text-xs font-black uppercase tracking-widest border-2 transition-all active:scale-95 ${
+                    className={`h-12 text-[10px] font-black uppercase tracking-widest rounded-2xl ${
                       reason === r.id
-                        ? "bg-slate-900 border-slate-900 text-white shadow-lg"
-                        : "bg-white border-slate-100 text-slate-500 hover:border-slate-300"
+                        ? "shadow-lg"
+                        : "border-2 border-slate-100 text-slate-500 hover:border-slate-300"
                     }`}
                   >
                     {r.label}
-                  </button>
+                  </AppButton>
                 ))}
               </div>
 
@@ -94,13 +95,14 @@ export function ReportModal({ bookingId, onClose }: ReportModalProps) {
                 />
               </div>
 
-              <Button
+               <AppButton
                 onClick={handleSubmit}
-                disabled={!reason || loading}
+                disabled={!reason}
+                loading={loading}
                 className="w-full h-14 rounded-2xl text-base font-black shadow-xl"
               >
-                {loading ? <Loader2 className="animate-spin" /> : t("submit_report")}
-              </Button>
+                {t("submit_report")}
+              </AppButton>
             </div>
           )}
         </div>

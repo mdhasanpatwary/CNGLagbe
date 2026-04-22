@@ -7,7 +7,7 @@ const key = new TextEncoder().encode(JWT_SECRET);
 
 export interface JwtPayload {
   sub: string; // driver or user ID
-  role: "DRIVER" | "USER";
+  role: "DRIVER" | "USER" | "ADMIN";
 }
 
 export async function signToken(payload: JwtPayload): Promise<string> {
@@ -92,9 +92,18 @@ export async function getApprovedDriver(): Promise<string | null> {
 
   const driver = await prisma.driver.findUnique({
     where: { id: driverId },
-    select: { isApproved: true },
+    select: { isApproved: true, isSuspended: true },
   });
 
-  if (!driver?.isApproved) return null;
+  if (!driver?.isApproved || driver.isSuspended) return null;
   return driverId;
+}
+
+/**
+ * Specifically ensures the authenticated user is an ADMIN
+ */
+export async function getAuthenticatedAdmin(): Promise<string | null> {
+  const user = await getAuthUser();
+  if (!user || user.role !== "ADMIN") return null;
+  return user.sub;
 }

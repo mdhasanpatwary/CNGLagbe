@@ -152,17 +152,17 @@ Enforce all transitions server-side. Never trust client-reported state.
 ---
 
 ## 💰 Payments (MVP)
-- [ ] **Cash only.** Paid to driver upon arrival. No MFS/bKash integration in MVP.
-- [ ] Both user and driver see the same fare on booking completion screen
+- [x] **Cash only.** Paid to driver upon arrival. No MFS/bKash integration in MVP.
+- [x] Both user and driver see the same fare on booking completion screen
 
 ---
 
 ## 🧑‍💼 Admin Panel
-- [ ] Protected admin route (`/admin`)
-- [ ] Live map — all active bookings + online drivers
-- [ ] Driver management: approve / suspend
-- [ ] User management: view history
-- [ ] Booking log: view full booking log
+- [x] Protected admin route (`/admin`)
+- [x] Admin Monitor — Active bookings + online drivers list (Manual Refresh)
+- [x] Driver management: approve / suspend
+- [x] User management: view history
+- [x] Booking log: view full booking log
 
 ---
 

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { LucideIcon, Eye, EyeOff } from "lucide-react";
 import { Input } from "./ui/input";
+import { AppButton } from "./ui/AppButton";
 
 interface FormFieldProps {
   label: string;
@@ -49,14 +50,16 @@ export function FormField({
           required={required}
         />
         {isPassword && (
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-500 transition-colors z-20 p-2"
-            tabIndex={-1}
-          >
-            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-          </button>
+          <div className="absolute right-1 top-1/2 -translate-y-1/2 z-20">
+            <AppButton
+              variant="ghost"
+              onClick={() => setShowPassword(!showPassword)}
+              className="w-12 h-12 p-0 text-slate-400 hover:text-emerald-500"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </AppButton>
+          </div>
         )}
       </div>
     </div>

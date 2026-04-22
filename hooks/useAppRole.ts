@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getAppRole, AppRole } from "@/lib/subdomain";
 
 /**
@@ -8,14 +8,12 @@ import { getAppRole, AppRole } from "@/lib/subdomain";
  * Relies on window.location.hostname.
  */
 export function useAppRole() {
-  const [role, setRole] = useState<AppRole>("user");
-
-  useEffect(() => {
+  const [role] = useState<AppRole>(() => {
     if (typeof window !== "undefined") {
-      const host = window.location.hostname;
-      setRole(getAppRole(host));
+      return getAppRole(window.location.hostname);
     }
-  }, []);
+    return "user";
+  });
 
   return {
     role,

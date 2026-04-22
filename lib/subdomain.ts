@@ -8,12 +8,14 @@ export const DRIVER_DOMAIN = process.env.NEXT_PUBLIC_DRIVER_DOMAIN || "driver.cn
 const USER_DOMAIN_DEV = process.env.NEXT_PUBLIC_USER_DOMAIN_DEV || "localhost:3000";
 const DRIVER_DOMAIN_DEV = process.env.NEXT_PUBLIC_DRIVER_DOMAIN_DEV || "driver.localhost:3000";
 
+export type AppRole = "user" | "driver";
+
 /**
  * Detects the app context based on the hostname
  * @param host The hostname (e.g., from headers or window.location)
- * @returns 'driver' | 'user'
+ * @returns AppRole
  */
-export function getAppRole(host: string | null): "user" | "driver" {
+export function getAppRole(host: string | null): AppRole {
   if (!host) return "user";
   
   // Clean port if present

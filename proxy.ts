@@ -4,20 +4,23 @@ import { verifyToken } from "@/lib/auth";
 import { getAppRole, getUserUrl, getDriverUrl } from "@/lib/subdomain";
 
 export async function middleware(request: NextRequest) {
+  return proxy(request);
+}
+
+export default middleware;
+
+export async function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   const host = request.headers.get("host");
   const appRole = getAppRole(host);
   const path = url.pathname;
 
-  // 1. Skip paths that should bypass middleware
+  // 1. Skip static paths that should bypass middleware entirely
   if (
     path.startsWith("/_next") ||
     path.startsWith("/static") ||
-    path.startsWith("/login") ||
-    path.startsWith("/signup") || // in case driver signup is here
     path.includes(".") ||
-    path === "/manifest.json" ||
-    path.startsWith("/api/auth") // auth endpoints
+    path === "/manifest.json"
   ) {
     return NextResponse.next();
   }
@@ -36,30 +39,37 @@ export async function middleware(request: NextRequest) {
       if (!user || user.role !== "USER") {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
+    } else if (path.startsWith("/api/admin")) {
+      if (!user || user.role !== "ADMIN") {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
     }
-    // Allow other API routes natively (e.g. /api/nearby-drivers, /api/fare, /api/geocode)
+    // Allow other API routes natively (e.g. /api/nearby-drivers, /api/fare, /api/geocode, /api/auth)
     return NextResponse.next();
   }
 
-  // 4. Subdomain enforcement and role-based redirects
+  // 4. Auth Pages (Login/Signup) logic
+  const isAuthPage = path.startsWith("/login") || path.startsWith("/signup");
+  
+  // 5. Subdomain enforcement and role-based redirects
   if (appRole === "driver") {
-    // If no user, redirect to login for Driver subdomain
-    if (!user) {
-      return NextResponse.redirect(getDriverUrl("/login"));
-    }
-
-    // If a user with role USER is on driver subdomain, send them back
-    if (user.role === "USER") {
-      return NextResponse.redirect(getUserUrl("/"));
-    }
-
     // If authenticated driver lands on root driver subdomain, send them to dashboard
-    if (user.role === "DRIVER" && path === "/") {
+    if (user?.role === "DRIVER" && path === "/") {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 
+    // If no user and not on an auth page, redirect to login for Driver subdomain
+    if (!user && !isAuthPage) {
+      return NextResponse.redirect(getDriverUrl("/login"));
+    }
+
+    // If a user with role USER is on driver subdomain, send them back to user site
+    if (user?.role === "USER") {
+      return NextResponse.redirect(getUserUrl("/"));
+    }
+
     // Rewrite logic: if on driver subdomain, and path doesn't start with /driver, 
-    // it's likely a clean URL like /dashboard that should map to /driver/dashboard
+    // it's likely a clean URL like /dashboard or /login that should map to /driver/dashboard or /driver/login
     if (!path.startsWith("/driver") && !path.startsWith("/admin")) {
       url.pathname = `/driver${path === "/" ? "" : path}`;
       return NextResponse.rewrite(url);
@@ -77,7 +87,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(getDriverUrl("/dashboard"));
     }
 
-    if (!user) {
+    // If not logged in and trying to access protected user paths
+    if (!user && !isAuthPage) {
       if (path.startsWith("/user/") || path === "/map" || path === "/history") {
         return NextResponse.redirect(getUserUrl("/login"));
       }
@@ -97,6 +108,13 @@ export async function middleware(request: NextRequest) {
     if (path === "/history") {
       url.pathname = "/user/history";
       return NextResponse.rewrite(url);
+    }
+    
+    // Admin protection
+    if (path.startsWith("/admin")) {
+      if (!user || user.role !== "ADMIN") {
+        return NextResponse.redirect(getUserUrl("/login"));
+      }
     }
   }
 

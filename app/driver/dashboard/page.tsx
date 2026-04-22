@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut, Power, User, MapPin, Navigation, Info, ExternalLink, CheckCircle2, XCircle, Banknote, Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AppButton } from "@/components/ui/AppButton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useLang } from "@/hooks/useLang";
 import { supabase } from "@/lib/supabase";
 import { StaticMap } from "@/components/StaticMap";
 import { CancelModal } from "@/components/CancelModal";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { apiFetch } from "@/utils/api";
 
 interface RequestItem {
@@ -54,6 +55,90 @@ export default function DriverDashboard() {
   const lastLocation = useRef<{ lat: number; lng: number } | null>(null);
   const locationInterval = useRef<NodeJS.Timeout | null>(null);
   
+  const logout = async () => {
+    try {
+      await apiFetch("/api/auth/logout", { method: "POST" });
+      router.push("/");
+    } catch (e) {
+      console.error("Logout failed", e);
+    }
+  };
+
+  const toggleOnline = async () => {
+    try {
+      const res = await apiFetch("/api/driver/status", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isOnline: !isOnline })
+      });
+      if (res.ok) setIsOnline(!isOnline);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleReject = useCallback(async (id: string) => {
+    setRejectedIds(prev => new Set(prev).add(id));
+    setRequests(prev => prev.filter(r => r.id !== id));
+    try {
+      await apiFetch("/api/driver/reject", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId: id })
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  const handleAccept = useCallback(async (req: RequestItem) => {
+    try {
+      const res = await apiFetch("/api/driver/accept", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ bookingId: req.id })
+      });
+      if (res.ok) {
+         setRequests([]);
+         const data = await res.json();
+         setCurrentBooking(data.booking);
+         window.open(`https://www.google.com/maps/dir/?api=1&destination=${req.pickupLat},${req.pickupLng}`, "_blank");
+      } else {
+         alert(t("error") as string);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [t]);
+
+  const handleComplete = useCallback(async (id: string) => {
+    try {
+      const res = await apiFetch("/api/driver/complete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ bookingId: id })
+      });
+      if (res.ok) {
+         setArrivedBooking(currentBooking);
+         setCurrentBooking(null);
+         // Refresh stats after completion
+         const statsRes = await apiFetch("/api/driver/status");
+         if (statsRes.ok) {
+           const statsData = await statsRes.json();
+           setStats(statsData.stats);
+         }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [currentBooking]);
+
   // Initial auth check is handled by middleware, but we fetch status here
   useEffect(() => {
     const checkStatus = async () => {
@@ -110,7 +195,7 @@ export default function DriverDashboard() {
     fetchRequests();
     const interval = setInterval(fetchRequests, 5000);
     return () => clearInterval(interval);
-  }, [isOnline, isApproved, router]);
+  }, [isOnline, isApproved, router, rejectedIds]);
 
   // ─── Real-time Location Push ──────────────────────────────────────────────
   useEffect(() => {
@@ -146,7 +231,7 @@ export default function DriverDashboard() {
             },
             body: JSON.stringify({ lat, lng })
           });
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error("Location Push Error:", e); }
 
         // 2. Broadcast via Supabase Realtime (for true live tracking)
         if (currentBooking) {
@@ -157,11 +242,15 @@ export default function DriverDashboard() {
           });
         }
       }, (err) => {
-        console.error(err);
+        console.error("Geolocation Error:", { code: err.code, message: err.message });
         if (err.code === err.PERMISSION_DENIED) {
           alert(t("location_denied") as string);
         }
-      }, { enableHighAccuracy: true });
+      }, { 
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 10000 
+      });
     };
 
     locationInterval.current = setInterval(pushLocation, 10000); // Push every 10s if moved
@@ -172,30 +261,14 @@ export default function DriverDashboard() {
     };
   }, [isOnline, currentBooking, t]);
 
-  const toggleOnline = async () => {
-    try {
-      const res = await apiFetch("/api/driver/status", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ isOnline: !isOnline })
-      });
-      if (res.ok) setIsOnline(!isOnline);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   // ─── Request Timer & Sound ────────────────────────────────────────────────
   useEffect(() => {
-    if (!isOnline || requests.length === 0 || currentBooking) return;
-    
-    const activeReq = requests[0];
+    const activeReqId = requests[0]?.id;
+    if (!isOnline || !activeReqId || currentBooking) return;
     
     const playAlertTone = () => {
       try {
-        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
         if (!AudioCtx) return;
         const audioCtx = new AudioCtx();
         const oscillator = audioCtx.createOscillator();
@@ -215,89 +288,24 @@ export default function DriverDashboard() {
     };
     
     playAlertTone();
-    setTimeLeft(20);
+    // Use a timeout to avoid synchronous setState inside effect body
+    const timerReset = setTimeout(() => setTimeLeft(20), 0);
     
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          handleReject(activeReq.id);
+          handleReject(activeReqId);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
 
-    return () => clearInterval(interval);
-  }, [requests[0]?.id, isOnline, currentBooking]);
-
-  const handleReject = async (id: string) => {
-    setRejectedIds(prev => new Set(prev).add(id));
-    setRequests(prev => prev.filter(r => r.id !== id));
-    try {
-      await apiFetch("/api/driver/reject", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bookingId: id })
-      });
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleAccept = async (req: RequestItem) => {
-    try {
-      const res = await apiFetch("/api/driver/accept", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ bookingId: req.id })
-      });
-      if (res.ok) {
-         setRequests([]);
-         const data = await res.json();
-         setCurrentBooking(data.booking);
-         window.open(`https://www.google.com/maps/dir/?api=1&destination=${req.pickupLat},${req.pickupLng}`, "_blank");
-      } else {
-         alert(t("error") as string);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleComplete = async (id: string) => {
-    try {
-      const res = await apiFetch("/api/driver/complete", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ bookingId: id })
-      });
-      if (res.ok) {
-         setArrivedBooking(currentBooking);
-         setCurrentBooking(null);
-         // Refresh stats after completion
-         const statsRes = await apiFetch("/api/driver/status");
-         if (statsRes.ok) {
-           const statsData = await statsRes.json();
-           setStats(statsData.stats);
-         }
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await apiFetch("/api/auth/logout", { method: "POST" });
-      router.push("/");
-    } catch (e) {
-      console.error("Logout failed", e);
-    }
-  };
+    return () => {
+      clearTimeout(timerReset);
+      clearInterval(interval);
+    };
+  }, [requests, isOnline, currentBooking, handleReject]);
 
   if (loading) return null; // Wait for status check
 
@@ -306,7 +314,7 @@ export default function DriverDashboard() {
       {/* Premium Background Decoration */}
       <div className="fixed inset-0 bg-gradient-to-b from-emerald-600/10 via-transparent to-transparent pointer-events-none" />
 
-      <header className="w-full bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 px-6 pt-[calc(env(safe-area-inset-top)+1rem)] pb-4 flex items-center justify-between shadow-sm min-h-[5rem]">
+      <header className="w-full bg-white/70 backdrop-blur-xl border-b border-slate-200/50 sticky top-0 z-50 px-6 pt-[calc(env(safe-area-inset-top)+1rem)] pb-5 flex items-center justify-between shadow-2xl shadow-slate-900/5 min-h-[5.5rem]">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-600/20">
             <User className="text-white w-5 h-5" />
@@ -316,9 +324,12 @@ export default function DriverDashboard() {
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">ID: {driverId.slice(-6).toUpperCase()}</p>
           </div>
         </div>
-        <Button variant="ghost" size="icon" onClick={logout} className="rounded-full hover:bg-red-50 hover:text-red-600 transition-colors">
-          <LogOut className="w-5 h-5" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher />
+          <AppButton variant="ghost" onClick={logout} className="rounded-full hover:bg-red-50 hover:text-red-600 transition-colors w-12 h-12 p-0">
+            <LogOut className="w-5 h-5" />
+          </AppButton>
+        </div>
       </header>
 
       <main className="relative z-10 p-6 w-full max-w-md flex flex-col gap-6 flex-1">
@@ -342,7 +353,7 @@ export default function DriverDashboard() {
         ) : (
           <>
         {/* Status & Stats Card */}
-        {!currentBooking && (
+        {!currentBooking && isApproved && (
           <div className="flex flex-col gap-4">
             {/* Stats Row */}
             <div className="grid grid-cols-2 gap-4">
@@ -381,18 +392,17 @@ export default function DriverDashboard() {
                   </p>
                 </div>
 
-                <Button
+                <AppButton
                   onClick={toggleOnline}
-                  size="lg"
                   className={`w-full h-20 text-xl font-black rounded-2xl transition-all duration-500 shadow-xl relative overflow-hidden group ${
                     isOnline 
                     ? "bg-slate-800 hover:bg-slate-900 shadow-slate-800/20 text-white" 
                     : "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/30 text-white"
                   }`}
+                  leftIcon={<Power className={`w-8 h-8 transition-transform duration-500 ${isOnline ? "rotate-180" : "rotate-0 text-emerald-100"}`} />}
                 >
-                  <Power className={`w-8 h-8 mr-3 transition-transform duration-500 ${isOnline ? "rotate-180" : "rotate-0 text-emerald-100"}`} />
                   {isOnline ? t("go_offline") : t("go_online")}
-                </Button>
+                </AppButton>
               </CardContent>
             </Card>
           </div>
@@ -455,28 +465,29 @@ export default function DriverDashboard() {
                   <div className="bg-slate-50 p-5 rounded-2xl flex justify-between items-center border border-slate-100">
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase mb-1 flex items-center gap-1">
-                        <Banknote size={12} /> {t("to_collect")}
+                        <Banknote size={12} /> {t("collect_cash")}
                       </p>
                       <p className="text-3xl font-black text-slate-800">{t("currency")}{currentBooking.fare}</p>
                     </div>
-                    <Badge variant="outline" className="h-8 border-slate-200 text-slate-500 font-black text-[10px] uppercase px-3">{t("cash")}</Badge>
+                    <Badge variant="outline" className="h-8 border-emerald-200 text-emerald-600 font-black text-[10px] uppercase px-3 bg-emerald-50/50">{t("cash_only")}</Badge>
                   </div>
 
-                  <Button 
+                  <AppButton 
                     onClick={() => handleComplete(currentBooking.id)} 
-                    size="lg" 
                     className="w-full h-16 text-lg font-black rounded-2xl shadow-xl shadow-emerald-600/20 bg-emerald-600 hover:bg-emerald-700 text-white"
+                    leftIcon={<CheckCircle2 size={24} />}
                   >
-                    <CheckCircle2 size={24} className="mr-2" /> {t("i_arrived")}
-                  </Button>
+                    {t("i_arrived")}
+                  </AppButton>
 
-                  <Button 
+                  <AppButton 
                     variant="ghost"
                     onClick={() => setShowCancel(true)}
-                    className="w-full h-12 text-red-500 font-black uppercase tracking-widest text-[10px] gap-2 hover:bg-red-50"
+                    className="w-full mt-4 h-12 text-red-500 font-black uppercase tracking-widest text-[10px] hover:bg-red-50"
+                    leftIcon={<XCircle size={14} />}
                   >
-                    <XCircle size={14} /> {t("cancel_booking")}
-                  </Button>
+                    {t("cancel_booking")}
+                  </AppButton>
                 </div>
               </CardContent>
             </Card>
@@ -504,7 +515,7 @@ export default function DriverDashboard() {
                   <Banknote className="w-10 h-10 text-emerald-600" />
                 </div>
                 <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-2">{t("booking_done")}</h2>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-8">{t("to_collect")}</p>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-8">{t("collect_cash")}</p>
                 
                 <div className="bg-slate-50 p-6 rounded-2xl w-full mb-8 border border-slate-100 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-100/50 rounded-bl-full pointer-events-none" />
@@ -513,16 +524,21 @@ export default function DriverDashboard() {
                     <Badge variant="outline" className="border-emerald-200 text-emerald-700 bg-emerald-50 px-2 font-black">{arrivedBooking.distance} {t("km_unit")}</Badge>
                   </div>
                   <p className="text-5xl font-black text-slate-800 relative z-10">{t("currency")}{arrivedBooking.fare}</p>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 relative z-10">{t("payment_cash")}</p>
+                  <div className="flex flex-col items-center gap-1 mt-3 relative z-10">
+                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">{t("collect_cash")}</p>
+                    <Badge variant="outline" className="border-emerald-100 text-[9px] font-bold text-emerald-700 h-auto px-3 py-1 rounded-full bg-emerald-50/30 uppercase tracking-widest">
+                      {t("cash_only")}
+                    </Badge>
+                  </div>
                 </div>
                 
-                <Button 
+                <AppButton 
                   onClick={() => setArrivedBooking(null)} 
-                  size="lg" 
                   className="w-full h-16 text-lg font-black rounded-2xl shadow-xl shadow-emerald-500/20 bg-emerald-500 hover:bg-emerald-600 text-white"
+                  leftIcon={<CheckCircle2 size={24} />}
                 >
-                  <CheckCircle2 size={24} className="mr-2" /> {t("finish")}
-                </Button>
+                  {t("finish")}
+                </AppButton>
               </CardContent>
             </Card>
           </div>
@@ -574,7 +590,7 @@ export default function DriverDashboard() {
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t("pickup")}</p>
-                          <span className="text-sm font-bold text-slate-800 leading-tight block">{req.pickupAddress || \`\${req.pickupLat.toFixed(4)}, \${req.pickupLng.toFixed(4)}\`}</span>
+                          <span className="text-sm font-bold text-slate-800 leading-tight block">{req.pickupAddress || `${req.pickupLat.toFixed(4)}, ${req.pickupLng.toFixed(4)}`}</span>
                         </div>
                     </div>
                     <div className="w-px h-6 bg-slate-200 ml-4 -my-2" />
@@ -584,25 +600,27 @@ export default function DriverDashboard() {
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t("drop")}</p>
-                          <span className="text-sm font-bold text-slate-800 leading-tight block">{req.destAddress || \`\${req.destLat.toFixed(4)}, \${req.destLng.toFixed(4)}\`}</span>
+                          <span className="text-sm font-bold text-slate-800 leading-tight block">{req.destAddress || `${req.destLat.toFixed(4)}, ${req.destLng.toFixed(4)}`}</span>
                         </div>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 mt-4">
-                    <Button 
+                    <AppButton 
                       onClick={() => handleReject(req.id)} 
-                      variant="outline" 
+                      variant="secondary" 
                       className="h-16 rounded-2xl border-slate-200 font-black text-sm uppercase hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all"
+                      leftIcon={<XCircle size={20} />}
                     >
-                      <XCircle size={20} className="mr-2" /> {t("reject")}
-                    </Button>
-                    <Button 
+                      {t("reject")}
+                    </AppButton>
+                    <AppButton 
                       onClick={() => handleAccept(req)} 
                       className="h-16 rounded-2xl font-black text-sm uppercase shadow-xl shadow-emerald-500/30 bg-emerald-500 hover:bg-emerald-600 text-white"
+                      leftIcon={<CheckCircle2 size={20} />}
                     >
-                      <CheckCircle2 size={20} className="mr-2" /> {t("accept")}
-                    </Button>
+                      {t("accept")}
+                    </AppButton>
                   </div>
                 </CardContent>
               </Card>

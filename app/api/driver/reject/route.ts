@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { getApprovedDriver } from "@/lib/auth";
 
 // For MVP, rejecting just tells the client to hide the booking request locally 

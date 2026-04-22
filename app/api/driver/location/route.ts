@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing coordinates" }, { status: 400 });
     }
 
-    const driver = await prisma.driver.update({
+    await prisma.driver.update({
       where: { id: driverId },
       data: {
         currentLat: lat,

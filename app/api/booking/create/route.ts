@@ -99,11 +99,12 @@ export async function POST(request: Request) {
 
       return NextResponse.json({ booking: result });
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Booking Create Error:", error);
-    if (error.message?.startsWith("Active booking already exists:")) {
+    const err = error as { message?: string };
+    if (err.message?.startsWith("Active booking already exists:")) {
       return NextResponse.json(
-        { error: "Active booking already exists", bookingId: error.message.split(":")[1] },
+        { error: "Active booking already exists", bookingId: err.message.split(":")[1] },
         { status: 409 }
       );
     }

@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LogOut, User, MapPin, Navigation, Banknote, ShieldCheck, LayoutDashboard, Copyright } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { LogOut, User, MapPin, Navigation, Banknote, ShieldCheck, Copyright } from "lucide-react";
+import { AppButton } from "@/components/ui/AppButton";
 import { Card, CardContent } from "@/components/ui/card";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLang } from "@/hooks/useLang";
 
 export default function LandingPage() {
+  const router = useRouter();
   const { t } = useLang();
   const [user, setUser] = useState<{ name: string; role: string } | null>(null);
 
@@ -40,19 +42,22 @@ export default function LandingPage() {
               <span className="text-[10px] font-black bg-white/10 px-3 py-1.5 rounded-full uppercase tracking-widest">
                 {user.role === "DRIVER" ? t("driver_portal") : t("welcome_user")}: {user.name}
               </span>
-              <Button variant="ghost" size="sm" onClick={handleLogout} className="rounded-full hover:bg-white/10 h-8 p-2">
+              <AppButton variant="ghost" onClick={handleLogout} className="rounded-full hover:bg-white/10 h-12 p-2">
                 <LogOut size={16} />
-              </Button>
+              </AppButton>
             </div>
           ) : (
 
             <div className="flex gap-2">
-              <Link href="/login" className={buttonVariants({ variant: "ghost", size: "sm", className: "rounded-full text-white hover:bg-white/10 h-8 font-bold text-xs uppercase" })}>
-                {t("user_login")}
+              <Link href="/login">
+                <AppButton variant="ghost" className="rounded-full text-white hover:bg-white/10 font-bold text-xs uppercase">
+                  {t("user_login")}
+                </AppButton>
               </Link>
-              <Link href="/driver/login" className={buttonVariants({ variant: "secondary", size: "sm", className: "rounded-full h-8 font-bold text-xs uppercase" })}>
-                <User className="w-3 h-3 mr-1" />
-                {t("driver_login")}
+              <Link href="/driver/login">
+                <AppButton variant="secondary" className="rounded-full font-bold text-xs uppercase" leftIcon={<User className="w-3 h-3" />}>
+                  {t("driver_login")}
+                </AppButton>
               </Link>
             </div>
           )}
@@ -74,10 +79,19 @@ export default function LandingPage() {
           {t("cng_desc")}
         </p>
 
-        <Link href="/user/map" className={buttonVariants({ size: "lg", className: "w-full text-lg mb-10 h-14 rounded-xl shadow-lg" })}>
-          <MapPin className="w-5 h-5 mr-2" />
-          {t("set_pickup")}
-        </Link>
+        <AppButton 
+          onClick={() => {
+            if (user?.role === "DRIVER") {
+              router.push("/dashboard");
+            } else {
+              router.push("/user/map");
+            }
+          }}
+          className="w-full text-lg mb-10 h-14 rounded-xl shadow-lg font-bold"
+          leftIcon={<MapPin className="w-5 h-5" />}
+        >
+          {user?.role === "DRIVER" ? t("driver_portal") : t("set_pickup")}
+        </AppButton>
 
         {/* Feature Highlights */}
         <div className="grid gap-4 w-full">
@@ -115,9 +129,6 @@ export default function LandingPage() {
         <p className="flex items-center gap-1">
           <Copyright size={10} /> {t("app_name")} {new Date().getFullYear()}
         </p>
-        <Link href="/admin" className="underline inline-flex items-center gap-1 hover:text-slate-600 transition">
-          <LayoutDashboard size={12} /> {t("admin_dashboard")}
-        </Link>
       </footer>
     </div>
   );

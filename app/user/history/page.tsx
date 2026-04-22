@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronRight, Calendar, MapPin, Banknote, Navigation, Loader2, ArrowLeft } from "lucide-react";
+import { ChevronRight, Calendar, Banknote, Navigation, Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";

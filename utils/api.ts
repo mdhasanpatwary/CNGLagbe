@@ -26,7 +26,7 @@ export async function apiFetch(url: string, options: RequestInit = {}): Promise<
     headers.set("X-Idempotency-Key", idempotencyKey);
   }
 
-  let lastError: any;
+  let lastError: unknown;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
@@ -42,9 +42,10 @@ export async function apiFetch(url: string, options: RequestInit = {}): Promise<
         headers,
       });
 
-      // If it's a server error (500-599), we retry
-      if (response.status >= 500 && attempt < MAX_RETRIES) {
-        console.error(`[apiFetch] Server error ${response.status} on ${url}. Retrying...`);
+      // Only retry on transient server errors (502, 503, 504)
+      const transientStatuses = [502, 503, 504];
+      if (transientStatuses.includes(response.status) && attempt < MAX_RETRIES) {
+        console.warn(`[apiFetch] Transient server error ${response.status} on ${url} (attempt ${attempt + 1}/${MAX_RETRIES + 1}). Retrying...`);
         continue;
       }
 
@@ -52,11 +53,13 @@ export async function apiFetch(url: string, options: RequestInit = {}): Promise<
       return response;
     } catch (error) {
       lastError = error;
-      console.error(`[apiFetch] Network error or exception on ${url}:`, error);
-
+      
       // Retry on network errors
       if (attempt < MAX_RETRIES) {
+        console.warn(`[apiFetch] Network error on ${url} (attempt ${attempt + 1}/${MAX_RETRIES + 1}). Retrying...`);
         continue;
+      } else {
+        console.error(`[apiFetch] Network error or exception on ${url}:`, error);
       }
     }
   }

@@ -1,17 +1,20 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [postgis]
 }
 
 model User {
   id        String    @id @default(cuid())
   name      String
   phone     String    @unique
+  role      String    @default("USER") // USER, ADMIN
   bookings  Booking[]
   createdAt DateTime  @default(now())
 }
@@ -30,9 +33,11 @@ model Driver {
   vehicleType     String?
   photoUrl        String?
   isApproved      Boolean   @default(false)
+  isSuspended     Boolean   @default(false)
   bookings        Booking[]
   rejections      BookingRejection[]
   createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model Booking {

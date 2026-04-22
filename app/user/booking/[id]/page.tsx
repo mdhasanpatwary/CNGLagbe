@@ -4,12 +4,11 @@ import { useEffect, useState, use, useCallback } from "react";
 import { Loader2, CheckCircle2, User as UserIcon, Phone, Search, Banknote, Navigation, XCircle, Info, Home, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants, Button } from "@/components/ui/button";
+import { AppButton } from "@/components/ui/AppButton";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLang } from "@/hooks/useLang";
 import { supabase } from "@/lib/supabase";
 import { useRef } from "react";
-import { StaticMap } from "@/components/StaticMap";
 import { ReportModal } from "@/components/ReportModal";
 import { CancelModal } from "@/components/CancelModal";
 
@@ -56,14 +55,18 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
   }, [id, t]);
 
   useEffect(() => {
-    fetchBooking();
+    const initFetch = async () => {
+      await fetchBooking();
+    };
+    initFetch();
+    
     // Poll for status updates every 5s for reliability
     const intervalId = setInterval(() => {
       if (booking?.status === "COMPLETED" || booking?.status === "CANCELLED") {
         clearInterval(intervalId);
         return;
       }
-      fetchBooking();
+      void fetchBooking();
     }, 5000);
 
     return () => clearInterval(intervalId);
@@ -85,7 +88,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
       })
       .on("broadcast", { event: "status_change" }, () => {
         // High priority re-fetch when status changes
-        fetchBooking();
+        void fetchBooking();
       })
       .subscribe();
 
@@ -118,7 +121,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
           map: mapInstance.current,
           position: { lat: booking.pickupLat, lng: booking.pickupLng },
           title: "Pickup",
-          content: new PinElement({ background: "#10b981", borderColor: "#065f46", glyphColor: "white" }).element,
+          content: new PinElement({ background: "#10b981", borderColor: "#065f46", glyphColor: "white" }),
         });
       }
 
@@ -140,7 +143,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [id, booking, driverLocation]);
+  }, [id, booking, driverLocation, fetchBooking]);
 
   if (error) {
     return (
@@ -150,8 +153,10 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
         </div>
         <h2 className="text-xl font-bold mb-2">{t("error")}</h2>
         <p className="text-slate-500 mb-6">{error}</p>
-        <Link href="/" className={buttonVariants({ variant: "secondary", className: "rounded-full" })}>
-           <Home size={16} className="mr-2" /> {t("back_home")}
+        <Link href="/">
+          <AppButton variant="secondary" className="rounded-full" leftIcon={<Home size={16} />}>
+             {t("bk_home")}
+          </AppButton>
         </Link>
       </div>
     );
@@ -322,12 +327,15 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                     <span className="text-emerald-500 text-3xl font-bold">{t("currency")}</span>
                     {booking.fare}
                   </h3>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 ml-1">{t("currency_name")}</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 ml-1">{t("bdt")}</p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                   <Badge className="bg-emerald-600 text-white border-none font-black text-[10px] px-4 py-2 rounded-xl shadow-lg shadow-emerald-600/20 uppercase tracking-widest h-auto">
-                      {t("pay_cash")}
+                <div className="flex flex-col items-end gap-1.5">
+                   <Badge className="bg-emerald-600 text-white border-none font-black text-[10px] px-4 py-2 rounded-xl shadow-lg shadow-emerald-600/20 uppercase tracking-widest h-auto whitespace-nowrap">
+                      {t("cash_only")}
                    </Badge>
+                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{t("pay_driver")}</span>
+                </div>
                    {booking.status === "COMPLETED" && (
                       <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest animate-pulse opacity-60">
                          {t("safe_trip")}
@@ -337,48 +345,59 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
              </div>
              
              {booking.status === "COMPLETED" && (
-                <div className="mt-8 pt-6 border-t border-emerald-100 flex items-center justify-center gap-3">
-                   <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-lg">
-                      <Banknote size={16} />
+                <div className="mt-8 pt-6 border-t border-emerald-100 flex flex-col items-center gap-4">
+                   <div className="flex items-center justify-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-lg">
+                         <Banknote size={16} />
+                      </div>
+                      <p className="text-sm font-black text-emerald-700 uppercase tracking-tight">
+                         {t("pay_driver")}: {t("currency")}{booking.fare}
+                      </p>
                    </div>
-                   <p className="text-sm font-black text-emerald-700 uppercase tracking-tight">
-                      {t("pay_cash")} {t("currency")}{booking.fare}
-                   </p>
+                   <Badge variant="outline" className="border-emerald-100 text-emerald-600 text-[9px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full bg-emerald-50/50">
+                      {t("cash_only")}
+                   </Badge>
                 </div>
              )}
            </CardContent>
         </Card>
         
         {booking.status === "COMPLETED" && (
-           <Link href="/" className={buttonVariants({ className: "w-full mt-8 h-14 text-lg rounded-xl shadow-lg", size: "lg" })}>
-             <Navigation size={20} className="mr-2" /> {t("set_pickup")}
+           <Link href="/">
+             <AppButton className="w-full mt-8 h-14 text-lg rounded-xl shadow-lg" leftIcon={<Navigation size={20} />}>
+               {t("set_pickup")}
+             </AppButton>
            </Link>
         )}
 
         {booking.status === "COMPLETED" && (
-           <Button 
+           <AppButton 
              variant="ghost" 
              onClick={() => setShowReport(true)}
-             className="w-full mt-4 h-12 text-slate-400 font-black uppercase tracking-widest text-[10px] gap-2 hover:bg-slate-100"
+             className="w-full mt-4 h-12 text-slate-400 font-black uppercase tracking-widest text-[10px] hover:bg-slate-100"
+             leftIcon={<AlertTriangle size={14} />}
            >
-             <AlertTriangle size={14} /> {t("report_issue")}
-           </Button>
+             {t("report_issue")}
+           </AppButton>
         )}
 
         {(booking.status === "CANCELLED" || (booking.status === "PENDING" && !booking.driver)) && (
-          <Link href="/" className={buttonVariants({ variant: "outline", className: "w-full mt-4 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest" })}>
-            {t("bk_another")}
+          <Link href="/">
+            <AppButton variant="secondary" className="w-full mt-4 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest">
+              {t("bk_another")}
+            </AppButton>
           </Link>
         )}
 
         {(booking.status === "PENDING" || booking.status === "ACCEPTED") && (
-          <Button 
+          <AppButton 
             variant="ghost" 
             onClick={() => setShowCancel(true)}
-            className="w-full mt-4 h-12 text-red-400 font-black uppercase tracking-widest text-[10px] gap-2 hover:bg-red-50 hover:text-red-500"
+            className="w-full mt-4 h-12 text-red-400 font-black uppercase tracking-widest text-[10px] hover:bg-red-50 hover:text-red-500"
+            leftIcon={<XCircle size={14} />}
           >
-            <XCircle size={14} /> {t("cancel_booking")}
-          </Button>
+            {t("cancel_booking")}
+          </AppButton>
         )}
 
       </main>

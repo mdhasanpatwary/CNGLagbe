@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Phone, Lock, LogIn, ChevronRight } from "lucide-react";
+import { Phone, LogIn, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
 import { FormField } from "@/components/FormField";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 
 export default function DriverLogin() {
@@ -46,7 +47,10 @@ export default function DriverLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center border-t-4 border-emerald-500">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center border-t-4 border-emerald-500 relative">
+      <div className="absolute top-4 right-4 z-50">
+        <LanguageSwitcher />
+      </div>
       <div className="max-w-md w-full mx-auto p-6">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-slate-800 flex items-center justify-center gap-2">
@@ -78,33 +82,29 @@ export default function DriverLogin() {
                   required
                 />
 
-                <Button
+                <AppButton
                   type="submit"
-                  disabled={loading}
-                  className="w-full mt-4 h-14 text-lg font-bold rounded-2xl shadow-emerald-200/50 shadow-xl bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] transition-all"
-                  size="lg"
+                  loading={loading}
+                  fullWidth
+                  className="mt-4 h-14 text-lg font-bold rounded-2xl shadow-emerald-200/50 shadow-xl"
                 >
-                  {loading ? (
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                  ) : (
-                    <div className="flex items-center gap-2">
-                       {t("login_btn")}
-                      <ChevronRight className="w-5 h-5" />
-                    </div>
-                  )}
-                </Button>
+                  <div className="flex items-center gap-2">
+                     {t("login_btn")}
+                    <ChevronRight className="w-5 h-5" />
+                  </div>
+                </AppButton>
               </form>
           </CardContent>
         </Card>
         
         <div className="mt-8 text-center text-slate-400 text-sm">
-           New driver? <Button 
-            variant="link" 
+           New driver? <AppButton 
+            variant="ghost" 
             onClick={() => router.push("/signup")}
-            className="text-emerald-600 p-0 h-auto font-bold"
+            className="text-emerald-600 h-10 px-2 font-bold inline-flex"
           >
             {t("signup_btn")}
-          </Button>
+          </AppButton>
         </div>
       </div>
     </div>

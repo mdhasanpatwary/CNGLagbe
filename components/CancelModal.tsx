@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { X, AlertTriangle, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { X, AlertTriangle } from "lucide-react";
+import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
-import { TEXT, type TextKey } from "@/constants/text";
+import { type TextKey } from "@/constants/text";
 
 interface CancelModalProps {
   bookingId: string;
@@ -58,7 +58,7 @@ export function CancelModal({ bookingId, onClose, onSuccess, role }: CancelModal
       } else {
         setError(data.message || t("error"));
       }
-    } catch (err) {
+    } catch {
       setError(t("network_error"));
     } finally {
       setIsLoading(false);
@@ -78,12 +78,13 @@ export function CancelModal({ bookingId, onClose, onSuccess, role }: CancelModal
                 {t("cancel_booking")}
               </h2>
             </div>
-            <button
+            <AppButton
+              variant="ghost"
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
+              className="p-0 w-10 h-10 text-slate-400 hover:text-slate-600 rounded-full"
             >
               <X size={20} />
-            </button>
+            </AppButton>
           </div>
 
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">
@@ -92,17 +93,18 @@ export function CancelModal({ bookingId, onClose, onSuccess, role }: CancelModal
 
           <div className="space-y-3 mb-8">
             {reasons.map((reasonKey) => (
-              <button
+              <AppButton
                 key={reasonKey}
+                variant={selectedReason === reasonKey ? "primary" : "secondary"}
                 onClick={() => setSelectedReason(reasonKey)}
-                className={`w-full text-left p-4 rounded-2xl border-2 transition-all font-bold text-sm ${
+                className={`w-full justify-start h-auto p-4 rounded-2xl border-2 transition-all font-bold text-sm ${
                   selectedReason === reasonKey
                     ? "border-red-500 bg-red-50 text-red-700"
                     : "border-slate-100 hover:border-slate-200 text-slate-600 bg-slate-50/50"
                 }`}
               >
                 {t(reasonKey)}
-              </button>
+              </AppButton>
             ))}
           </div>
 
@@ -114,25 +116,22 @@ export function CancelModal({ bookingId, onClose, onSuccess, role }: CancelModal
           )}
 
           <div className="flex gap-3">
-            <Button
-              variant="outline"
+            <AppButton
+              variant="secondary"
               onClick={onClose}
               className="flex-1 h-14 rounded-2xl font-black uppercase tracking-widest text-[10px]"
               disabled={isLoading}
             >
               {t("back")}
-            </Button>
-            <Button
+            </AppButton>
+            <AppButton
               onClick={handleCancel}
-              disabled={!selectedReason || isLoading}
+              disabled={!selectedReason}
+              loading={isLoading}
               className="flex-1 h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-[10px] shadow-lg shadow-red-600/20"
             >
-              {isLoading ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                t("confirm_cancel")
-              )}
-            </Button>
+              {t("confirm_cancel")}
+            </AppButton>
           </div>
         </div>
       </div>

@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, Loader2, Search, Navigation, Pin, Banknote, Clock, Route, ChevronLeft, CheckCircle2, Info } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { MapPin, Navigation, Pin, Banknote, Clock, Route, ChevronLeft, CheckCircle2, Info } from "lucide-react";
+import { AppButton } from "@/components/ui/AppButton";
 import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLang } from "@/hooks/useLang";
@@ -74,9 +74,18 @@ export default function UserMapPage() {
 
   // ─── Check for active booking periodically ────────────────────────────────
   useEffect(() => {
+    let isPolling = true;
+    let intervalId: ReturnType<typeof setInterval>;
+
     const checkActive = async () => {
+      if (!isPolling) return;
       try {
         const res = await apiFetch("/api/booking/active");
+        if (res.status === 401) {
+          isPolling = false;
+          if (intervalId) clearInterval(intervalId);
+          return;
+        }
         if (!res.ok) return;
         const data = await res.json();
         if (data.booking?.id) {
@@ -86,9 +95,29 @@ export default function UserMapPage() {
         console.error("Failed to check active booking", e);
       }
     };
-    checkActive();
-    const intervalId = setInterval(checkActive, 10000); // Check every 10s
-    return () => clearInterval(intervalId);
+
+    const init = async () => {
+      try {
+        const authRes = await apiFetch("/api/auth/me");
+        if (!authRes.ok) {
+          isPolling = false;
+          return;
+        }
+        await checkActive();
+        if (isPolling) {
+          intervalId = setInterval(checkActive, 10000); // Check every 10s
+        }
+      } catch (e) {
+        console.error("Auth check failed", e);
+      }
+    };
+
+    init();
+
+    return () => {
+      isPolling = false;
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [router]);
 
   // ─── Toast auto-dismiss ───────────────────────────────────────────────────
@@ -104,7 +133,10 @@ export default function UserMapPage() {
   const reverseGeocode = useCallback(
     async (pos: Point): Promise<string> => {
       try {
-        const res = await apiFetch(`/api/geocode?lat=${pos.lat}&lng=${pos.lng}`);
+        // Round to 5 decimal places (~1m precision) to match server cache logic
+        const lat = Math.round(pos.lat * 100000) / 100000;
+        const lng = Math.round(pos.lng * 100000) / 100000;
+        const res = await apiFetch(`/api/geocode?lat=${lat}&lng=${lng}`);
         if (!res.ok) throw new Error("Geocode API failed");
         const data = await res.json();
         return data.address;
@@ -148,7 +180,7 @@ export default function UserMapPage() {
     labelDiv.appendChild(textSpan);
     
     container.appendChild(labelDiv);
-    container.appendChild(pin.element);
+    container.appendChild(pin);
     return container;
   }, []);
 
@@ -165,7 +197,8 @@ export default function UserMapPage() {
       return;
     }
 
-    const initMap = async () => {
+    const initMapWrapper = async () => {
+      const initMap = async () => {
       try {
         let attempts = 0;
         while (!window.google?.maps?.importLibrary && attempts < 10) {
@@ -328,16 +361,32 @@ export default function UserMapPage() {
       }
     };
 
-    if (!window.google?.maps?.importLibrary) {
+      if (window.google?.maps && 'importLibrary' in window.google.maps) {
+        initMap();
+        return;
+      }
+
+      // Check if script already exists to avoid duplicates
+      const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]');
+      if (existingScript) {
+        // If script is already there but loading, wait for it
+        if (window.google?.maps) {
+           initMap();
+        } else {
+           existingScript.addEventListener('load', initMap);
+        }
+        return;
+      }
+
       const script = document.createElement("script");
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,marker,geometry&v=weekly&loading=async`;
       script.async = true;
       script.onload = initMap;
       document.body.appendChild(script);
-    } else {
-      initMap();
-    }
-  }, [reverseGeocode, createLabeledMarker, t]);
+    };
+
+    initMapWrapper();
+  }, [reverseGeocode, createLabeledMarker, t]); // Include t for proper dependency tracking
 
   // ─── Step navigation ──────────────────────────────────────────────────────
   const handleNextStep = async () => {
@@ -390,9 +439,10 @@ export default function UserMapPage() {
           // Exists already
           router.push(`/user/booking/${data.bookingId}`);
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error(e);
-        if (e.message?.includes("CANCEL_COOLDOWN") || e.status === 429) {
+        const err = e as { message?: string; status?: number };
+        if (err.message?.includes("CANCEL_COOLDOWN") || err.status === 429) {
           alert(t("cancel_user_limit"));
         }
         setIsRequesting(false);
@@ -567,40 +617,59 @@ export default function UserMapPage() {
 
     callDirectionsAPI();
 
-    function callDirectionsAPI() {
-      const service = new window.google.maps.DirectionsService();
-      service.route(
-        { origin: pickup!, destination: destination!, travelMode: window.google.maps.TravelMode.DRIVING },
-        (result, status) => {
-          if (status === "OK" && result) {
-            const leg = result.routes[0]?.legs[0];
-            const encodedPolyline = result.routes[0]?.overview_polyline ?? "";
-            const geometry = window.google.maps.geometry;
-            if (geometry?.encoding && encodedPolyline) {
-              drawPolyline(geometry.encoding.decodePath(encodedPolyline), 0.85);
-            } else {
-              drawPolyline([new google.maps.LatLng(pickup!.lat, pickup!.lng), new google.maps.LatLng(destination!.lat, destination!.lng)], 0.7);
-            }
+    async function callDirectionsAPI() {
+      try {
+        const { Route } = await window.google.maps.importLibrary("routes") as google.maps.RoutesLibrary;
+        const request = {
+          origin: pickup!,
+          destination: destination!,
+          travelMode: window.google.maps.TravelMode.DRIVING,
+          fields: ["routes.distanceMeters", "routes.duration", "routes.polyline.encodedPolyline"],
+        };
 
-            const distanceText = leg?.distance?.text ?? `${fareData?.distance ?? ""} km`;
-            const durationText = leg?.duration?.text ?? "";
-            const durationMinutes = leg?.duration?.value ? Math.round(leg.duration.value / 60) : null;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { routes } = await Route.computeRoutes(request as any);
+        if (routes && routes.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const route = routes[0] as any;
+          const encodedPolyline = route.polyline?.encodedPolyline ?? "";
+          
+          const geometry = window.google.maps.geometry;
+          if (geometry?.encoding && encodedPolyline) {
+            drawPolyline(geometry.encoding.decodePath(encodedPolyline), 0.85);
+          } else {
+            drawPolyline([new google.maps.LatLng(pickup!.lat, pickup!.lng), new google.maps.LatLng(destination!.lat, destination!.lng)], 0.7);
+          }
 
-            const newRouteInfo: RouteInfo = { distanceText, durationText, durationMinutes, encodedPolyline };
-            setRouteInfo(newRouteInfo);
+          const distanceValue = route.distanceMeters ?? (fareData?.distance ? fareData.distance * 1000 : 0);
+          const distanceText = (distanceValue / 1000).toFixed(1) + " km";
+          
+          let durationMinutes = null;
+          let durationText = "";
+          if (route.duration) {
+            const seconds = parseInt(route.duration.replace("s", ""), 10);
+            durationMinutes = Math.round(seconds / 60);
+            durationText = durationMinutes >= 60 
+              ? `${Math.floor(durationMinutes / 60)} h ${durationMinutes % 60} min` 
+              : `${durationMinutes} min`;
+          }
 
-            if (pickup && destination && fareData) {
-              saveBookingSession({
-                pickup: { lat: pickup.lat, lng: pickup.lng, label: pickup.address ?? "" },
-                drop: { lat: destination.lat, lng: destination.lng, label: destination.address ?? "" },
-                route: { polyline: encodedPolyline, distanceText, durationText, durationMinutes, distanceKm: fareData.distance },
-                fare: fareData.fare,
-                lastUpdated: Date.now(),
-              });
-            }
+          const newRouteInfo: RouteInfo = { distanceText, durationText, durationMinutes, encodedPolyline };
+          setRouteInfo(newRouteInfo);
+
+          if (pickup && destination && fareData) {
+            saveBookingSession({
+              pickup: { lat: pickup.lat, lng: pickup.lng, label: pickup.address ?? "" },
+              drop: { lat: destination.lat, lng: destination.lng, label: destination.address ?? "" },
+              route: { polyline: encodedPolyline, distanceText, durationText, durationMinutes, distanceKm: fareData.distance },
+              fare: fareData.fare,
+              lastUpdated: Date.now(),
+            });
           }
         }
-      );
+      } catch (err) {
+        console.error("Route calculation failed:", err);
+      }
     }
   }, [step, map, pickup, destination, clearRoute, fareData, routeInfo?.encodedPolyline]);
 
@@ -623,18 +692,18 @@ export default function UserMapPage() {
 
         {/* Back Button */}
         <div className="absolute top-4 left-4 z-10 flex flex-col items-center gap-1">
-          <Button variant="outline" size="icon" onClick={handleBack} className="bg-white rounded-full shadow-md w-12 h-12">
+          <AppButton variant="secondary" onClick={handleBack} className="bg-white rounded-full shadow-md w-12 h-12 p-0">
             <ChevronLeft className="w-6 h-6" />
-          </Button>
+          </AppButton>
           <span className="bg-white/80 backdrop-blur-sm px-2 py-0.5 rounded text-[8px] uppercase font-black text-slate-600 shadow-sm">{t("back")}</span>
         </div>
 
         {/* Recenter Button */}
         {map && (
           <div className="absolute top-4 right-4 z-10 flex flex-col items-center gap-1">
-            <Button onClick={() => { const t = pickup ?? destination; if (t) { map.panTo(t); map.setZoom(15); } }} className="bg-white rounded-full w-12 h-12 shadow-md text-slate-600 hover:bg-slate-50" variant="outline">
+            <AppButton onClick={() => { const t = pickup ?? destination; if (t) { map.panTo(t); map.setZoom(15); } }} className="bg-white rounded-full w-12 h-12 shadow-md text-slate-600 hover:bg-slate-50 p-0" variant="secondary">
                <Navigation size={20} />
-            </Button>
+            </AppButton>
             <span className="bg-white/80 backdrop-blur-sm px-2 py-0.5 rounded text-[8px] uppercase font-black text-slate-600 shadow-sm">{t("recenter")}</span>
           </div>
         )}
@@ -678,9 +747,9 @@ export default function UserMapPage() {
                 </div>
                 <p className="text-sm font-bold text-slate-700 truncate">{pickup?.address ?? t("loading")}</p>
               </div>
-              <Button size="lg" className="w-full h-14 rounded-xl shadow-lg text-lg" onClick={handleNextStep} disabled={!pickup}>
+              <AppButton className="w-full h-14 rounded-xl shadow-lg text-lg" onClick={handleNextStep} disabled={!pickup}>
                 {t("confirm_pickup")}
-              </Button>
+              </AppButton>
             </div>
           )}
 
@@ -707,10 +776,9 @@ export default function UserMapPage() {
                 </div>
               )}
 
-              <Button size="lg" className="w-full h-14 rounded-xl shadow-lg text-lg" onClick={handleNextStep} disabled={!destination || loading}>
-                {loading && <Loader2 className="animate-spin mr-2" />}
+              <AppButton className="w-full h-14 rounded-xl shadow-lg text-lg" onClick={handleNextStep} disabled={!destination} loading={loading}>
                 {t("calc_fare")}
-              </Button>
+              </AppButton>
             </div>
           )}
 
@@ -761,7 +829,7 @@ export default function UserMapPage() {
                     </div>
                     <div className="flex items-baseline gap-1">
                       <span className="text-3xl font-black text-emerald-600">{t("currency")}{fareData.fare}</span>
-                      <span className="text-[10px] font-bold text-emerald-700/50 uppercase">{t("currency_name")}</span>
+                      <span className="text-[10px] font-bold text-emerald-700/50 uppercase">{t("bdt")}</span>
                     </div>
                   </div>
                   <Badge variant="outline" className="bg-white/80 border-emerald-200 text-emerald-700 font-bold px-3 py-1 uppercase text-[10px] gap-1.5">
@@ -785,10 +853,9 @@ export default function UserMapPage() {
                 </div>
               </div>
 
-              <Button size="lg" className="w-full h-16 rounded-2xl shadow-xl text-xl font-bold" onClick={handleNextStep} disabled={isRequesting}>
-                {isRequesting ? <Loader2 className="animate-spin mr-2" /> : <Navigation size={20} className="mr-2" />}
-                {isRequesting ? t("finding_driver") : t("confirm_find_driver")}
-              </Button>
+              <AppButton className="w-full h-16 rounded-2xl shadow-xl text-xl font-bold" onClick={handleNextStep} loading={isRequesting} leftIcon={<Navigation size={20} />}>
+                {t("confirm_find_driver")}
+              </AppButton>
             </div>
           )}
         </div>

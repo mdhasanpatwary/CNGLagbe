@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedDriver } from "@/lib/auth";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const driverId = await getAuthenticatedDriver();
 
@@ -46,7 +46,7 @@ export async function GET(request: Request) {
         todayRides
       }
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
     const { isOnline } = await request.json();
 
     if (isOnline && !currentDriver?.isApproved) {
-      return NextResponse.json({ error: "Driver not approved" }, { status: 403 });
+      return NextResponse.json({ error: "Unauthorized: Driver not approved" }, { status: 403 });
     }
 
     const driver = await prisma.driver.update({

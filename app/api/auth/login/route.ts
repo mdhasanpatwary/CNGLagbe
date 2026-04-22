@@ -1,3 +1,5 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { setAuthCookie, signToken } from "@/lib/auth";
 import { checkRateLimit, resetRateLimit } from "@/lib/rate-limit";
 
@@ -14,7 +16,7 @@ export async function POST(request: Request) {
 
     // Rate Limit Check (5 attempts / 15 mins)
     const rateLimitKey = `login:user:${phone}`;
-    const { allowed, remaining } = await checkRateLimit(rateLimitKey, 5, 900);
+    const { allowed } = await checkRateLimit(rateLimitKey, 5, 900);
     
     if (!allowed) {
       return NextResponse.json(
@@ -47,7 +49,7 @@ export async function POST(request: Request) {
 
     const token = await signToken({
       sub: user.id,
-      role: "USER",
+      role: user.role as "DRIVER" | "USER" | "ADMIN",
     });
 
     await setAuthCookie(token);

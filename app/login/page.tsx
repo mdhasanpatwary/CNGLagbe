@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Phone, Key, LogIn } from "lucide-react";
+import { Phone, Key, LogIn } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
 import { FormField } from "@/components/FormField";
 
@@ -85,21 +85,15 @@ export default function UserLogin() {
                   required
                 />
 
-                <Button
+                <AppButton
                   type="submit"
-                  disabled={loading}
-                  className="w-full mt-4 h-14 text-lg font-bold rounded-2xl shadow-primary/20 shadow-xl bg-primary hover:bg-primary/90 active:scale-[0.98] transition-all"
-                  size="lg"
+                  loading={loading}
+                  fullWidth
+                  className="mt-4 h-14 text-lg font-bold rounded-2xl shadow-primary/20 shadow-xl"
+                  leftIcon={<LogIn className="w-5 h-5" />}
                 >
-                  {loading ? (
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <LogIn className="w-5 h-5" />
-                      {t("login_btn")}
-                    </div>
-                  )}
-                </Button>
+                  {t("login_btn")}
+                </AppButton>
               </form>
           </CardContent>
         </Card>

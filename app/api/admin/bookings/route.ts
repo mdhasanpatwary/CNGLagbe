@@ -8,7 +8,15 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get("limit") || "10");
     const skip = (page - 1) * limit;
 
+    const type = searchParams.get("type");
+    
+    const whereClause: { status?: { in: string[] } } = {};
+    if (type === "active") {
+      whereClause.status = { in: ["PENDING", "ACCEPTED"] };
+    }
+
     const bookings = await prisma.booking.findMany({
+      where: whereClause,
       orderBy: { createdAt: "desc" },
       skip,
       take: limit,
@@ -17,7 +25,7 @@ export async function GET(request: Request) {
       }
     });
 
-    const total = await prisma.booking.count();
+    const total = await prisma.booking.count({ where: whereClause });
 
     return NextResponse.json({
       bookings,

@@ -34,12 +34,16 @@ const buttonVariants = cva(
   }
 )
 
+// Use AppButton only (design system rule)
 function Button({
   className,
   variant = "default",
   size = "default",
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn("DEPRECATED: Use AppButton instead of shadcn Button for UI consistency.");
+  }
   return (
     <ButtonPrimitive
       data-slot="button"

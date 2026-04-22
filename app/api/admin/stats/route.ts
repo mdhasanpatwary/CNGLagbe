@@ -13,8 +13,16 @@ export async function GET() {
       }
     });
 
+    const voidedBookingsResponse = await prisma.booking.aggregate({
+      where: { status: { in: ["CANCELLED", "TIMED_OUT"] } },
+      _sum: {
+        fare: true,
+      }
+    });
+
     const completedBookings = completedBookingsResponse._count;
     const totalRevenue = completedBookingsResponse._sum.fare || 0;
+    const voidedAmount = voidedBookingsResponse._sum.fare || 0;
     const adminCommission = totalRevenue * 0.20; // 20% commission
     const driverPayout = totalRevenue - adminCommission;
 
@@ -23,7 +31,7 @@ export async function GET() {
     });
 
     const pendingBookings = await prisma.booking.count({
-      where: { status: "PENDING" }
+      where: { status: { in: ["PENDING", "TIMED_OUT", "ASSIGNED"] } }
     });
 
     return NextResponse.json({
@@ -31,10 +39,12 @@ export async function GET() {
         totalBookings,
         completedBookings,
         totalRevenue,
+        voidedAmount,
         adminCommission,
         activeDrivers,
         revenue: {
           total: totalRevenue,
+          voided: voidedAmount,
           commission: adminCommission,
           driverPayout: driverPayout
         },
