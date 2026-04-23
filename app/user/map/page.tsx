@@ -15,6 +15,8 @@ import {
 } from "@/utils/bookingSession";
 import { apiFetch } from "@/utils/api";
 
+import { useQuery } from "@tanstack/react-query";
+
 // Types
 type Point = { lat: number; lng: number; address?: string };
 type Step = "PICKUP" | "DESTINATION" | "CONFIRM";
@@ -72,53 +74,27 @@ export default function UserMapPage() {
     }
   }, [step, map, pickup, destination]);
 
-  // ─── Check for active booking periodically ────────────────────────────────
+  // ─── React Query for Unified Sync (Auth + Active Booking) ─────────────────
+  const { data: syncData } = useQuery({
+    queryKey: ["syncData"],
+    queryFn: async () => {
+      const res = await apiFetch("/api/sync");
+      if (res.status === 401) {
+        router.push("/login");
+        throw new Error("Unauthorized");
+      }
+      if (!res.ok) return null;
+      return res.json();
+    },
+    refetchInterval: 10000, // Poll every 10s
+    staleTime: 5000,
+  });
+
   useEffect(() => {
-    let isPolling = true;
-    let intervalId: ReturnType<typeof setInterval>;
-
-    const checkActive = async () => {
-      if (!isPolling) return;
-      try {
-        const res = await apiFetch("/api/booking/active");
-        if (res.status === 401) {
-          isPolling = false;
-          if (intervalId) clearInterval(intervalId);
-          return;
-        }
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data.booking?.id) {
-          router.push(`/user/booking/${data.booking.id}`);
-        }
-      } catch (e) {
-        console.error("Failed to check active booking", e);
-      }
-    };
-
-    const init = async () => {
-      try {
-        const authRes = await apiFetch("/api/auth/me");
-        if (!authRes.ok) {
-          isPolling = false;
-          return;
-        }
-        await checkActive();
-        if (isPolling) {
-          intervalId = setInterval(checkActive, 10000); // Check every 10s
-        }
-      } catch (e) {
-        console.error("Auth check failed", e);
-      }
-    };
-
-    init();
-
-    return () => {
-      isPolling = false;
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [router]);
+    if (syncData?.activeBooking?.id) {
+      router.push(`/user/booking/${syncData.activeBooking.id}`);
+    }
+  }, [syncData, router]);
 
   // ─── Toast auto-dismiss ───────────────────────────────────────────────────
   useEffect(() => {
@@ -624,7 +600,6 @@ export default function UserMapPage() {
           origin: pickup!,
           destination: destination!,
           travelMode: window.google.maps.TravelMode.DRIVING,
-          fields: ["routes.distanceMeters", "routes.duration", "routes.polyline.encodedPolyline"],
         };
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -641,17 +616,33 @@ export default function UserMapPage() {
             drawPolyline([new google.maps.LatLng(pickup!.lat, pickup!.lng), new google.maps.LatLng(destination!.lat, destination!.lng)], 0.7);
           }
 
-          const distanceValue = route.distanceMeters ?? (fareData?.distance ? fareData.distance * 1000 : 0);
+          // Extract distance from legs (newer API structure handles distanceMeters)
+          let distanceValue = fareData?.distance ? fareData.distance * 1000 : 0;
+          if (route.legs && route.legs.length > 0) {
+            // distanceMeters (number) in new API, distance.value in old API
+            distanceValue = route.legs[0].distanceMeters ?? route.legs[0].distance?.value ?? distanceValue;
+          }
           const distanceText = (distanceValue / 1000).toFixed(1) + " km";
           
+          // Extract duration from legs (newer API structure handles duration as string "123s")
           let durationMinutes = null;
           let durationText = "";
-          if (route.duration) {
-            const seconds = parseInt(route.duration.replace("s", ""), 10);
-            durationMinutes = Math.round(seconds / 60);
-            durationText = durationMinutes >= 60 
-              ? `${Math.floor(durationMinutes / 60)} h ${durationMinutes % 60} min` 
-              : `${durationMinutes} min`;
+          if (route.legs && route.legs.length > 0) {
+            const durationRaw = route.legs[0].duration;
+            let durationSeconds = 0;
+            
+            if (typeof durationRaw === "string") {
+              durationSeconds = parseInt(durationRaw, 10);
+            } else if (durationRaw?.value) {
+              durationSeconds = durationRaw.value;
+            }
+
+            if (durationSeconds > 0) {
+              durationMinutes = Math.round(durationSeconds / 60);
+              durationText = durationMinutes >= 60 
+                ? `${Math.floor(durationMinutes / 60)} h ${durationMinutes % 60} min` 
+                : `${durationMinutes} min`;
+            }
           }
 
           const newRouteInfo: RouteInfo = { distanceText, durationText, durationMinutes, encodedPolyline };

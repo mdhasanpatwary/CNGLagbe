@@ -19,11 +19,14 @@ async function main() {
   
   const driver1 = await prisma.driver.upsert({
     where: { phone: '01711111111' },
-    update: { passwordHash: hashedPassword },
+    update: { passwordHash: hashedPassword, isApproved: true, currentLat: 23.8103, currentLng: 90.4125 },
     create: {
       name: 'Karim Driver',
       phone: '01711111111',
       passwordHash: hashedPassword,
+      isApproved: true,
+      currentLat: 23.8103,
+      currentLng: 90.4125,
     },
   })
 

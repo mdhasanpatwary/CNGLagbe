@@ -267,7 +267,13 @@ export const TEXT = {
   no_pending_drivers: {
     en: "No new drivers",
     bn: "কোন নতুন ড্রাইভার নেই"
-  }
+  },
+  profile: { en: "Profile", bn: "প্রোফাইল" },
+  edit_profile: { en: "Edit Profile", bn: "প্রোফাইল পাল্টান" },
+  save_changes: { en: "Save", bn: "সেভ করুন" },
+  birthday: { en: "Birthday", bn: "জন্মদিন" },
+  update_success: { en: "Saved", bn: "সেভ হয়েছে" },
+  profile_photo: { en: "Profile Photo", bn: "প্রোফাইল ছবি" }
 } as const;
 
 

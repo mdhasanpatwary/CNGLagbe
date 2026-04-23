@@ -6,12 +6,12 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const oneMinAgo = new Date(Date.now() - 1 * 60 * 1000);
 
     const result = await prisma.booking.updateMany({
       where: {
         status: "PENDING",
-        createdAt: { lt: fiveMinsAgo },
+        createdAt: { lt: oneMinAgo },
       },
       data: {
         status: "TIMED_OUT",

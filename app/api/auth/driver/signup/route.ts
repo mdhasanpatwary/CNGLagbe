@@ -4,11 +4,11 @@ import { signToken, setAuthCookie } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
-    const { name, phone, nidNumber, licenseNumber, vehicleNumber, vehicleType, photoUrl } = await request.json();
+    const { name, phone, area, nidNumber, licenseNumber, vehicleNumber, vehicleType, photoUrl } = await request.json();
 
-    if (!name || !phone) {
+    if (!name || !phone || !area) {
       return NextResponse.json(
-        { error: "Name and Phone are required" },
+        { error: "Name, Phone and Area are required" },
         { status: 400 }
       );
     }

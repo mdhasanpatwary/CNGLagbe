@@ -4,12 +4,15 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Loader2, Phone, User, FileText, Bike, ChevronRight, ChevronLeft, CheckCircle2, Camera } from "lucide-react";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent } from "@/components/ui/card";
 import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
 import { FormField } from "@/components/FormField";
 import { supabase } from "@/lib/supabase";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { driverSignupSchema, type DriverSignupInput } from "@/lib/schemas/auth";
 
 function SignupForm() {
   const router = useRouter();
@@ -18,100 +21,105 @@ function SignupForm() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState("");
+  const [serverError, setServerError] = useState("");
 
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: searchParams.get("phone") || "",
-    nidNumber: "",
-    licenseNumber: "",
-    vehicleNumber: "",
-    vehicleType: "CNG", // Default
-    photoUrl: ""
+  const {
+    register,
+    handleSubmit,
+    trigger,
+    setValue,
+    control,
+    formState: { errors },
+  } = useForm<DriverSignupInput>({
+    resolver: zodResolver(driverSignupSchema),
+    defaultValues: {
+      name: "",
+      phone: searchParams.get("phone") || "",
+      nidNumber: "",
+      licenseNumber: "",
+      vehicleNumber: "",
+      vehicleType: "CNG",
+      photoUrl: "",
+    },
   });
 
-
-
-  const handleChange = (field: string) => (value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  const photoUrl = useWatch({ control, name: "photoUrl" });
+  const vehicleType = useWatch({ control, name: "vehicleType" });
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
-    setError("");
+    setServerError("");
 
     try {
-      // Create a unique file name
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `driver-photos/${fileName}`;
 
-      // Upload to Supabase Storage (Assumes 'drivers' bucket exists)
       const { error: uploadError } = await supabase.storage
         .from('drivers')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('drivers')
         .getPublicUrl(filePath);
 
-      setFormData(prev => ({ ...prev, photoUrl: publicUrl }));
+      setValue("photoUrl", publicUrl);
     } catch (err: unknown) {
       const error = err as { message?: string };
       console.error("Upload error:", error);
       
-      // Helpful hint for developers
       if (error.message?.includes("Bucket not found")) {
         console.warn("DEVELOPER HINT: You need to create a public bucket named 'drivers' in your Supabase dashboard.");
       }
 
-      setError(t("upload_failed"));
-      // Fallback for MVP if storage is not setup: just show success with a mock URL
-      // This allows the user to continue signing up even if upload fails
-      setFormData(prev => ({ ...prev, photoUrl: "https://via.placeholder.com/150" }));
+      setServerError(t("upload_failed"));
+      setValue("photoUrl", "https://via.placeholder.com/150");
     } finally {
       setUploading(false);
     }
   };
 
-  const nextStep = () => {
-    if (step === 1 && (!formData.name || !formData.phone)) {
-      setError(t("error"));
-      return;
+  const nextStep = async () => {
+    let isValid = false;
+    if (step === 1) {
+      isValid = await trigger(["name", "phone"]);
+    } else if (step === 2) {
+      isValid = await trigger(["nidNumber", "photoUrl"]);
     }
-    setError("");
-    setStep(prev => prev + 1);
+
+    if (isValid) {
+      setServerError("");
+      setStep(prev => prev + 1);
+    }
   };
 
   const prevStep = () => setStep(prev => prev - 1);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: DriverSignupInput) => {
     setLoading(true);
-    setError("");
+    setServerError("");
 
     try {
       const res = await fetch("/api/auth/driver/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(data)
       });
 
-      const data = await res.json();
+      const resData = await res.json();
 
       if (res.ok) {
         router.push("/dashboard");
       } else {
-        setError(data.error || t("error"));
+        setServerError(resData.error || t("error"));
       }
     } catch {
-      setError(t("network_error"));
+      setServerError(t("network_error"));
     } finally {
       setLoading(false);
     }
@@ -140,11 +148,11 @@ function SignupForm() {
         <Card className="shadow-2xl shadow-slate-200/50 border-none rounded-3xl overflow-hidden">
           <div className="bg-emerald-500 h-2 w-full" />
           <CardContent className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {error && (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {serverError && (
                 <div className="bg-red-50 text-red-500 p-4 rounded-xl text-sm border border-red-100 flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
-                  {error}
+                  {serverError}
                 </div>
               )}
 
@@ -157,18 +165,16 @@ function SignupForm() {
                     label={t("full_name")}
                     icon={User}
                     placeholder="Karim Mia"
-                    value={formData.name}
-                    onChange={handleChange("name")}
-                    required
+                    {...register("name")}
+                    error={errors.name?.message}
                   />
                   <FormField
                     label={t("phone_number")}
                     icon={Phone}
                     type="tel"
                     placeholder="01711 XXX XXX"
-                    value={formData.phone}
-                    onChange={handleChange("phone")}
-                    required
+                    {...register("phone")}
+                    error={errors.phone?.message}
                   />
                   <AppButton type="button" onClick={nextStep} className="w-full h-14 text-lg font-bold rounded-2xl" rightIcon={<ChevronRight />}>
                     {t("next")}
@@ -185,12 +191,15 @@ function SignupForm() {
                     label={t("nid_number")}
                     icon={FileText}
                     placeholder="1234567890"
-                    value={formData.nidNumber}
-                    onChange={handleChange("nidNumber")}
+                    {...register("nidNumber")}
+                    error={errors.nidNumber?.message}
                   />
                   
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">{t("upload_photo")}</label>
+                    <div className="flex justify-between items-center ml-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase">{t("upload_photo")}</label>
+                      {errors.photoUrl && <span className="text-[10px] font-bold text-red-500 uppercase">{errors.photoUrl.message}</span>}
+                    </div>
                     <div className="relative group">
                       <input
                         type="file"
@@ -201,14 +210,14 @@ function SignupForm() {
                       />
                       <label
                         htmlFor="photo-upload"
-                        className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${formData.photoUrl ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 hover:border-emerald-400 bg-slate-50'}`}
+                        className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${photoUrl ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 hover:border-emerald-400 bg-slate-50'}`}
                       >
                         {uploading ? (
                           <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
-                        ) : formData.photoUrl ? (
+                        ) : photoUrl ? (
                           <div className="relative w-full h-full p-2 group/preview">
                              <Image 
-                               src={formData.photoUrl} 
+                               src={photoUrl} 
                                alt="Preview" 
                                width={128}
                                height={128}
@@ -257,9 +266,9 @@ function SignupForm() {
                         <AppButton
                           key={type}
                           type="button"
-                          variant={formData.vehicleType === type ? 'primary' : 'secondary'}
-                          onClick={() => setFormData(prev => ({ ...prev, vehicleType: type }))}
-                          className={`h-14 rounded-2xl font-bold ${formData.vehicleType === type ? 'bg-slate-800' : ''}`}
+                          variant={vehicleType === type ? 'primary' : 'secondary'}
+                          onClick={() => setValue("vehicleType", type as "CNG" | "Electric")}
+                          className={`h-14 rounded-2xl font-bold ${vehicleType === type ? 'bg-slate-800' : ''}`}
                         >
                           {type === 'CNG' ? t("cng_gas") : t("cng_electric")}
                         </AppButton>
@@ -271,8 +280,8 @@ function SignupForm() {
                     label={t("vehicle_number")}
                     icon={Bike}
                     placeholder="Dhaka-Th-11-2222"
-                    value={formData.vehicleNumber}
-                    onChange={handleChange("vehicleNumber")}
+                    {...register("vehicleNumber")}
+                    error={errors.vehicleNumber?.message}
                   />
                   <div className="grid grid-cols-2 gap-3">
                     <AppButton type="button" variant="secondary" onClick={prevStep} className="h-14 rounded-2xl" leftIcon={<ChevronLeft />}>

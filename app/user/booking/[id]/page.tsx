@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, use, useCallback } from "react";
-import { Loader2, CheckCircle2, User as UserIcon, Phone, Search, Banknote, Navigation, XCircle, Info, Home, AlertTriangle } from "lucide-react";
+import { useEffect, useState, use } from "react";
+import { Loader2, CheckCircle2, User as UserIcon, Phone, Search, Banknote, Navigation, XCircle, Info, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { AppButton } from "@/components/ui/AppButton";
@@ -12,9 +12,11 @@ import { useRef } from "react";
 import { ReportModal } from "@/components/ReportModal";
 import { CancelModal } from "@/components/CancelModal";
 
+import { useQuery } from "@tanstack/react-query";
+
 interface Booking {
   id: string;
-  status: "PENDING" | "ACCEPTED" | "COMPLETED" | "CANCELLED";
+  status: "PENDING" | "ACCEPTED" | "COMPLETED" | "CANCELLED" | "TIMED_OUT";
   fare: number;
   pickupLat: number;
   pickupLng: number;
@@ -33,44 +35,54 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
   const resolvedParams = use(params);
   const { id } = resolvedParams;
   
-  const [booking, setBooking] = useState<Booking | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [showReport, setShowReport] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
+  const [countdown, setCountdown] = useState(60);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<google.maps.Map | null>(null);
   const driverMarker = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
 
-  const fetchBooking = useCallback(async () => {
-    try {
+  // ─── React Query for Booking Status ───────────────────────────────────────
+  const { data: bookingData, refetch: fetchBooking } = useQuery({
+    queryKey: ["booking", id],
+    queryFn: async () => {
       const res = await fetch(`/api/booking/${id}`);
       if (!res.ok) throw new Error(t("error"));
       const data = await res.json();
-      setBooking(data.booking);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Unknown error";
-      setError(message);
-    }
-  }, [id, t]);
-
-  useEffect(() => {
-    const initFetch = async () => {
-      await fetchBooking();
-    };
-    initFetch();
-    
-    // Poll for status updates every 5s for reliability
-    const intervalId = setInterval(() => {
-      if (booking?.status === "COMPLETED" || booking?.status === "CANCELLED") {
-        clearInterval(intervalId);
-        return;
+      return data.booking as Booking;
+    },
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      if (status === "COMPLETED" || status === "CANCELLED" || status === "TIMED_OUT") {
+        return false;
       }
-      void fetchBooking();
-    }, 5000);
+      return 10000; // 10s polling for status
+    },
+    staleTime: 5000,
+  });
 
-    return () => clearInterval(intervalId);
-  }, [fetchBooking, booking?.status]);
+  const booking = bookingData || null;
+
+
+
+  // Countdown timer for PENDING bookings
+  useEffect(() => {
+    if (booking?.status !== "PENDING") return;
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          // Timeout reached, refresh to get updated status
+          fetchBooking();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [booking?.status, fetchBooking]);
 
   // ─── Real-time Driver Tracking & Status Sync ──────────────────────────────
   useEffect(() => {
@@ -145,23 +157,6 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
     };
   }, [id, booking, driverLocation, fetchBooking]);
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center p-8 h-screen text-center">
-        <div className="bg-red-100 text-red-500 rounded-full p-4 mb-4">
-           <XCircle size={32} />
-        </div>
-        <h2 className="text-xl font-bold mb-2">{t("error")}</h2>
-        <p className="text-slate-500 mb-6">{error}</p>
-        <Link href="/">
-          <AppButton variant="secondary" className="rounded-full" leftIcon={<Home size={16} />}>
-             {t("bk_home")}
-          </AppButton>
-        </Link>
-      </div>
-    );
-  }
-
   if (!booking) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
@@ -188,7 +183,8 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
         >
           {booking.status === "PENDING" ? t("pending") : 
            booking.status === "ACCEPTED" ? t("ongoing") : 
-           booking.status === "COMPLETED" ? t("finish") : booking.status}
+           booking.status === "COMPLETED" ? t("finish") : 
+           booking.status === "TIMED_OUT" ? "No Driver" : booking.status}
         </Badge>
       </header>
       
@@ -207,7 +203,29 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                 </div>
               </div>
               <h2 className="text-2xl font-black text-slate-800 mt-8 mb-2 tracking-tight">{t("finding_driver")}</h2>
-              <p className="text-slate-500 text-center text-sm px-4 font-medium opacity-70 uppercase tracking-widest">{t("wait_requests")}</p>
+              <p className="text-slate-500 text-center text-sm px-4 font-medium opacity-70 uppercase tracking-widest mb-4">{t("wait_requests")}</p>
+              <div className="bg-amber-50 px-4 py-2 rounded-full border border-amber-200 mb-6">
+                <p className="text-amber-700 text-center text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  {countdown > 0 ? `Timeout in ${countdown}s` : "No driver found"}
+                </p>
+              </div>
+              {countdown > 0 && (
+                <AppButton 
+                  variant="secondary" 
+                  onClick={() => setShowCancel(true)} 
+                  className="rounded-full border-red-300 text-red-600 hover:bg-red-50"
+                >
+                  Cancel Request
+                </AppButton>
+              )}
+              {countdown === 0 && (
+                <Link href="/user/map">
+                  <AppButton variant="secondary" className="rounded-full">
+                    Try Again
+                  </AppButton>
+                </Link>
+              )}
             </>
           )}
 
@@ -243,6 +261,21 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
             </>
           )}
           
+          {booking.status === "TIMED_OUT" && (
+            <>
+              <div className="bg-orange-100 p-8 rounded-full">
+                <AlertTriangle className="w-16 h-16 text-orange-600" />
+              </div>
+              <h2 className="text-2xl font-black text-slate-800 mt-8 mb-2">No Driver Found</h2>
+              <p className="text-slate-500 text-center text-sm px-4 font-medium mb-4">No drivers available at this time</p>
+              <Link href="/user/map">
+                <AppButton variant="secondary" className="rounded-full">
+                  Try Again
+                </AppButton>
+              </Link>
+            </>
+          )}
+
           {booking.status === "CANCELLED" && (
             <>
               <div className="bg-red-100 p-8 rounded-full">

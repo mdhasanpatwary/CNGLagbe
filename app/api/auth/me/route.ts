@@ -30,6 +30,8 @@ export async function GET() {
         id: userData.id,
         name: userData.name,
         role: session.role,
+        photoUrl: userData.photoUrl,
+        birthday: userData.birthday,
       },
     });
   } catch (error) {

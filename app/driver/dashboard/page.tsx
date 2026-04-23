@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
 import { LogOut, Power, User, MapPin, Navigation, Info, ExternalLink, CheckCircle2, XCircle, Banknote, Clock } from "lucide-react";
 import { AppButton } from "@/components/ui/AppButton";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +14,9 @@ import { StaticMap } from "@/components/StaticMap";
 import { CancelModal } from "@/components/CancelModal";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { apiFetch } from "@/utils/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
+
 
 interface RequestItem {
   id: string;
@@ -26,32 +31,19 @@ interface RequestItem {
   createdAt: string;
 }
 
-interface CurrentBooking {
-  id: string;
-  pickupLat: number;
-  pickupLng: number;
-  destLat: number;
-  destLng: number;
-  pickupAddress?: string;
-  destAddress?: string;
-  fare: number;
-  distance: number;
-}
+
 
 export default function DriverDashboard() {
   const router = useRouter();
   const { t } = useLang();
-  const [isOnline, setIsOnline] = useState(false);
-  const [driverId, setDriverId] = useState("");
-  const [isApproved, setIsApproved] = useState(true); // Default to true while loading
-  const [loading, setLoading] = useState(true);
-  const [requests, setRequests] = useState<RequestItem[]>([]);
+  const [isOnlineOverride, setIsOnlineOverride] = useState<boolean | null>(null);
   const [rejectedIds, setRejectedIds] = useState<Set<string>>(new Set());
-  const [currentBooking, setCurrentBooking] = useState<CurrentBooking | null>(null);
-  const [arrivedBooking, setArrivedBooking] = useState<CurrentBooking | null>(null);
   const [timeLeft, setTimeLeft] = useState(20);
-  const [stats, setStats] = useState({ todayEarnings: 0, todayRides: 0 });
   const [showCancel, setShowCancel] = useState(false);
+  const [arrivedBooking, setArrivedBooking] = useState<{ fare: number; distance: number } | null>(null);
+
+  const queryClient = useQueryClient();
+
   const lastLocation = useRef<{ lat: number; lng: number } | null>(null);
   const locationInterval = useRef<NodeJS.Timeout | null>(null);
   
@@ -66,14 +58,16 @@ export default function DriverDashboard() {
 
   const toggleOnline = async () => {
     try {
+      const nextStatus = !isOnline;
+      setIsOnlineOverride(nextStatus);
       const res = await apiFetch("/api/driver/status", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ isOnline: !isOnline })
+        body: JSON.stringify({ isOnline: nextStatus })
       });
-      if (res.ok) setIsOnline(!isOnline);
+      if (!res.ok) setIsOnlineOverride(null); // Revert on failure
     } catch (e) {
       console.error(e);
     }
@@ -81,7 +75,6 @@ export default function DriverDashboard() {
 
   const handleReject = useCallback(async (id: string) => {
     setRejectedIds(prev => new Set(prev).add(id));
-    setRequests(prev => prev.filter(r => r.id !== id));
     try {
       await apiFetch("/api/driver/reject", {
         method: "POST",
@@ -103,9 +96,8 @@ export default function DriverDashboard() {
         body: JSON.stringify({ bookingId: req.id })
       });
       if (res.ok) {
-         setRequests([]);
-         const data = await res.json();
-         setCurrentBooking(data.booking);
+         // Clear rejected IDs to start fresh for next search if needed
+         setRejectedIds(new Set());
          window.open(`https://www.google.com/maps/dir/?api=1&destination=${req.pickupLat},${req.pickupLng}`, "_blank");
       } else {
          alert(t("error") as string);
@@ -115,8 +107,40 @@ export default function DriverDashboard() {
     }
   }, [t]);
 
+
+
+  // ─── React Query for Unified Sync ─────────────────────────────────────────
+  const { data: syncData } = useQuery({
+    queryKey: ["driverSync", isOnlineOverride],
+    queryFn: async () => {
+      const res = await apiFetch("/api/sync");
+      if (res.status === 401) {
+        router.push("/login");
+        throw new Error("Unauthorized");
+      }
+      return res.json();
+    },
+    refetchInterval: 5000, // Poll every 5s for driver
+    staleTime: 5000,
+  });
+
+  const isOnline = isOnlineOverride ?? syncData?.driver?.isOnline ?? false;
+  const loading = !syncData;
+
+  const driver = syncData?.driver;
+  const driverId = driver?.id || "";
+  const driverName = driver?.name || "";
+  const photoUrl = driver?.photoUrl || "";
+  const isApproved = driver?.isApproved ?? true;
+  const stats = syncData?.stats || { todayEarnings: 0, todayRides: 0 };
+  const currentBooking = syncData?.currentBooking || null;
+
   const handleComplete = useCallback(async (id: string) => {
     try {
+      // Capture current fare and distance to show in the "Arrived" modal
+      const fare = currentBooking?.fare || 0;
+      const distance = currentBooking?.distance || 0;
+
       const res = await apiFetch("/api/driver/complete", {
         method: "POST",
         headers: {
@@ -125,45 +149,25 @@ export default function DriverDashboard() {
         body: JSON.stringify({ bookingId: id })
       });
       if (res.ok) {
-         setArrivedBooking(currentBooking);
-         setCurrentBooking(null);
-         // Refresh stats after completion
-         const statsRes = await apiFetch("/api/driver/status");
-         if (statsRes.ok) {
-           const statsData = await statsRes.json();
-           setStats(statsData.stats);
-         }
+         setArrivedBooking({ fare, distance });
+         queryClient.invalidateQueries({ queryKey: ["driverSync"] });
+         await apiFetch("/api/driver/status");
       }
     } catch (e) {
       console.error(e);
     }
-  }, [currentBooking]);
+  }, [currentBooking, queryClient]);
+  
+  const requests = useMemo(() => {
+    return (syncData?.requests || []).filter((r: RequestItem) => !rejectedIds.has(r.id));
+  }, [syncData?.requests, rejectedIds]);
 
-  // Initial auth check is handled by middleware, but we fetch status here
+
+
   useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        const res = await apiFetch("/api/driver/status");
-        if (res.ok) {
-          const data = await res.json();
-          setDriverId(data.driver.id);
-          setIsApproved(data.driver.isApproved);
-          setIsOnline(data.driver.isOnline);
-          if (data.stats) setStats(data.stats);
-        } else if (res.status === 401) {
-          router.push("/login"); // Middleware redirects usually handle this but safety first
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkStatus();
-
     // Listen for forced offline event from CancelModal
     const handleForcedOffline = () => {
-      setIsOnline(false);
+      setIsOnlineOverride(false);
       alert(t("cancel_driver_warning"));
     };
     window.addEventListener("FORCED_OFFLINE", handleForcedOffline);
@@ -171,31 +175,7 @@ export default function DriverDashboard() {
     return () => {
       window.removeEventListener("FORCED_OFFLINE", handleForcedOffline);
     };
-  }, [router, t]);
-
-  useEffect(() => {
-    if (!isOnline || !isApproved) return;
-    
-    const fetchRequests = async () => {
-      try {
-        const res = await apiFetch("/api/driver/requests");
-        if (res.status === 401) {
-           router.push("/login");
-           return;
-        }
-        const data = await res.json();
-        const unrejected = (data.requests || []).filter((r: RequestItem) => !rejectedIds.has(r.id));
-        setRequests(unrejected);
-        setCurrentBooking(data.currentBooking || null);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetchRequests();
-    const interval = setInterval(fetchRequests, 5000);
-    return () => clearInterval(interval);
-  }, [isOnline, isApproved, router, rejectedIds]);
+  }, [t]);
 
   // ─── Real-time Location Push ──────────────────────────────────────────────
   useEffect(() => {
@@ -315,15 +295,21 @@ export default function DriverDashboard() {
       <div className="fixed inset-0 bg-gradient-to-b from-emerald-600/10 via-transparent to-transparent pointer-events-none" />
 
       <header className="w-full bg-white/70 backdrop-blur-xl border-b border-slate-200/50 sticky top-0 z-50 px-6 pt-[calc(env(safe-area-inset-top)+1rem)] pb-5 flex items-center justify-between shadow-2xl shadow-slate-900/5 min-h-[5.5rem]">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-600/20">
-            <User className="text-white w-5 h-5" />
+        <Link href="/profile" className="flex items-center gap-2 group">
+          <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-600/20 group-hover:scale-105 transition-all overflow-hidden border border-white/10">
+            {photoUrl ? (
+              <Image src={photoUrl} alt="Profile" width={32} height={32} className="w-full h-full object-cover" />
+            ) : (
+              <User className="text-white w-4 h-4" />
+            )}
           </div>
           <div>
-            <h1 className="text-sm font-black text-slate-800 uppercase tracking-tighter leading-none">{t("driver_portal")}</h1>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">ID: {driverId.slice(-6).toUpperCase()}</p>
+            <h1 className="text-[10px] font-black text-slate-800 uppercase tracking-widest leading-none group-hover:text-emerald-600 transition-colors">
+              {driverName ? driverName.split(" ")[0] : t("driver_portal")}
+            </h1>
+            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1 opacity-60">ID: {driverId.slice(-6).toUpperCase()}</p>
           </div>
-        </div>
+        </Link>
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
           <AppButton variant="ghost" onClick={logout} className="rounded-full hover:bg-red-50 hover:text-red-600 transition-colors w-12 h-12 p-0">
@@ -501,7 +487,7 @@ export default function DriverDashboard() {
             onClose={() => setShowCancel(false)} 
             onSuccess={() => {
               setShowCancel(false);
-              setCurrentBooking(null);
+              queryClient.invalidateQueries({ queryKey: ["driverSync"] });
             }} 
           />
         )}

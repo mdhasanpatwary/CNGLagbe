@@ -3,44 +3,56 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Phone, LogIn, ChevronRight } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent } from "@/components/ui/card";
 import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
 import { FormField } from "@/components/FormField";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { driverLoginSchema, type DriverLoginInput } from "@/lib/schemas/auth";
 
 
 export default function DriverLogin() {
   const router = useRouter();
   const { t } = useLang();
-  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [serverError, setServerError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<DriverLoginInput>({
+    resolver: zodResolver(driverLoginSchema),
+    defaultValues: {
+      phone: "",
+    },
+  });
+
+  const onSubmit = async (data: DriverLoginInput) => {
     setLoading(true);
-    setError("");
+    setServerError("");
 
     try {
       const res = await fetch("/api/auth/driver/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone })
+        body: JSON.stringify(data)
       });
 
-      const data = await res.json();
+      const resData = await res.json();
 
       if (res.ok) {
         router.push("/dashboard");
-      } else if (data.signupRequired) {
+      } else if (resData.signupRequired) {
         // Carry phone to signup
-        router.push(`/signup?phone=${phone}`);
+        router.push(`/signup?phone=${data.phone}`);
       } else {
-        setError(data.error || t("login_failed"));
+        setServerError(resData.error || t("login_failed"));
       }
     } catch {
-      setError(t("network_error"));
+      setServerError(t("network_error"));
     } finally {
       setLoading(false);
     }
@@ -64,11 +76,11 @@ export default function DriverLogin() {
         <Card className="shadow-2xl shadow-slate-200/50 border-none rounded-3xl overflow-hidden">
           <div className="bg-emerald-500 h-2 w-full" />
           <CardContent className="p-6">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {error && (
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                {serverError && (
                   <div className="bg-red-50 text-red-500 p-4 rounded-xl text-sm border border-red-100 flex items-center gap-3 animate-in fade-in slide-in-from-top-1">
                     <div className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
-                    {error}
+                    {serverError}
                   </div>
                 )}
                 
@@ -77,9 +89,8 @@ export default function DriverLogin() {
                   icon={Phone}
                   type="tel"
                   placeholder="01711 XXX XXX"
-                  value={phone}
-                  onChange={setPhone}
-                  required
+                  {...register("phone")}
+                  error={errors.phone?.message}
                 />
 
                 <AppButton

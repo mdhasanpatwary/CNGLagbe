@@ -15,12 +15,22 @@ interface RequestItem {
   createdAt: string;
 }
 
+// Simple in-memory cache for driver requests
+const requestsCache = new Map<string, { data: Record<string, unknown>; timestamp: number }>();
+const CACHE_TTL = 3000; // 3 seconds
+
 export async function GET() {
   try {
     const driverId = await getApprovedDriver();
 
     if (!driverId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // 1. Check Cache
+    const cached = requestsCache.get(driverId);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return NextResponse.json(cached.data);
     }
 
     // Get driver location and check for active booking in single query
@@ -43,10 +53,12 @@ export async function GET() {
     const { currentLat, currentLng, bookings: activeBookings } = driverWithActiveBooking;
 
     if (activeBookings.length > 0) {
-      return NextResponse.json({
+      const responseData = {
         requests: [],
         currentBooking: activeBookings[0],
-      });
+      };
+      requestsCache.set(driverId, { data: responseData, timestamp: Date.now() });
+      return NextResponse.json(responseData);
     }
 
     if (currentLat == null || currentLng == null) {
@@ -56,7 +68,19 @@ export async function GET() {
     const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
 
     // Optimized geospatial query: Use ST_DWithin for index-based filtering
-    const requests: RequestItem[] = await prisma.$queryRaw`
+    const rawRequests: Array<{
+      id: string;
+      pickupLat: number;
+      pickupLng: number;
+      destLat: number;
+      destLng: number;
+      distance: number;
+      fare: number;
+      pickupAddress?: string;
+      destAddress?: string;
+      createdAt: Date;
+      calculatedDistance: number;
+    }> = await prisma.$queryRaw`
       SELECT
         b."id",
         b."pickupLat",
@@ -71,7 +95,7 @@ export async function GET() {
         ST_DistanceSphere(
           ST_MakePoint(b."pickupLng", b."pickupLat"),
           ST_MakePoint(${currentLng}::float8, ${currentLat}::float8)
-        ) / 1000 AS "distance"
+        ) / 1000 AS "calculatedDistance"
       FROM "Booking" b
       LEFT JOIN "BookingRejection" br ON br."bookingId" = b."id" AND br."driverId" = ${driverId}
       WHERE
@@ -83,11 +107,28 @@ export async function GET() {
           ST_MakePoint(${currentLng}::float8, ${currentLat}::float8),
           5000
         )
-      ORDER BY "distance" ASC
+      ORDER BY "calculatedDistance" ASC
       LIMIT 20
     `;
 
-    return NextResponse.json({ requests, currentBooking: null });
+    // Map calculated distance to distance field for response
+    const requests: RequestItem[] = rawRequests.map(r => ({
+      id: r.id,
+      pickupLat: r.pickupLat,
+      pickupLng: r.pickupLng,
+      destLat: r.destLat,
+      destLng: r.destLng,
+      distance: r.calculatedDistance,
+      fare: r.fare,
+      pickupAddress: r.pickupAddress,
+      destAddress: r.destAddress,
+      createdAt: r.createdAt.toISOString(),
+    }));
+
+    const responseData = { requests, currentBooking: null };
+    requestsCache.set(driverId, { data: responseData, timestamp: Date.now() });
+
+    return NextResponse.json(responseData);
   } catch (error) {
     console.error("Driver Requests Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

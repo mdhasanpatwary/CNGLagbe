@@ -16,6 +16,8 @@ model User {
   phone     String    @unique
   role      String    @default("USER") // USER, ADMIN
   bookings  Booking[]
+  photoUrl  String?
+  birthday  DateTime?
   createdAt DateTime  @default(now())
 }
 
@@ -36,6 +38,7 @@ model Driver {
   isSuspended     Boolean   @default(false)
   bookings        Booking[]
   rejections      BookingRejection[]
+  birthday        DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }
@@ -68,6 +71,9 @@ model Booking {
 
   @@index([status, createdAt])
   @@index([driverId, status])
+  @@index([userId, status])
+  @@index([status])
+  @@index([createdAt])
   @@index([userId, status, cancelledAt])
   @@index([driverId, status, cancelledAt])
 }
@@ -85,14 +91,16 @@ model IssueReport {
 
 
 model GeoCache {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   lat       Float
   lng       Float
   address   String
-  createdAt DateTime @default(now())
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
 
   @@unique([lat, lng], name: "lat_lng")
   @@index([lat, lng])
+  @@index([expiresAt])
 }
 
 model BookingRejection {

@@ -12,7 +12,7 @@ export async function GET() {
 
     const driver = await prisma.driver.findUnique({
       where: { id: driverId },
-      select: { id: true, isOnline: true, isApproved: true, name: true }
+      select: { id: true, isOnline: true, isApproved: true, name: true, photoUrl: true }
     });
 
     if (!driver) {

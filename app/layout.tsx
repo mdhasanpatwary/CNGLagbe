@@ -51,7 +51,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-import { LanguageProvider } from "@/context/LanguageContext";
+import { Providers } from "@/components/Providers";
 
 export default function RootLayout({
   children,
@@ -61,9 +61,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("antialiased", inter.variable, notoBengali.variable)}>
       <body className="min-h-screen bg-slate-50 pb-safe font-sans relative">
-        <LanguageProvider>
+        <Providers>
           {children}
-        </LanguageProvider>
+        </Providers>
       </body>
     </html>
   );

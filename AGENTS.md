@@ -12,6 +12,14 @@ Refer to [/docs/ui-rules.md](file:///Users/patwary/Projects/CNGLagbe/docs/ui-rul
 5. **Clear Action Text**: All buttons must have explicit, action-oriented text.
 6. **No Hardcoded Strings**: All UI text must use the central `TEXT` dictionary.
 7. **Consistent Spacing**: Use design tokens; no ad-hoc margins.
-8. **Icon Labels**: All icons must have accompanying text labels for low literacy users.
-9. **Enforce Checklist**: Before adding any UI, verify against the checklist in `/docs/ui-rules.md`.
+10. **Icon Labels**: All icons must have accompanying text labels for low literacy users.
+11. **Enforce Checklist**: Before adding any UI, verify against the checklist in `/docs/ui-rules.md`.
+
+## Form Validation & State Management
+1. **Schemas First**: All forms MUST have a Zod schema defined in `lib/schemas/`.
+2. **Unified State**: Use `react-hook-form` for all form state management. Avoid local `useState` for individual fields.
+3. **Zod Resolver**: Connect schemas to forms using `@hookform/resolvers/zod`.
+4. **Standard Fields**: Use the `FormField` component for inputs to ensure consistent error styling and ref forwarding.
+5. **Step-wise Validation**: In multi-step forms, use `trigger(['field1', 'field2'])` to validate current step fields before proceeding.
+6. **Types**: Always export the input type using `z.infer<typeof schema>`.
 <!-- END:nextjs-agent-rules -->

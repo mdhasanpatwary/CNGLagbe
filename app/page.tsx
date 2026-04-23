@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { LogOut, User, MapPin, Navigation, Banknote, ShieldCheck, Copyright } from "lucide-react";
 import { AppButton } from "@/components/ui/AppButton";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,7 +13,7 @@ import { useLang } from "@/hooks/useLang";
 export default function LandingPage() {
   const router = useRouter();
   const { t } = useLang();
-  const [user, setUser] = useState<{ name: string; role: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; role: string; photoUrl?: string } | null>(null);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -39,10 +40,19 @@ export default function LandingPage() {
                 <Navigation size={12} className="group-hover:animate-bounce" /> {t("booking_history")}
               </Link>
               <div className="h-4 w-[1px] bg-white/20" />
-              <span className="text-[10px] font-black bg-white/10 px-3 py-1.5 rounded-full uppercase tracking-widest">
-                {user.role === "DRIVER" ? t("driver_portal") : t("welcome_user")}: {user.name}
-              </span>
-              <AppButton variant="ghost" onClick={handleLogout} className="rounded-full hover:bg-white/10 h-12 p-2">
+              <Link href="/profile" className="flex items-center gap-2 bg-white/10 px-2 py-1.5 rounded-full hover:bg-white/20 transition-colors group">
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-white/20 flex items-center justify-center border border-white/10 group-hover:border-white/30 transition-all">
+                  {user.photoUrl ? (
+                    <Image src={user.photoUrl} alt={user.name} width={32} height={32} className="w-full h-full object-cover" />
+                  ) : (
+                    <User size={16} className="text-white/70" />
+                  )}
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-widest pr-2">
+                  {user.name.split(" ")[0]}
+                </span>
+              </Link>
+              <AppButton variant="ghost" onClick={handleLogout} className="rounded-full hover:bg-white/10 h-10 w-10 p-0">
                 <LogOut size={16} />
               </AppButton>
             </div>
@@ -81,7 +91,9 @@ export default function LandingPage() {
 
         <AppButton 
           onClick={() => {
-            if (user?.role === "DRIVER") {
+            if (!user) {
+              router.push("/login");
+            } else if (user.role === "DRIVER") {
               router.push("/dashboard");
             } else {
               router.push("/user/map");
@@ -90,7 +102,7 @@ export default function LandingPage() {
           className="w-full text-lg mb-10 h-14 rounded-xl shadow-lg font-bold"
           leftIcon={<MapPin className="w-5 h-5" />}
         >
-          {user?.role === "DRIVER" ? t("driver_portal") : t("set_pickup")}
+          {user ? (user.role === "DRIVER" ? t("driver_portal") : t("set_pickup")) : t("user_login")}
         </AppButton>
 
         {/* Feature Highlights */}
