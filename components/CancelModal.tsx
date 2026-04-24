@@ -11,6 +11,8 @@ interface CancelModalProps {
   onClose: () => void;
   onSuccess: () => void;
   role: "USER" | "DRIVER";
+  titleKey?: TextKey;
+  actionLabelKey?: TextKey;
 }
 
 const USER_CANCELLATION_REASONS: TextKey[] = [
@@ -27,7 +29,14 @@ const DRIVER_CANCELLATION_REASONS: TextKey[] = [
   "reason_other",
 ];
 
-export function CancelModal({ bookingId, onClose, onSuccess, role }: CancelModalProps) {
+export function CancelModal({
+  bookingId,
+  onClose,
+  onSuccess,
+  role,
+  titleKey = "cancel_booking",
+  actionLabelKey = "confirm_cancel",
+}: CancelModalProps) {
   const { t } = useLang();
   const [selectedReason, setSelectedReason] = useState<TextKey | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -75,7 +84,7 @@ export function CancelModal({ bookingId, onClose, onSuccess, role }: CancelModal
                 <AlertTriangle size={20} />
               </div>
               <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">
-                {t("cancel_booking")}
+                {t(titleKey)}
               </h2>
             </div>
             <AppButton
@@ -128,9 +137,10 @@ export function CancelModal({ bookingId, onClose, onSuccess, role }: CancelModal
               onClick={handleCancel}
               disabled={!selectedReason}
               loading={isLoading}
+              loadingTextKey={actionLabelKey}
               className="flex-1 h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-[10px] shadow-lg shadow-red-600/20"
             >
-              {t("confirm_cancel")}
+              {t(actionLabelKey)}
             </AppButton>
           </div>
         </div>

@@ -3,6 +3,7 @@
 
 import React from "react";
 import { Loader2 } from "lucide-react";
+import { type TextKey } from "@/constants/text";
 import { cn } from "@/lib/utils";
 import { useLang } from "@/hooks/useLang";
 
@@ -10,6 +11,7 @@ interface AppButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "ghost";
   fullWidth?: boolean;
   loading?: boolean;
+  loadingTextKey?: TextKey;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
 }
@@ -19,6 +21,7 @@ export function AppButton({
   variant = "primary",
   fullWidth = false,
   loading = false,
+  loadingTextKey = "finding",
   leftIcon,
   rightIcon,
   children,
@@ -51,7 +54,7 @@ export function AppButton({
       {loading ? (
         <>
           <Loader2 className="w-5 h-5 animate-spin" />
-          <span>{t("finding")}</span>
+          <span>{t(loadingTextKey)}</span>
         </>
       ) : (
         <>
