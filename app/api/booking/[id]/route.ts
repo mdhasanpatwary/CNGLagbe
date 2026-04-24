@@ -27,9 +27,9 @@ export async function GET(
     }
 
     if (booking.status === "PENDING") {
-      const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
-      if (booking.createdAt < fiveMinsAgo) {
-        // Auto-expire
+      const oneMinAgo = new Date(Date.now() - 1 * 60 * 1000);
+      if (booking.createdAt < oneMinAgo) {
+        // Auto-expire after 1 minute
         await prisma.booking.update({
           where: { id: booking.id },
           data: { status: "TIMED_OUT" },

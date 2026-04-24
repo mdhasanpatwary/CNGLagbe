@@ -174,17 +174,18 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
           #{id.slice(-6).toUpperCase()}
         </h1>
         <Badge variant={
-          booking.status === "PENDING" ? "secondary" :
+          booking.status === "PENDING" && countdown > 0 ? "secondary" :
           booking.status === "ACCEPTED" ? "default" : "outline"
         } className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest border-none ${
-          booking.status === "PENDING" ? "bg-amber-100 text-amber-700" : 
+          booking.status === "PENDING" && countdown > 0 ? "bg-amber-100 text-amber-700" : 
           booking.status === "ACCEPTED" ? "bg-blue-100 text-blue-700" : 
           "bg-emerald-100 text-emerald-700"}`}
         >
-          {booking.status === "PENDING" ? t("pending") : 
+          {booking.status === "PENDING" && countdown > 0 ? t("pending") : 
            booking.status === "ACCEPTED" ? t("ongoing") : 
            booking.status === "COMPLETED" ? t("finish") : 
-           booking.status === "TIMED_OUT" ? "No Driver" : booking.status}
+           booking.status === "TIMED_OUT" ? "No Driver" : 
+           countdown === 0 ? "No Driver" : booking.status}
         </Badge>
       </header>
       
@@ -192,39 +193,47 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
         
         {/* Status Graphic */}
         <div className="flex flex-col items-center justify-center py-8">
-          {booking.status === "PENDING" && (
+          {(booking.status === "PENDING" || countdown === 0) && (
             <>
-              <div className="relative w-48 h-48 flex items-center justify-center">
-                <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-[ping_3s_linear_infinite]" />
-                <div className="absolute inset-4 rounded-full bg-emerald-500/10 animate-[ping_2s_linear_infinite]" />
-                <div className="bg-white p-10 rounded-full relative shadow-2xl border border-emerald-50 flex items-center justify-center">
-                  <div className="absolute inset-0 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin" />
-                  <Search className="w-12 h-12 text-emerald-600 animate-pulse" />
-                </div>
-              </div>
-              <h2 className="text-2xl font-black text-slate-800 mt-8 mb-2 tracking-tight">{t("finding_driver")}</h2>
-              <p className="text-slate-500 text-center text-sm px-4 font-medium opacity-70 uppercase tracking-widest mb-4">{t("wait_requests")}</p>
-              <div className="bg-amber-50 px-4 py-2 rounded-full border border-amber-200 mb-6">
-                <p className="text-amber-700 text-center text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                  {countdown > 0 ? `Timeout in ${countdown}s` : "No driver found"}
-                </p>
-              </div>
-              {countdown > 0 && (
-                <AppButton 
-                  variant="secondary" 
-                  onClick={() => setShowCancel(true)} 
-                  className="rounded-full border-red-300 text-red-600 hover:bg-red-50"
-                >
-                  Cancel Request
-                </AppButton>
-              )}
-              {countdown === 0 && (
-                <Link href="/user/map">
-                  <AppButton variant="secondary" className="rounded-full">
-                    Try Again
+              {countdown > 0 ? (
+                <>
+                  <div className="relative w-48 h-48 flex items-center justify-center">
+                    <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-[ping_3s_linear_infinite]" />
+                    <div className="absolute inset-4 rounded-full bg-emerald-500/10 animate-[ping_2s_linear_infinite]" />
+                    <div className="bg-white p-10 rounded-full relative shadow-2xl border border-emerald-50 flex items-center justify-center">
+                      <div className="absolute inset-0 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin" />
+                      <Search className="w-12 h-12 text-emerald-600 animate-pulse" />
+                    </div>
+                  </div>
+                  <h2 className="text-2xl font-black text-slate-800 mt-8 mb-2 tracking-tight">{t("finding_driver")}</h2>
+                  <p className="text-slate-500 text-center text-sm px-4 font-medium opacity-70 uppercase tracking-widest mb-4">{t("wait_requests")}</p>
+                  <div className="bg-amber-50 px-4 py-2 rounded-full border border-amber-200 mb-6">
+                    <div className="text-amber-700 text-center text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                      {countdown > 0 ? `Timeout in ${countdown}s` : "No driver found"}
+                    </div>
+                  </div>
+                  <AppButton 
+                    variant="secondary" 
+                    onClick={() => setShowCancel(true)} 
+                    className="rounded-full border-red-300 text-red-600 hover:bg-red-50"
+                  >
+                    Cancel Request
                   </AppButton>
-                </Link>
+                </>
+              ) : (
+                <>
+                  <div className="bg-orange-100 p-8 rounded-full">
+                    <AlertTriangle className="w-16 h-16 text-orange-600" />
+                  </div>
+                  <h2 className="text-2xl font-black text-slate-800 mt-8 mb-2">No Driver Found</h2>
+                  <p className="text-slate-500 text-center text-sm px-4 font-medium mb-4">No drivers available at this time</p>
+                  <Link href="/user/map">
+                    <AppButton variant="secondary" className="rounded-full">
+                      Try Again
+                    </AppButton>
+                  </Link>
+                </>
               )}
             </>
           )}
@@ -261,21 +270,6 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
             </>
           )}
           
-          {booking.status === "TIMED_OUT" && (
-            <>
-              <div className="bg-orange-100 p-8 rounded-full">
-                <AlertTriangle className="w-16 h-16 text-orange-600" />
-              </div>
-              <h2 className="text-2xl font-black text-slate-800 mt-8 mb-2">No Driver Found</h2>
-              <p className="text-slate-500 text-center text-sm px-4 font-medium mb-4">No drivers available at this time</p>
-              <Link href="/user/map">
-                <AppButton variant="secondary" className="rounded-full">
-                  Try Again
-                </AppButton>
-              </Link>
-            </>
-          )}
-
           {booking.status === "CANCELLED" && (
             <>
               <div className="bg-red-100 p-8 rounded-full">
