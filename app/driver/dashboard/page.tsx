@@ -31,6 +31,35 @@ interface RequestItem {
   createdAt: string;
 }
 
+interface DriverLocationPoint {
+  lat: number;
+  lng: number;
+  timestamp: number;
+}
+
+interface PendingLocationUpdate {
+  location: DriverLocationPoint;
+  reason: "initial" | "interval" | "movement" | "resume";
+}
+
+const LOCATION_INTERVAL_MS = 60_000;
+const LOCATION_SEND_THROTTLE_MS = 15_000;
+const LOCATION_MOVEMENT_THRESHOLD_METERS = 100;
+
+function getDistanceMeters(a: DriverLocationPoint, b: DriverLocationPoint) {
+  const toRadians = (value: number) => (value * Math.PI) / 180;
+  const earthRadiusMeters = 6371000;
+  const dLat = toRadians(b.lat - a.lat);
+  const dLng = toRadians(b.lng - a.lng);
+  const lat1 = toRadians(a.lat);
+  const lat2 = toRadians(b.lat);
+  const haversine =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+
+  return 2 * earthRadiusMeters * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+}
+
 
 
 export default function DriverDashboard() {
@@ -46,6 +75,15 @@ export default function DriverDashboard() {
 
   const lastLocation = useRef<{ lat: number; lng: number } | null>(null);
   const locationInterval = useRef<NodeJS.Timeout | null>(null);
+  const locationWatch = useRef<number | null>(null);
+  const locationFlushTimeout = useRef<NodeJS.Timeout | null>(null);
+  const locationRequestInFlight = useRef(false);
+  const lastLocationAttemptAt = useRef(0);
+  const lastLocationSentAt = useRef(0);
+  const pendingLocationUpdate = useRef<PendingLocationUpdate | null>(null);
+  const permissionDeniedShown = useRef(false);
+  const isOnlineRef = useRef(false);
+  const sendLocationUpdateRef = useRef<((location: DriverLocationPoint, reason: PendingLocationUpdate["reason"]) => Promise<void>) | null>(null);
   
   const logout = async () => {
     try {
@@ -135,6 +173,10 @@ export default function DriverDashboard() {
   const stats = syncData?.stats || { todayEarnings: 0, todayRides: 0 };
   const currentBooking = syncData?.currentBooking || null;
 
+  useEffect(() => {
+    isOnlineRef.current = isOnline;
+  }, [isOnline]);
+
   const handleComplete = useCallback(async (id: string) => {
     try {
       // Capture current fare and distance to show in the "Arrived" modal
@@ -177,69 +219,220 @@ export default function DriverDashboard() {
     };
   }, [t]);
 
-  // ─── Real-time Location Push ──────────────────────────────────────────────
-  useEffect(() => {
-    if (!isOnline) {
-      if (locationInterval.current) {
-        clearInterval(locationInterval.current);
-        locationInterval.current = null;
-      }
+  const broadcastLocation = useCallback((location: DriverLocationPoint) => {
+    if (!currentBooking) return;
+
+    supabase.channel(`booking-${currentBooking.id}`).send({
+      type: "broadcast",
+      event: "location",
+      payload: { lat: location.lat, lng: location.lng }
+    });
+  }, [currentBooking]);
+
+  const clearLocationTimers = useCallback(() => {
+    if (locationInterval.current) {
+      clearInterval(locationInterval.current);
+      locationInterval.current = null;
+    }
+
+    if (locationWatch.current != null) {
+      navigator.geolocation.clearWatch(locationWatch.current);
+      locationWatch.current = null;
+    }
+
+    if (locationFlushTimeout.current) {
+      clearTimeout(locationFlushTimeout.current);
+      locationFlushTimeout.current = null;
+    }
+  }, []);
+
+  const flushPendingLocation = useCallback(() => {
+    if (locationFlushTimeout.current) {
+      clearTimeout(locationFlushTimeout.current);
+      locationFlushTimeout.current = null;
+    }
+
+    if (!isOnlineRef.current || document.visibilityState === "hidden") return;
+
+    const pending = pendingLocationUpdate.current;
+    const send = sendLocationUpdateRef.current;
+    if (!pending || !send) return;
+
+    pendingLocationUpdate.current = null;
+    void send(pending.location, pending.reason);
+  }, []);
+
+  const queueLocationUpdate = useCallback((update: PendingLocationUpdate) => {
+    pendingLocationUpdate.current = update;
+
+    if (locationFlushTimeout.current) return;
+
+    const elapsed = Date.now() - lastLocationAttemptAt.current;
+    const delay = Math.max(LOCATION_SEND_THROTTLE_MS - elapsed, 0);
+
+    locationFlushTimeout.current = setTimeout(() => {
+      locationFlushTimeout.current = null;
+      flushPendingLocation();
+    }, delay);
+  }, [flushPendingLocation]);
+
+  const sendLocationUpdate = useCallback(async (
+    location: DriverLocationPoint,
+    reason: PendingLocationUpdate["reason"]
+  ) => {
+    if (!isOnline || document.visibilityState === "hidden") return;
+
+    const lastSentLocation = lastLocation.current;
+    const distanceFromLastSent = lastSentLocation
+      ? getDistanceMeters(
+          { ...lastSentLocation, timestamp: lastLocationSentAt.current || location.timestamp },
+          location
+        )
+      : Number.POSITIVE_INFINITY;
+
+    if (reason === "movement" && distanceFromLastSent < LOCATION_MOVEMENT_THRESHOLD_METERS) {
       return;
     }
 
-    const pushLocation = () => {
-      if (!navigator.geolocation) return;
+    if (locationRequestInFlight.current) {
+      queueLocationUpdate({ location, reason });
+      return;
+    }
 
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        const { latitude: lat, longitude: lng } = pos.coords;
-        
-        // Throttling: Only push if moved > 0.0001 degrees (~10 meters)
-        if (lastLocation.current) {
-          const dLat = Math.abs(lat - lastLocation.current.lat);
-          const dLng = Math.abs(lng - lastLocation.current.lng);
-          if (dLat < 0.0001 && dLng < 0.0001) return; 
+    const now = Date.now();
+    const elapsed = now - lastLocationAttemptAt.current;
+    if (lastLocationAttemptAt.current > 0 && elapsed < LOCATION_SEND_THROTTLE_MS) {
+      queueLocationUpdate({ location, reason });
+      return;
+    }
+
+    locationRequestInFlight.current = true;
+    lastLocationAttemptAt.current = now;
+
+    try {
+      const res = await apiFetch("/api/driver/location", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          lat: location.lat,
+          lng: location.lng,
+          source: reason,
+          capturedAt: location.timestamp,
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error(`Location update failed with status ${res.status}`);
+      }
+
+      lastLocation.current = { lat: location.lat, lng: location.lng };
+      lastLocationSentAt.current = Date.now();
+      broadcastLocation(location);
+    } catch (e) {
+      console.error("Location Push Error:", e);
+    } finally {
+      locationRequestInFlight.current = false;
+
+      if (pendingLocationUpdate.current) {
+        const nextElapsed = Date.now() - lastLocationAttemptAt.current;
+        if (nextElapsed >= LOCATION_SEND_THROTTLE_MS) {
+          flushPendingLocation();
+        } else {
+          queueLocationUpdate(pendingLocationUpdate.current);
         }
+      }
+    }
+  }, [broadcastLocation, flushPendingLocation, isOnline, queueLocationUpdate]);
 
-        lastLocation.current = { lat, lng };
+  useEffect(() => {
+    sendLocationUpdateRef.current = sendLocationUpdate;
+  }, [sendLocationUpdate]);
 
-        // 1. Update DB (for persistence and user reload)
-        try {
-          await apiFetch("/api/driver/location", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ lat, lng })
-          });
-        } catch (e) { console.error("Location Push Error:", e); }
+  const handleLocationError = useCallback((err: GeolocationPositionError) => {
+    console.error("Geolocation Error:", { code: err.code, message: err.message });
 
-        // 2. Broadcast via Supabase Realtime (for true live tracking)
-        if (currentBooking) {
-          supabase.channel(`booking-${currentBooking.id}`).send({
-            type: "broadcast",
-            event: "location",
-            payload: { lat, lng }
-          });
-        }
-      }, (err) => {
-        console.error("Geolocation Error:", { code: err.code, message: err.message });
-        if (err.code === err.PERMISSION_DENIED) {
-          alert(t("location_denied") as string);
-        }
-      }, { 
+    if (err.code === err.PERMISSION_DENIED && !permissionDeniedShown.current) {
+      permissionDeniedShown.current = true;
+      alert(t("location_denied") as string);
+    }
+  }, [t]);
+
+  const requestCurrentLocation = useCallback((reason: PendingLocationUpdate["reason"]) => {
+    if (!navigator.geolocation || document.visibilityState === "hidden") return;
+
+    navigator.geolocation.getCurrentPosition((pos) => {
+      void sendLocationUpdate({
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        timestamp: pos.timestamp || Date.now(),
+      }, reason);
+    }, handleLocationError, {
+      enableHighAccuracy: true,
+      timeout: 20000,
+      maximumAge: reason === "interval" ? 30000 : 10000,
+    });
+  }, [handleLocationError, sendLocationUpdate]);
+
+  // ─── Real-time Location Push ──────────────────────────────────────────────
+  useEffect(() => {
+    if (!isOnline) {
+      clearLocationTimers();
+      pendingLocationUpdate.current = null;
+      locationRequestInFlight.current = false;
+      lastLocationAttemptAt.current = 0;
+      lastLocation.current = null;
+      lastLocationSentAt.current = 0;
+      permissionDeniedShown.current = false;
+      return;
+    }
+
+    if (!navigator.geolocation) return;
+
+    const startTracking = () => {
+      clearLocationTimers();
+
+      if (document.visibilityState === "hidden") return;
+
+      requestCurrentLocation(lastLocationSentAt.current === 0 ? "initial" : "resume");
+
+      locationInterval.current = setInterval(() => {
+        requestCurrentLocation("interval");
+      }, LOCATION_INTERVAL_MS);
+
+      locationWatch.current = navigator.geolocation.watchPosition((pos) => {
+        void sendLocationUpdate({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          timestamp: pos.timestamp || Date.now(),
+        }, "movement");
+      }, handleLocationError, {
         enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 10000 
+        timeout: 20000,
+        maximumAge: 15000,
       });
     };
 
-    locationInterval.current = setInterval(pushLocation, 10000); // Push every 10s if moved
-    pushLocation(); // Do an immediate push when going online
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        clearLocationTimers();
+        return;
+      }
+
+      if (isOnline) {
+        startTracking();
+      }
+    };
+
+    startTracking();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     
     return () => {
-      if (locationInterval.current) clearInterval(locationInterval.current);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      clearLocationTimers();
     };
-  }, [isOnline, currentBooking, t]);
+  }, [clearLocationTimers, handleLocationError, isOnline, requestCurrentLocation, sendLocationUpdate]);
 
   // ─── Request Timer & Sound ────────────────────────────────────────────────
   useEffect(() => {
