@@ -593,70 +593,72 @@ export default function UserMapPage() {
 
     callDirectionsAPI();
 
+    // ─── FIX: Use DirectionsService (stable API) instead of Routes API v2 ───
+    // Routes API v2 (Route.computeRoutes) requires a mandatory `fields` header
+    // that the JS SDK does not support, causing "not iterable" InvalidValueError.
     async function callDirectionsAPI() {
       try {
-        const { Route } = await window.google.maps.importLibrary("routes") as google.maps.RoutesLibrary;
-        const request = {
+        const directionsService = new window.google.maps.DirectionsService();
+
+        const result = await directionsService.route({
           origin: pickup!,
           destination: destination!,
           travelMode: window.google.maps.TravelMode.DRIVING,
-        };
+        });
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { routes } = await Route.computeRoutes(request as any);
-        if (routes && routes.length > 0) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const route = routes[0] as any;
-          const encodedPolyline = route.polyline?.encodedPolyline ?? "";
-          
-          const geometry = window.google.maps.geometry;
-          if (geometry?.encoding && encodedPolyline) {
-            drawPolyline(geometry.encoding.decodePath(encodedPolyline), 0.85);
-          } else {
-            drawPolyline([new google.maps.LatLng(pickup!.lat, pickup!.lng), new google.maps.LatLng(destination!.lat, destination!.lng)], 0.7);
-          }
+        if (result.status !== "OK" || !result.routes?.length) {
+          console.error("Directions request failed:", result.status);
+          drawPolyline(
+            [new google.maps.LatLng(pickup!.lat, pickup!.lng), new google.maps.LatLng(destination!.lat, destination!.lng)],
+            0.7
+          );
+          return;
+        }
 
-          // Extract distance from legs (newer API structure handles distanceMeters)
-          let distanceValue = fareData?.distance ? fareData.distance * 1000 : 0;
-          if (route.legs && route.legs.length > 0) {
-            // distanceMeters (number) in new API, distance.value in old API
-            distanceValue = route.legs[0].distanceMeters ?? route.legs[0].distance?.value ?? distanceValue;
-          }
-          const distanceText = (distanceValue / 1000).toFixed(1) + " km";
-          
-          // Extract duration from legs (newer API structure handles duration as string "123s")
-          let durationMinutes = null;
-          let durationText = "";
-          if (route.legs && route.legs.length > 0) {
-            const durationRaw = route.legs[0].duration;
-            let durationSeconds = 0;
-            
-            if (typeof durationRaw === "string") {
-              durationSeconds = parseInt(durationRaw, 10);
-            } else if (durationRaw?.value) {
-              durationSeconds = durationRaw.value;
-            }
+        const route = result.routes[0];
+        const leg = route.legs[0];
 
-            if (durationSeconds > 0) {
-              durationMinutes = Math.round(durationSeconds / 60);
-              durationText = durationMinutes >= 60 
-                ? `${Math.floor(durationMinutes / 60)} h ${durationMinutes % 60} min` 
-                : `${durationMinutes} min`;
-            }
-          }
+        // Decode the overview polyline for drawing + storage
+        const encodedPolyline = route.overview_polyline ?? "";
+        const geometry = window.google.maps.geometry;
+        if (geometry?.encoding && encodedPolyline) {
+          drawPolyline(geometry.encoding.decodePath(encodedPolyline), 0.85);
+        } else if (route.overview_path?.length) {
+          drawPolyline(route.overview_path, 0.85);
+        } else {
+          drawPolyline(
+            [new google.maps.LatLng(pickup!.lat, pickup!.lng), new google.maps.LatLng(destination!.lat, destination!.lng)],
+            0.7
+          );
+        }
 
-          const newRouteInfo: RouteInfo = { distanceText, durationText, durationMinutes, encodedPolyline };
-          setRouteInfo(newRouteInfo);
+        // Distance
+        const distanceValue = leg.distance?.value ?? (fareData?.distance ? fareData.distance * 1000 : 0);
+        const distanceText = (distanceValue / 1000).toFixed(1) + " km";
 
-          if (pickup && destination && fareData) {
-            saveBookingSession({
-              pickup: { lat: pickup.lat, lng: pickup.lng, label: pickup.address ?? "" },
-              drop: { lat: destination.lat, lng: destination.lng, label: destination.address ?? "" },
-              route: { polyline: encodedPolyline, distanceText, durationText, durationMinutes, distanceKm: fareData.distance },
-              fare: fareData.fare,
-              lastUpdated: Date.now(),
-            });
-          }
+        // Duration
+        const durationSeconds = leg.duration?.value ?? 0;
+        let durationMinutes: number | null = null;
+        let durationText = "";
+        if (durationSeconds > 0) {
+          durationMinutes = Math.round(durationSeconds / 60);
+          durationText =
+            durationMinutes >= 60
+              ? `${Math.floor(durationMinutes / 60)} h ${durationMinutes % 60} min`
+              : `${durationMinutes} min`;
+        }
+
+        const newRouteInfo: RouteInfo = { distanceText, durationText, durationMinutes, encodedPolyline };
+        setRouteInfo(newRouteInfo);
+
+        if (pickup && destination && fareData) {
+          saveBookingSession({
+            pickup: { lat: pickup.lat, lng: pickup.lng, label: pickup.address ?? "" },
+            drop: { lat: destination.lat, lng: destination.lng, label: destination.address ?? "" },
+            route: { polyline: encodedPolyline, distanceText, durationText, durationMinutes, distanceKm: fareData.distance },
+            fare: fareData.fare,
+            lastUpdated: Date.now(),
+          });
         }
       } catch (err) {
         console.error("Route calculation failed:", err);
