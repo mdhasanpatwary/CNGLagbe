@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       role: "DRIVER",
     });
 
-    await setAuthCookie(token);
+    await setAuthCookie(token, request.headers.get("host"));
     await resetRateLimit(rateLimitKey);
 
     return NextResponse.json({

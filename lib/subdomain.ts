@@ -10,6 +10,10 @@ const DRIVER_DOMAIN_DEV = process.env.NEXT_PUBLIC_DRIVER_DOMAIN_DEV || "driver.l
 
 export type AppRole = "user" | "driver";
 
+function getHostname(host: string | null): string {
+  return (host || "").split(":")[0].toLowerCase();
+}
+
 /**
  * Detects the app context based on the hostname
  * @param host The hostname (e.g., from headers or window.location)
@@ -19,7 +23,7 @@ export function getAppRole(host: string | null): AppRole {
   if (!host) return "user";
   
   // Clean port if present
-  const hostname = host.split(":")[0];
+  const hostname = getHostname(host);
   
   if (hostname.startsWith("driver.")) {
     return "driver";
@@ -57,11 +61,24 @@ export function getDriverUrl(path: string = "/", isDev: boolean = process.env.NO
   const protocol = isDev ? "http" : "https";
   return `${protocol}://${domain}${path.startsWith("/") ? path : `/${path}`}`;
 }
+
+/**
+ * Checks whether the current request is on the configured production domains.
+ * Vercel preview/demo URLs should keep cookies and redirects on their own host.
+ */
+export function isConfiguredProductionHost(host: string | null): boolean {
+  const hostname = getHostname(host);
+  const userDomain = getHostname(USER_DOMAIN);
+  const driverDomain = getHostname(DRIVER_DOMAIN);
+
+  return hostname === userDomain || hostname === driverDomain || hostname.endsWith(`.${userDomain}`);
+}
+
 /**
  * Gets the base domain for cross-subdomain cookies
  */
-export function getCookieDomain(): string | undefined {
-  if (process.env.NODE_ENV === "production") {
+export function getCookieDomain(host?: string | null): string | undefined {
+  if (process.env.NODE_ENV === "production" && isConfiguredProductionHost(host || null)) {
     return `.${USER_DOMAIN}`; // .cnglagbe.com
   }
   

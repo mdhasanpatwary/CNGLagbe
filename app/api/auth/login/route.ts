@@ -52,7 +52,7 @@ export async function POST(request: Request) {
       role: user.role as "DRIVER" | "USER" | "ADMIN",
     });
 
-    await setAuthCookie(token);
+    await setAuthCookie(token, request.headers.get("host"));
     await resetRateLimit(rateLimitKey);
 
     return NextResponse.json({

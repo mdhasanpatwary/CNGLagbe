@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifyToken } from "@/lib/auth";
-import { getAppRole, getUserUrl, getDriverUrl } from "@/lib/subdomain";
+import { getAppRole, getUserUrl, getDriverUrl, isConfiguredProductionHost } from "@/lib/subdomain";
 
 export async function middleware(request: NextRequest) {
   return proxy(request);
@@ -14,6 +14,13 @@ export async function proxy(request: NextRequest) {
   const host = request.headers.get("host");
   const appRole = getAppRole(host);
   const path = url.pathname;
+  const useConfiguredDomains = process.env.NODE_ENV === "production" && isConfiguredProductionHost(host);
+  const userUrl = (targetPath: string) =>
+    useConfiguredDomains ? getUserUrl(targetPath) : new URL(targetPath, request.url);
+  const driverUrl = (targetPath: string) =>
+    useConfiguredDomains
+      ? getDriverUrl(targetPath)
+      : new URL(appRole === "driver" ? targetPath : `/driver${targetPath === "/" ? "" : targetPath}`, request.url);
 
   // 1. Skip static paths that should bypass middleware entirely
   if (
@@ -60,12 +67,12 @@ export async function proxy(request: NextRequest) {
 
     // If no user and not on an auth page, redirect to login for Driver subdomain
     if (!user && !isAuthPage) {
-      return NextResponse.redirect(getDriverUrl("/login"));
+      return NextResponse.redirect(driverUrl("/login"));
     }
 
     // If a user with role USER is on driver subdomain, send them back to user site
     if (user?.role === "USER") {
-      return NextResponse.redirect(getUserUrl("/"));
+      return NextResponse.redirect(userUrl("/"));
     }
 
     // Rewrite logic: if on driver subdomain, and path doesn't start with /driver, 
@@ -82,22 +89,22 @@ export async function proxy(request: NextRequest) {
       // If they were trying to access a driver path specifically
       if (path.startsWith("/driver")) {
         const cleanPath = path.replace("/driver", "") || "/";
-        return NextResponse.redirect(getDriverUrl(cleanPath));
+        return NextResponse.redirect(driverUrl(cleanPath));
       }
-      return NextResponse.redirect(getDriverUrl("/dashboard"));
+      return NextResponse.redirect(driverUrl("/dashboard"));
     }
 
     // If not logged in and trying to access protected user paths
     if (!user && !isAuthPage) {
       if (path.startsWith("/user/") || path === "/map" || path === "/history") {
-        return NextResponse.redirect(getUserUrl("/login"));
+        return NextResponse.redirect(userUrl("/login"));
       }
     }
 
     // Don't allow /driver paths on the main domain; redirect to driver subdomain
-    if (path.startsWith("/driver")) {
+    if (path.startsWith("/driver") && useConfiguredDomains) {
       const cleanPath = path.replace("/driver", "") || "/";
-      return NextResponse.redirect(getDriverUrl(cleanPath));
+      return NextResponse.redirect(driverUrl(cleanPath));
     }
     
     // Optional: map /map to /user/map for cleaner user URLs
@@ -113,7 +120,7 @@ export async function proxy(request: NextRequest) {
     // Admin protection
     if (path.startsWith("/admin")) {
       if (!user || user.role !== "ADMIN") {
-        return NextResponse.redirect(getUserUrl("/login"));
+        return NextResponse.redirect(userUrl("/login"));
       }
     }
   }

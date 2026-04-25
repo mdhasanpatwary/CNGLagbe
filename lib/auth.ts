@@ -34,10 +34,10 @@ const AUTH_COOKIE_NAME = "auth_token";
 /**
  * Sets the authentication cookie with cross-subdomain support
  */
-export async function setAuthCookie(token: string) {
+export async function setAuthCookie(token: string, host?: string | null) {
   const cookieStore = await cookies();
   const isProd = process.env.NODE_ENV === "production";
-  const domain = getCookieDomain();
+  const domain = getCookieDomain(host);
   
   cookieStore.set(AUTH_COOKIE_NAME, token, {
     httpOnly: true,

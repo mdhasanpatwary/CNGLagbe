@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       role: "DRIVER",
     });
 
-    await setAuthCookie(token);
+    await setAuthCookie(token, request.headers.get("host"));
 
     return NextResponse.json({
       success: true,
