@@ -55,7 +55,7 @@
 - [x] Driver assigned screen — driver name, vehicle number, photo, live location on map (load map once + move marker(marker will be cng icon) only (no repeated API calls))
 - [x] "Driver has arrived(pickup point)" status push → **Marks booking as COMPLETED**
 - [x] Booking ended screen — show final fixed fare to pay in cash
-- [x] Cancel button and 60-second timeout on waiting screen — if no driver, status to "no driver found" and allow retry
+- [x] Cancel button and 5-minute timeout on waiting screen — if no driver, status to "no driver found" and allow retry
 
 ### Post-Booking
 - [x] Booking history list (date, pickup, destination, fare, driver)
@@ -103,12 +103,12 @@
 ### Booking State Machine
 Enforce all transitions server-side. Never trust client-reported state.
 `REQUESTED → DRIVER_ASSIGNED → COMPLETED (On driver arrival)`
-`         ↘ TIMED_OUT (no driver within 60 seconds) / CANCELLED`
+`         ↘ TIMED_OUT (no driver within 5 minutes) / CANCELLED`
 
 - [x] Atomic booking assignment via DB transaction + row-level lock (prevents double-assignment)
 - [x] One active booking per user max — server-side check
 - [x] One active booking per driver max — server-side check
-- [x] Booking request auto-expires to TIMED_OUT after 60 seconds with no assignment
+- [x] Booking request auto-expires to TIMED_OUT after 5 minutes with no assignment
 
 ### Fare System (Strictly Fixed)
 - [x] Fare calculated server-side only — client never sends a fare, only receives it
@@ -173,5 +173,4 @@ Enforce all transitions server-side. Never trust client-reported state.
 - [ ] Duplicate booking request attempt — second blocked
 - [ ] Cross-subdomain session works
 - [ ] Booking works fully via PWA (User and Driver) externally
-
 

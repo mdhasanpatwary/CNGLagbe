@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getBookingRequestTimeoutThreshold } from "@/constants/booking";
 
 export async function GET(
   request: Request,
@@ -27,9 +28,9 @@ export async function GET(
     }
 
     if (booking.status === "PENDING") {
-      const oneMinAgo = new Date(Date.now() - 1 * 60 * 1000);
-      if (booking.createdAt < oneMinAgo) {
-        // Auto-expire after 1 minute
+      const timeoutThreshold = getBookingRequestTimeoutThreshold();
+      if (booking.createdAt < timeoutThreshold) {
+        // Auto-expire when request timeout is reached
         await prisma.booking.update({
           where: { id: booking.id },
           data: { status: "TIMED_OUT" },

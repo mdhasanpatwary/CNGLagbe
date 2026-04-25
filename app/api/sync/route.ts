@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { getBookingRequestTimeoutThreshold } from "@/constants/booking";
 
 // Simple in-memory cache for sync responses to reduce DB load
 // TTL is very short (2s) to ensure data is relatively fresh but prevents redundant hits in same second
@@ -116,7 +117,7 @@ export async function GET() {
 
       let requests: unknown[] = [];
       if (!currentBooking && driver.isOnline && driver.isApproved && driver.currentLat && driver.currentLng) {
-        const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
+        const timeoutThreshold = getBookingRequestTimeoutThreshold();
         
         // Bounding box for 5km (~0.045 degrees) to use B-Tree index
         const latDelta = 0.045;
@@ -147,7 +148,7 @@ export async function GET() {
           LEFT JOIN "BookingRejection" br ON br."bookingId" = b."id" AND br."driverId" = ${userId}
           WHERE
             b."status" = 'PENDING'
-            AND b."createdAt" >= ${fiveMinsAgo}
+            AND b."createdAt" >= ${timeoutThreshold}
             AND b."pickupLat" BETWEEN ${minLat} AND ${maxLat}
             AND b."pickupLng" BETWEEN ${minLng} AND ${maxLng}
             AND br."id" IS NULL

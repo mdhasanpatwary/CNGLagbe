@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { type TextKey } from "@/constants/text";
+import { BOOKING_REQUEST_TIMEOUT_SECONDS } from "@/constants/booking";
 import { ReportModal } from "@/components/ReportModal";
 import { CancelModal } from "@/components/CancelModal";
 import { Badge } from "@/components/ui/badge";
@@ -53,11 +54,9 @@ type RideUiState =
   | "COMPLETED"
   | "CANCELLED";
 
-const REQUEST_TIMEOUT_SECONDS = 60;
-
 function getRemainingSeconds(createdAt: string, now = Date.now()) {
   const elapsedSeconds = Math.floor((now - new Date(createdAt).getTime()) / 1000);
-  return Math.max(0, REQUEST_TIMEOUT_SECONDS - elapsedSeconds);
+  return Math.max(0, BOOKING_REQUEST_TIMEOUT_SECONDS - elapsedSeconds);
 }
 
 function getRideUiState(booking: Booking, countdown: number): RideUiState {
@@ -114,7 +113,9 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
 
   const booking = bookingData ?? null;
   const countdown =
-    booking?.status === "PENDING" ? getRemainingSeconds(booking.createdAt, now) : REQUEST_TIMEOUT_SECONDS;
+    booking?.status === "PENDING"
+      ? getRemainingSeconds(booking.createdAt, now)
+      : BOOKING_REQUEST_TIMEOUT_SECONDS;
 
   useEffect(() => {
     if (booking?.status !== "PENDING") return;

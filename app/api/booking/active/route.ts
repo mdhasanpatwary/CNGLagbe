@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
+import { getBookingRequestTimeoutThreshold } from "@/constants/booking";
 
 // Simple in-memory cache
 const activeBookingCache = new Map<string, { data: Record<string, unknown>; timestamp: number }>();
@@ -53,7 +54,7 @@ export async function GET() {
 
     // 4. Auto-cancel logic for stale PENDING bookings
     if (activeBooking && activeBooking.status === "PENDING") {
-      const timeoutThreshold = new Date(Date.now() - 2 * 60 * 1000); // 2 minutes
+      const timeoutThreshold = getBookingRequestTimeoutThreshold();
       if (activeBooking.createdAt < timeoutThreshold) {
         await prisma.booking.update({
           where: { id: activeBooking.id },

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getApprovedDriver } from "@/lib/auth";
+import { getBookingRequestTimeoutThreshold } from "@/constants/booking";
 
 interface RequestItem {
   id: string;
@@ -65,7 +66,7 @@ export async function GET() {
       return NextResponse.json({ requests: [], currentBooking: null });
     }
 
-    const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const timeoutThreshold = getBookingRequestTimeoutThreshold();
 
     // Optimized geospatial query: Use ST_DWithin for index-based filtering
     const rawRequests: Array<{
@@ -100,7 +101,7 @@ export async function GET() {
       LEFT JOIN "BookingRejection" br ON br."bookingId" = b."id" AND br."driverId" = ${driverId}
       WHERE
         b."status" = 'PENDING'
-        AND b."createdAt" >= ${fiveMinsAgo}
+        AND b."createdAt" >= ${timeoutThreshold}
         AND br."id" IS NULL
         AND ST_DWithin(
           ST_MakePoint(b."pickupLng", b."pickupLat"),

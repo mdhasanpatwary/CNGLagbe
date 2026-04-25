@@ -3,15 +3,16 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getBookingRequestTimeoutThreshold } from "@/constants/booking";
 
 export async function GET() {
   try {
-    const oneMinAgo = new Date(Date.now() - 1 * 60 * 1000);
+    const timeoutThreshold = getBookingRequestTimeoutThreshold();
 
     const result = await prisma.booking.updateMany({
       where: {
         status: "PENDING",
-        createdAt: { lt: oneMinAgo },
+        createdAt: { lt: timeoutThreshold },
       },
       data: {
         status: "TIMED_OUT",
