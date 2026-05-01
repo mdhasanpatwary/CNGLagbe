@@ -39,7 +39,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(({
       </div>
       <div className="relative group">
         {Icon && (
-          <div className={`absolute left-5 top-1/2 -translate-y-1/2 transition-colors z-10 pointer-events-none ${error ? 'text-red-400' : 'text-slate-400 group-focus-within:text-emerald-500'}`}>
+          <div className={`absolute left-5 top-1/2 -translate-y-1/2 transition-colors z-10 pointer-events-none ${error ? 'text-red-400' : 'text-slate-400 group-focus-within:text-primary'}`}>
             <Icon size={20} />
           </div>
         )}
@@ -59,7 +59,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(({
           className={`h-14 transition-all rounded-2xl text-lg w-full font-medium ${
             error 
               ? "bg-red-50/50 border-red-200 focus:border-red-500 text-red-900 placeholder:text-red-300" 
-              : "bg-slate-50 border-slate-200 focus:bg-white focus:border-emerald-500"
+              : "bg-slate-50 border-slate-200 focus:bg-white focus:border-primary"
           } ${className}`}
         />
         
@@ -69,7 +69,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(({
               variant="ghost"
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className={`w-12 h-12 p-0 hover:bg-transparent ${error ? 'text-red-400' : 'text-slate-400 hover:text-emerald-500'}`}
+              className={`w-12 h-12 p-0 hover:bg-transparent ${error ? 'text-red-400' : 'text-slate-400 hover:text-primary'}`}
               tabIndex={-1}
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}

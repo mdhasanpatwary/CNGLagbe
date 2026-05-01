@@ -1,64 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Users, UserCheck, TrendingUp, HandCoins, Banknote, Route, RefreshCcw, MapPin, Activity, ShieldAlert, History, Filter, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, UserCheck, TrendingUp, HandCoins, Banknote, Route, MapPin, Activity, ShieldAlert, History, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AppButton } from "@/components/ui/AppButton";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { Header } from "@/components/layout/Header";
 import { useLang } from "@/hooks/useLang";
-
-interface AdminStats {
-  revenue?: {
-    total: number;
-    voided: number;
-    commission: number;
-    driverPayout: number;
-  };
-  activeDrivers?: number;
-  bookings?: {
-    pending: number;
-  };
-}
-
-interface AdminBooking {
-  id: string;
-  status: string;
-  distance: number;
-  fare: number;
-  createdAt: string;
-  pickupAddress?: string;
-  pickupLat?: number;
-  pickupLng?: number;
-  driver?: {
-    name: string;
-    phone: string;
-  };
-}
-
-interface AdminDriver {
-  id: string;
-  name: string;
-  phone: string;
-  photoUrl?: string;
-  nidNumber?: string;
-  licenseNumber?: string;
-  vehicleNumber?: string;
-  isApproved: boolean;
-  isSuspended: boolean;
-  updatedAt: string;
-}
-
-interface AdminUser {
-  id: string;
-  phone: string;
-  name?: string;
-  role: string;
-  bookingCount: number;
-  createdAt: string;
-}
+import { User as UserType } from "@/lib/types/user";
+import { Booking } from "@/lib/types/booking";
+import { AdminStats, PendingDriver } from "@/lib/types/admin";
 
 const formatDate = (date: string | Date, t: (key: string) => string, includeDate = false) => {
   if (!date) return t("just_now");
@@ -73,7 +26,7 @@ const formatDate = (date: string | Date, t: (key: string) => string, includeDate
 
 const StatusBadge = ({ status }: { status: string }) => {
   const styles: Record<string, string> = {
-    COMPLETED: "bg-emerald-100 text-emerald-700 border-emerald-200",
+    COMPLETED: "bg-primary/10 text-primary-dark border-primary/20",
     CANCELLED: "bg-red-100 text-red-700 border-red-200",
     TIMED_OUT: "bg-amber-100 text-amber-700 border-amber-200",
     PENDING: "bg-blue-100 text-blue-700 border-blue-200",
@@ -93,20 +46,20 @@ const StatusBadge = ({ status }: { status: string }) => {
 export default function AdminDashboard() {
   const { t } = useLang();
   const [stats, setStats] = useState<AdminStats | null>(null);
-  const [bookings, setBookings] = useState<AdminBooking[]>([]);
-  const [activeBookings, setActiveBookings] = useState<AdminBooking[]>([]);
-  const [onlineDrivers, setOnlineDrivers] = useState<AdminDriver[]>([]);
-  const [allDrivers, setAllDrivers] = useState<AdminDriver[]>([]);
-  const [allUsers, setAllUsers] = useState<AdminUser[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [activeBookings, setActiveBookings] = useState<Booking[]>([]);
+  const [onlineDrivers, setOnlineDrivers] = useState<UserType[]>([]);
+  const [allDrivers, setAllDrivers] = useState<UserType[]>([]);
+  const [allUsers, setAllUsers] = useState<UserType[]>([]);
   const [activeTab, setActiveTab] = useState<"overview" | "drivers" | "users" | "logs">("overview");
   const [isRefreshing, setIsRefreshing] = useState(true);
   
   // Sorting & Pagination state
-  const [sortConfig, setSortConfig] = useState<{ key: keyof AdminBooking | "fee" | "driver_payout"; direction: "asc" | "desc" } | null>(null);
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Booking | "fee" | "driver_payout"; direction: "asc" | "desc" } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
-  const handleSort = (key: keyof AdminBooking | "fee" | "driver_payout") => {
+  const handleSort = (key: keyof Booking | "fee" | "driver_payout") => {
     let direction: "asc" | "desc" = "asc";
     if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
       direction = "desc";
@@ -118,8 +71,8 @@ export default function AdminDashboard() {
     if (!sortConfig) return 0;
     const { key, direction } = sortConfig;
     
-    let aVal: string | number | undefined = a[key as keyof AdminBooking];
-    let bVal: string | number | undefined = b[key as keyof AdminBooking];
+    let aVal: string | number | undefined = a[key as keyof Booking];
+    let bVal: string | number | undefined = b[key as keyof Booking];
     
     if (key === "fee") {
       aVal = a.fare * 0.2;
@@ -140,15 +93,6 @@ export default function AdminDashboard() {
   const paginatedBookings = sortedBookings.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const totalPages = Math.ceil(bookings.length / itemsPerPage);
 
-  interface PendingDriver {
-    id: string;
-    name: string;
-    phone: string;
-    nidNumber?: string;
-    licenseNumber?: string;
-    vehicleNumber?: string;
-    createdAt: string;
-  }
 
   const [pendingDrivers, setPendingDrivers] = useState<PendingDriver[]>([]);
 
@@ -228,30 +172,12 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      <header className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-5 shadow-2xl sticky top-0 z-50 backdrop-blur-lg bg-opacity-90">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3 group cursor-pointer">
-              <div className="bg-emerald-500/20 p-2 rounded-xl group-hover:scale-110 transition-transform duration-300">
-                <Users className="text-emerald-400" size={24} />
-              </div>
-              <h1 className="text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
-                {t("app_name")} <span className="text-emerald-400 font-medium text-lg ml-1 opacity-80">{t("admin_dashboard")}</span>
-              </h1>
-            </div>
-             <div className="flex items-center gap-4">
-                 <AppButton 
-                   onClick={() => fetchData({ showLoading: true })} 
-                   disabled={isRefreshing}
-                   variant="ghost"
-                   className="bg-white/5 hover:bg-white/10 border border-white/10 px-5 text-white font-bold transition-all rounded-xl"
-                   leftIcon={<RefreshCcw size={16} className={isRefreshing ? "animate-spin" : ""} />}
-                 >
-                   {t("refresh_status")}
-                 </AppButton>
-                <LanguageSwitcher />
-             </div>
-        </div>
-      </header>
+      <Header 
+        role="admin" 
+        onRefresh={() => fetchData({ showLoading: true })} 
+        isRefreshing={isRefreshing} 
+      />
+
 
       <main className="max-w-7xl mx-auto p-6 md:p-8">
         
@@ -273,7 +199,7 @@ export default function AdminDashboard() {
                     : "text-slate-400 hover:text-slate-600 hover:bg-slate-100/50"
                 }`}
               >
-                <tab.icon size={14} className={activeTab === tab.id ? "text-emerald-400" : ""} />
+                <tab.icon size={14} className={activeTab === tab.id ? "text-primary" : ""} />
                 {tab.label}
               </AppButton>
            ))}
@@ -287,13 +213,13 @@ export default function AdminDashboard() {
              <Card className="border-none shadow-xl bg-white/80 backdrop-blur-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                    <CardTitle className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t("total_revenue")}</CardTitle>
-                   <div className="bg-emerald-100 p-2 rounded-lg">
-                    <TrendingUp className="h-4 w-4 text-emerald-600" />
+                   <div className="bg-primary/10 p-2 rounded-lg">
+                    <TrendingUp className="h-4 w-4 text-primary" />
                    </div>
                 </CardHeader>
                 <CardContent>
                    <div className="text-3xl font-black flex items-center gap-1.5 text-slate-900">
-                     <span className="text-emerald-500 text-lg">{t("currency")}</span>
+                     <span className="text-primary text-lg">{t("currency")}</span>
                      {stats.revenue?.total ?? 0}
                    </div>
                    <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tight">{t("revenue_desc")}</p>
@@ -371,8 +297,8 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
            {/* Active Bookings Monitoring */}
            <Card className="border-none shadow-lg bg-white overflow-hidden">
-              <CardHeader className="bg-emerald-50/50 border-b border-emerald-50">
-                <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-emerald-700">
+              <CardHeader className="bg-primary/5 border-b border-primary/10">
+                <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-primary">
                   <Activity size={18} />
                   {t("active_bookings")}
                 </CardTitle>
@@ -446,8 +372,8 @@ export default function AdminDashboard() {
                                       </div>
                                     ) : (
                                       <div className="flex items-center justify-end gap-1 mb-1">
-                                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                         <span className="text-[10px] font-black text-emerald-600 uppercase tracking-tighter">{t("online")}</span>
+                                         <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                                         <span className="text-[10px] font-black text-primary uppercase tracking-tighter">{t("online")}</span>
                                       </div>
                                     )}
                                     {!d.vehicleNumber && (
@@ -476,7 +402,7 @@ export default function AdminDashboard() {
              <Card className="h-full">
                 <CardHeader>
                   <CardTitle className="text-xl font-bold flex items-center gap-2">
-                    <UserCheck className="text-emerald-500" />
+                    <UserCheck className="text-primary" />
                     {t("pending_drivers")}
                   </CardTitle>
                 </CardHeader>
@@ -521,7 +447,7 @@ export default function AdminDashboard() {
                              <AppButton 
                                onClick={() => handleApprove(driver.id)} 
                                disabled={isIncomplete}
-                               className={`w-full h-10 ${isIncomplete ? "bg-slate-200 text-slate-400 grayscale" : "bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/20"} text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-300`}
+                               className={`w-full h-10 ${isIncomplete ? "bg-slate-200 text-slate-400 grayscale" : "bg-primary hover:bg-primary-dark shadow-lg shadow-primary/20"} text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-300`}
                              >
                                {t("approve_btn")}
                              </AppButton>
@@ -582,7 +508,7 @@ export default function AdminDashboard() {
                           <TableCell className="text-xs whitespace-nowrap">{booking.distance} {t("km_unit")}</TableCell>
                           <TableCell className="font-bold text-xs text-slate-900 whitespace-nowrap">{t("currency")}{booking.fare}</TableCell>
                           <TableCell className="text-xs whitespace-nowrap">{t("currency")}{Math.floor(booking.fare * 0.8)}</TableCell>
-                          <TableCell className="text-emerald-600 font-bold text-xs whitespace-nowrap">{t("currency")}{Math.ceil(booking.fare * 0.2)}</TableCell>
+                          <TableCell className="text-primary font-bold text-xs whitespace-nowrap">{t("currency")}{Math.ceil(booking.fare * 0.2)}</TableCell>
                           <TableCell className="text-right text-xs text-slate-500 whitespace-nowrap">{formatDate(booking.createdAt, t)}</TableCell>
                         </TableRow>
                       ))}
@@ -683,12 +609,12 @@ export default function AdminDashboard() {
                                 <TableCell>
                                    <div className="flex flex-col gap-1.5">
                                       <Badge className={`w-fit text-[9px] font-black uppercase px-2 py-0.5 border-none shadow-sm ${
-                                         driver.isApproved ? "bg-[#D4EDDA] text-[#155724]" : "bg-[#FFF3CD] text-[#856404]"
+                                         driver.isApproved ? "bg-primary/10 text-primary-dark" : "bg-warning text-warning-dark"
                                       }`}>
                                          {driver.isApproved ? t("approved") : t("pending")}
                                       </Badge>
                                       {driver.isSuspended && (
-                                         <Badge className="w-fit text-[9px] font-black uppercase px-2 py-0.5 bg-red-100 text-red-700 border-none shadow-sm">
+                                         <Badge className="w-fit text-[9px] font-black uppercase px-2 py-0.5 bg-error-light text-error-dark border-none shadow-sm">
                                             {t("suspended")}
                                          </Badge>
                                       )}
@@ -699,7 +625,7 @@ export default function AdminDashboard() {
                                       {!driver.isApproved && (
                                          <AppButton 
                                             onClick={() => handleApprove(driver.id)}
-                                            className="h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-[10px] font-black rounded-xl uppercase tracking-widest shadow-lg shadow-emerald-600/20"
+                                            className="h-9 px-4 bg-primary hover:bg-primary-dark text-[10px] font-black rounded-xl uppercase tracking-widest shadow-lg shadow-primary/20"
                                          >
                                             {t("approve_btn")}
                                          </AppButton>
@@ -743,7 +669,7 @@ export default function AdminDashboard() {
               <Card className="border-none shadow-xl rounded-[2rem] overflow-hidden">
                  <CardHeader className="bg-slate-50 border-b border-slate-100 p-8">
                     <CardTitle className="text-2xl font-black text-slate-800 uppercase tracking-tighter flex items-center gap-3">
-                       <UserCheck className="text-emerald-600" />
+                       <UserCheck className="text-primary" />
                        {t("user_management")}
                     </CardTitle>
                  </CardHeader>
@@ -856,7 +782,7 @@ export default function AdminDashboard() {
                                  <TableCell className="text-xs font-medium text-slate-600">
                                     {t("currency")}{Math.floor(booking.fare * 0.8)}
                                  </TableCell>
-                                 <TableCell className="text-xs font-bold text-emerald-600">
+                                 <TableCell className="text-xs font-bold text-primary">
                                     {t("currency")}{Math.ceil(booking.fare * 0.2)}
                                  </TableCell>
                                  <TableCell>

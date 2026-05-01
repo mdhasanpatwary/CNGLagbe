@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { COLORS } from "@/constants/colors";
 
 interface MapPreviewProps {
   pickup: { lat: number; lng: number };
@@ -59,14 +60,14 @@ export function MapPreview({ pickup, drop, polyline }: MapPreviewProps) {
 
     // Create custom icons (basic but distinct)
     const pickupIcon = L.divIcon({
-      html: `<div style="background-color: #10b981; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>`,
+      html: `<div style="background-color: ${COLORS.pickup}; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>`,
       className: "",
       iconSize: [16, 16],
       iconAnchor: [8, 8],
     });
 
     const dropIcon = L.divIcon({
-      html: `<div style="background-color: #ef4444; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>`,
+      html: `<div style="background-color: ${COLORS.drop}; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>`,
       className: "",
       iconSize: [16, 16],
       iconAnchor: [8, 8],
@@ -81,11 +82,11 @@ export function MapPreview({ pickup, drop, polyline }: MapPreviewProps) {
       try {
         // Simple decoder for Google Encoded Polyline
         const points = decodePolyline(polyline);
-        L.polyline(points, { color: "#3b82f6", weight: 4, opacity: 0.7 }).addTo(map);
+        L.polyline(points, { color: COLORS.route, weight: 4, opacity: 0.7 }).addTo(map);
       } catch {
         // Fallback: draw straight line if decoding fails
         L.polyline([[pickup.lat, pickup.lng], [drop.lat, drop.lng]], { 
-          color: "#3b82f6", 
+          color: COLORS.route, 
           weight: 4, 
           opacity: 0.5,
           dashArray: "5, 10" 
@@ -94,7 +95,7 @@ export function MapPreview({ pickup, drop, polyline }: MapPreviewProps) {
     } else {
       // Straight dashed line fallback
       L.polyline([[pickup.lat, pickup.lng], [drop.lat, drop.lng]], { 
-        color: "#3b82f6", 
+        color: COLORS.route, 
         weight: 4, 
         opacity: 0.5,
         dashArray: "5, 10" 
@@ -115,7 +116,7 @@ export function MapPreview({ pickup, drop, polyline }: MapPreviewProps) {
       <div ref={mapRef} className="w-full h-full" />
       {!leafletLoaded && (
         <div className="absolute inset-0 flex items-center justify-center bg-slate-50">
-          <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent animate-spin rounded-full" />
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent animate-spin rounded-full" />
         </div>
       )}
     </div>

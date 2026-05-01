@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
 import { FormField } from "@/components/FormField";
+import { Header } from "@/components/layout/Header";
 import { loginSchema, type LoginInput } from "@/lib/schemas/auth";
 
 export default function UserLogin() {
@@ -59,7 +60,9 @@ export default function UserLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center border-t-4 border-primary">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <Header showBack={true} />
+      <div className="flex-1 flex flex-col justify-center">
       <div className="max-w-md w-full mx-auto p-6">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-slate-800 flex items-center justify-center gap-2">
@@ -111,6 +114,7 @@ export default function UserLogin() {
               </form>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );

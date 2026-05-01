@@ -3,14 +3,18 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { User, Camera, Calendar, Save, ChevronLeft, Loader2, CheckCircle2 } from "lucide-react";
+import { User, Camera, Calendar, Save, Loader2, CheckCircle2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
 import { FormField } from "@/components/FormField";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { supabase } from "@/lib/supabase";
 import { apiFetch } from "@/utils/api";
+import { Header } from "@/components/layout/Header";
+import { User as UserType } from "@/lib/types/user";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { profileSchema, type ProfileInput } from "@/lib/schemas/profile";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -20,12 +24,25 @@ export default function ProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [user, setUser] = useState<UserType | null>(null);
 
-  const [formData, setFormData] = useState({
-    name: "",
-    photoUrl: "",
-    birthday: "",
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    control,
+    formState: { errors },
+  } = useForm<ProfileInput>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      name: "",
+      photoUrl: "",
+      birthday: "",
+    },
   });
+
+  const photoUrl = useWatch({ control, name: "photoUrl" });
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -33,11 +50,12 @@ export default function ProfilePage() {
         const res = await apiFetch("/api/auth/me");
         if (res.ok) {
           const data = await res.json();
-          const user = data.user;
-          setFormData({
-            name: user.name || "",
-            photoUrl: user.photoUrl || "",
-            birthday: user.birthday ? new Date(user.birthday).toISOString().split("T")[0] : "",
+          const userData: UserType = data.user;
+          setUser(userData);
+          reset({
+            name: userData.name || "",
+            photoUrl: userData.photoUrl || "",
+            birthday: userData.birthday ? new Date(userData.birthday).toISOString().split("T")[0] : "",
           });
         } else {
           router.push("/login");
@@ -49,7 +67,7 @@ export default function ProfilePage() {
       }
     };
     fetchProfile();
-  }, [router]);
+  }, [router, reset]);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -73,7 +91,7 @@ export default function ProfilePage() {
         .from('drivers')
         .getPublicUrl(filePath);
 
-      setFormData(prev => ({ ...prev, photoUrl: publicUrl }));
+      setValue("photoUrl", publicUrl);
     } catch (err: unknown) {
       console.error("Upload error:", err);
       setError(t("upload_failed") as string);
@@ -82,8 +100,7 @@ export default function ProfilePage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: ProfileInput) => {
     setSaving(true);
     setError("");
     setSuccess(false);
@@ -92,7 +109,7 @@ export default function ProfilePage() {
       const res = await apiFetch("/api/profile/update", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(data),
       });
 
       if (res.ok) {
@@ -113,41 +130,35 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center">
-      <header className="w-full bg-white/70 backdrop-blur-xl border-b border-slate-200/50 sticky top-0 z-50 px-6 py-4 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-3">
-          <AppButton 
-            variant="ghost" 
-            onClick={() => router.back()} 
-            className="rounded-full w-10 h-10 p-0"
-          >
-            <ChevronLeft size={20} />
-          </AppButton>
-          <h1 className="text-lg font-black text-slate-800 uppercase tracking-tight">
-            {t("profile")}
-          </h1>
-        </div>
-        <LanguageSwitcher />
-      </header>
+      <Header 
+        role="user"
+        theme="light"
+        title={t("profile")}
+        user={user}
+        showBack
+        onBack={() => router.back()}
+        className="w-full"
+      />
 
       <main className="p-6 w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <Card className="border-none shadow-2xl shadow-slate-200/50 rounded-3xl overflow-hidden">
-          <div className="bg-emerald-500 h-2 w-full" />
+        <Card className="shadow-2xl shadow-slate-200/50 border-none rounded-3xl overflow-hidden mb-8">
+          <div className="bg-primary h-2 w-full" />
           <CardContent className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
               {/* Photo Section */}
               <div className="flex flex-col items-center">
                 <div className="relative group">
                   <div className="w-32 h-32 rounded-[2.5rem] bg-slate-100 overflow-hidden border-4 border-white shadow-xl relative">
-                    {formData.photoUrl ? (
+                    {photoUrl ? (
                       <Image 
-                        src={formData.photoUrl} 
+                        src={photoUrl} 
                         alt="Profile" 
                         fill 
                         className="object-cover"
@@ -159,7 +170,7 @@ export default function ProfilePage() {
                     )}
                     {uploading && (
                       <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center">
-                        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+                        <Loader2 className="w-8 h-8 text-primary animate-spin" />
                       </div>
                     )}
                   </div>
@@ -173,7 +184,7 @@ export default function ProfilePage() {
                   />
                   <label
                     htmlFor="profile-photo-upload"
-                    className="absolute -bottom-2 -right-2 w-10 h-10 bg-emerald-500 text-white rounded-xl shadow-lg flex items-center justify-center cursor-pointer hover:bg-emerald-600 transition-colors group-hover:scale-110 duration-200"
+                    className="absolute -bottom-2 -right-2 w-10 h-10 bg-primary text-white rounded-xl shadow-lg flex items-center justify-center cursor-pointer hover:bg-primary-dark transition-colors group-hover:scale-110 duration-200"
                   >
                     <Camera size={18} />
                   </label>
@@ -191,7 +202,7 @@ export default function ProfilePage() {
               )}
 
               {success && (
-                <div className="bg-emerald-50 text-emerald-600 p-4 rounded-xl text-sm border border-emerald-100 flex items-center gap-3 animate-in zoom-in-95">
+                <div className="bg-primary/10 text-primary p-4 rounded-xl text-sm border border-primary/20 flex items-center gap-3 animate-in zoom-in-95">
                   <CheckCircle2 size={18} />
                   {t("update_success")}
                 </div>
@@ -202,29 +213,35 @@ export default function ProfilePage() {
                   label={t("full_name")}
                   icon={User}
                   placeholder="Your Name"
-                  value={formData.name}
-                  onValueChange={(val) => setFormData(p => ({ ...p, name: val }))}
-                  required
+                  {...register("name")}
+                  error={errors.name?.message}
                 />
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase ml-1 flex items-center gap-2">
-                    <Calendar size={14} className="text-emerald-500" />
+                    <Calendar size={14} className="text-primary" />
                     {t("birthday")}
                   </label>
                   <input
                     type="date"
-                    value={formData.birthday}
-                    onChange={(e) => setFormData(p => ({ ...p, birthday: e.target.value }))}
-                    className="w-full h-14 bg-slate-50 border-none rounded-2xl px-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
+                    {...register("birthday")}
+                    className={cn(
+                      "w-full h-14 bg-slate-50 border-none rounded-2xl px-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-primary/20 outline-none transition-all",
+                      errors.birthday && "bg-red-50 ring-2 ring-red-500/20"
+                    )}
                   />
+                  {errors.birthday && (
+                    <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider ml-1">
+                      {errors.birthday.message}
+                    </span>
+                  )}
                 </div>
               </div>
 
               <AppButton 
                 type="submit" 
                 loading={saving} 
-                className="w-full h-16 text-lg font-black rounded-2xl shadow-xl shadow-emerald-500/20 bg-emerald-500 hover:bg-emerald-600 text-white"
+                className="w-full h-16 text-lg font-black rounded-2xl shadow-xl shadow-primary/20 bg-primary hover:bg-primary-dark text-white"
                 leftIcon={!saving && <Save size={20} />}
               >
                 {t("save_changes")}

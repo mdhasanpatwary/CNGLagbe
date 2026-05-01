@@ -20,7 +20,7 @@ export function LanguageSwitcher() {
         className={cn(
           "rounded-xl px-4 transition-all duration-300 h-12 text-sm font-black",
           lang === "bn" 
-            ? "bg-white text-emerald-600 shadow-sm hover:bg-white" 
+            ? "bg-white text-primary shadow-sm hover:bg-white" 
             : "text-slate-500 hover:text-slate-900"
         )}
       >
@@ -32,7 +32,7 @@ export function LanguageSwitcher() {
         className={cn(
           "rounded-xl px-4 transition-all duration-300 h-12 text-sm font-black",
           lang === "en" 
-            ? "bg-white text-emerald-600 shadow-sm hover:bg-white" 
+            ? "bg-white text-primary shadow-sm hover:bg-white" 
             : "text-slate-500 hover:text-slate-900"
         )}
       >

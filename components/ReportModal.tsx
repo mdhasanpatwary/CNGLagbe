@@ -59,8 +59,8 @@ export function ReportModal({ bookingId, onClose }: ReportModalProps) {
 
           {success ? (
             <div className="py-12 flex flex-col items-center justify-center text-center animate-in zoom-in-90 duration-500">
-              <div className="bg-emerald-100 p-6 rounded-full mb-4">
-                <CheckCircle2 className="w-12 h-12 text-emerald-600" />
+              <div className="bg-primary-light p-6 rounded-full mb-4">
+                <CheckCircle2 className="w-12 h-12 text-primary" />
               </div>
               <h3 className="text-2xl font-black text-slate-800">{t("report_success")}</h3>
             </div>

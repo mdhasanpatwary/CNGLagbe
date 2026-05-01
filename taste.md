@@ -22,6 +22,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Localization (No Hardcoded Strings):** All UI text must strictly use the central `TEXT` dictionary (`constants/text.ts`) to support English and Bengali seamlessly.
 - **Clear Action Text:** All buttons and actionable elements must have explicit, action-oriented text.
 - **Icon Labels:** Icons must always be accompanied by text labels to assist low-literacy users.
+- **Design System Tokens:** Prioritize using design system tokens (e.g., `primary`, `secondary`, `primary-foreground`) over hardcoded Tailwind color classes (e.g., `emerald-500`). This ensures that if the brand color changes, it can be updated in a single place (`globals.css`) rather than across hundreds of files.
 
 ## ⚙️ Performance & Database
 - **Direct Database Connections:** Prisma is configured with a dedicated direct URL and proper connection pooling to eliminate database performance overhead.

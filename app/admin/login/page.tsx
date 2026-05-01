@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
 import { FormField } from "@/components/FormField";
+import { Header } from "@/components/layout/Header";
 import { adminLoginSchema, type AdminLoginInput } from "@/lib/schemas/auth";
 
 export default function AdminLogin() {
@@ -55,11 +56,13 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center border-t-4 border-emerald-500">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <Header showBack={true} theme="dark" role="admin" />
+      <div className="flex-1 flex flex-col justify-center">
       <div className="max-w-md w-full mx-auto p-6">
         <div className="text-center mb-8">
-          <div className="inline-flex bg-emerald-500/10 p-3 rounded-2xl mb-4 border border-emerald-500/20">
-            <Shield className="text-emerald-600 w-8 h-8" />
+          <div className="inline-flex bg-primary/10 p-3 rounded-2xl mb-4 border border-primary/20">
+            <Shield className="text-primary w-8 h-8" />
           </div>
           <h1 className="text-3xl font-black text-slate-800 flex items-center justify-center gap-2 tracking-tight">
             {t("admin_login")}
@@ -70,7 +73,7 @@ export default function AdminLogin() {
         </div>
 
         <Card className="shadow-2xl shadow-slate-200/50 border-none rounded-[2rem] overflow-hidden bg-white border border-slate-100">
-          <div className="bg-emerald-500 h-2 w-full" />
+          <div className="bg-primary h-2 w-full" />
           <CardContent className="p-8">
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {serverError && (
@@ -102,7 +105,7 @@ export default function AdminLogin() {
                   type="submit"
                   loading={loading}
                   fullWidth
-                  className="mt-4 h-14 text-base font-black uppercase tracking-widest rounded-2xl bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/20 text-white"
+                  className="mt-4 h-14 text-base font-black uppercase tracking-widest rounded-2xl bg-primary hover:bg-primary-dark shadow-lg shadow-primary/20 text-white"
                   leftIcon={<LogIn className="w-5 h-5" />}
                 >
                   {t("login_btn")}
@@ -110,6 +113,7 @@ export default function AdminLogin() {
               </form>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );

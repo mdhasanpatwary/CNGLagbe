@@ -17,15 +17,11 @@ const notoBengali = Noto_Sans_Bengali({
 
 import { headers } from "next/headers";
 import { getAppRole } from "@/lib/subdomain";
+import { COLORS } from "@/constants/colors";
 
 export async function generateViewport(): Promise<Viewport> {
-  const headersList = await headers();
-  const host = headersList.get("host");
-  const role = getAppRole(host);
-  const isDriver = role === "driver";
-  
   return {
-    themeColor: isDriver ? "#10B981" : "#16A34A", // Emerald for Driver, Green for User
+    themeColor: COLORS.primary, // Primary Brand Color
     width: "device-width",
     initialScale: 1,
     maximumScale: 1,

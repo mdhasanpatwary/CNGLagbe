@@ -3,16 +3,15 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import {
-  LogOut, User, MapPin, Navigation, ShieldCheck, Phone,
+  User, MapPin, Navigation, ShieldCheck, Phone,
   ChevronDown, Star, Check, Zap, Clock, BadgeCheck,
   ArrowRight, Banknote, Users, Route
 } from "lucide-react";
 import { AppButton } from "@/components/ui/AppButton";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLang } from "@/hooks/useLang";
 import { cn } from "@/lib/utils";
+import { Header } from "@/components/layout/Header";
 
 const PHONE_NUMBER = "+8801XXXXXXXXX"; // Replace with real number
 
@@ -175,51 +174,15 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">
+      <Header role="landing" user={user} onLogout={handleLogout} />
 
-      {/* ── HEADER ─────────────────────────────────────────────────────────── */}
-      <header className="bg-primary text-primary-foreground px-4 py-3.5 shadow-md sticky top-0 z-20 flex justify-between items-center">
-        <h1 className="text-lg font-extrabold tracking-tight">{t("app_name")}</h1>
-        <div className="flex items-center gap-2">
-          <LanguageSwitcher />
-          {user ? (
-            <div className="flex items-center gap-2">
-              <Link href="/profile" className="flex items-center gap-2 bg-white/10 px-2 py-1.5 rounded-full hover:bg-white/20 transition-colors">
-                <div className="w-7 h-7 rounded-full overflow-hidden bg-white/20 flex items-center justify-center border border-white/10">
-                  {user.photoUrl
-                    ? <Image src={user.photoUrl} alt={user.name} width={28} height={28} className="w-full h-full object-cover" />
-                    : <User size={14} className="text-white/70" />}
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-widest pr-1">
-                  {user.name.split(" ")[0]}
-                </span>
-              </Link>
-              <AppButton variant="ghost" onClick={handleLogout} className="rounded-full hover:bg-white/10 h-9 w-9 p-0">
-                <LogOut size={15} />
-              </AppButton>
-            </div>
-          ) : (
-            <div className="flex gap-1.5">
-              <Link href="/login">
-                <AppButton variant="ghost" className="rounded-full text-white hover:bg-white/10 font-bold text-xs uppercase h-9 px-3">
-                  {t("user_login")}
-                </AppButton>
-              </Link>
-              <Link href="/driver/login">
-                <AppButton variant="secondary" className="rounded-full font-bold text-xs uppercase h-9 px-3">
-                  {t("driver_login")}
-                </AppButton>
-              </Link>
-            </div>
-          )}
-        </div>
-      </header>
 
       <main className="flex-1">
 
         {/* ── 1. HERO ──────────────────────────────────────────────────────── */}
         <section
           id="hero"
-          className="relative bg-gradient-to-br from-primary via-green-600 to-green-800 text-white px-4 pt-10 pb-16 overflow-hidden"
+          className="relative bg-gradient-to-br from-primary via-primary to-primary-dark text-white px-4 pt-10 pb-16 overflow-hidden"
         >
           {/* Background decorative circles */}
           <div className="absolute -top-16 -right-16 w-64 h-64 bg-white/5 rounded-full pointer-events-none" />
@@ -228,7 +191,7 @@ export default function LandingPage() {
           <div className="max-w-lg mx-auto relative z-10">
             {/* Driver count badge */}
             <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1.5 mb-5">
-              <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-primary/40 animate-pulse" />
               <span className="text-xs font-bold">{t("trust_drivers_active")}</span>
             </div>
 
@@ -397,7 +360,7 @@ export default function LandingPage() {
         </Section>
 
         {/* ── 10. FINAL CTA ────────────────────────────────────────────────── */}
-        <section id="final-cta" className="bg-gradient-to-br from-primary to-green-700 text-white px-4 py-14 text-center">
+        <section id="final-cta" className="bg-gradient-to-br from-primary to-primary-dark text-white px-4 py-14 text-center">
           <div className="max-w-md mx-auto">
             <div className="bg-white/15 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5">
               <Navigation className="w-8 h-8 text-white" />

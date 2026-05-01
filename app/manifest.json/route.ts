@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getAppRole } from "@/lib/subdomain";
 import { TEXT } from "@/constants/text";
+import { COLORS } from "@/constants/colors";
 
 /**
  * Dynamic PWA manifest route handler.
@@ -36,8 +37,8 @@ export async function GET(request: Request) {
     description,
     start_url: "/",
     display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#10b981",
+    background_color: COLORS.white,
+    theme_color: COLORS.primary,
     icons: isDriver ? [
       {
         src: "/icons/driver-icon-512.svg",

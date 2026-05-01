@@ -1,37 +1,41 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronRight, Calendar, Banknote, Navigation, Loader2, ArrowLeft } from "lucide-react";
+import { ChevronRight, Calendar, Banknote, Navigation, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLang } from "@/hooks/useLang";
+import { Header } from "@/components/layout/Header";
+import { apiFetch } from "@/utils/api";
+import { useRouter } from "next/navigation";
 
-interface Booking {
-  id: string;
-  status: string;
-  fare: number;
-  pickupAddress: string;
-  destAddress: string;
-  createdAt: string;
-  driver?: {
-    name: string;
-    vehicleNumber?: string;
-  } | null;
-}
+import { Booking } from "@/lib/types/booking";
+import { User } from "@/lib/types/user";
 
 export default function BookingHistoryPage() {
+  const router = useRouter();
   const { t } = useLang();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const fetchHistory = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch("/api/user/bookings");
-        if (res.ok) {
-          const data = await res.json();
+        const [historyRes, userRes] = await Promise.all([
+          apiFetch("/api/user/bookings"),
+          apiFetch("/api/auth/me")
+        ]);
+
+        if (historyRes.ok) {
+          const data = await historyRes.json();
           setBookings(data.bookings);
+        }
+
+        if (userRes.ok) {
+          const data = await userRes.json();
+          setUser(data.user);
         }
       } catch (error) {
         console.error(error);
@@ -39,13 +43,13 @@ export default function BookingHistoryPage() {
         setLoading(false);
       }
     };
-    fetchHistory();
+    fetchData();
   }, []);
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
-        <Loader2 className="w-10 h-10 animate-spin text-emerald-500 mb-4" />
+        <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
         <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">{t("loading")}</p>
       </div>
     );
@@ -53,14 +57,14 @@ export default function BookingHistoryPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">
-      <header className="bg-white p-4 shadow-sm border-b sticky top-0 z-10 flex items-center gap-4">
-        <Link href="/" className="p-2 hover:bg-slate-100 rounded-full transition text-slate-500">
-          <ArrowLeft size={20} />
-        </Link>
-        <h1 className="font-black text-slate-800 uppercase tracking-tighter text-xl">
-          {t("booking_history")}
-        </h1>
-      </header>
+      <Header 
+        role="user"
+        theme="light"
+        title={t("booking_history")}
+        user={user}
+        showBack
+        onBack={() => router.push("/")}
+      />
 
       <main className="flex-1 p-4 max-w-md mx-auto w-full space-y-4">
         {bookings.length === 0 ? (
@@ -83,7 +87,7 @@ export default function BookingHistoryPage() {
                       </span>
                     </div>
                     <Badge variant="outline" className={`text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md border-none ${
-                      booking.status === "COMPLETED" ? "bg-emerald-100 text-emerald-700" :
+                      booking.status === "COMPLETED" ? "bg-primary/10 text-primary-dark" :
                       booking.status === "CANCELLED" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
                     }`}>
                       {booking.status}
@@ -92,7 +96,7 @@ export default function BookingHistoryPage() {
 
                   <div className="space-y-3 mb-4">
                     <div className="flex items-start gap-3">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
                       <p className="text-xs font-bold text-slate-700 line-clamp-1">{booking.pickupAddress || t("pickup_point")}</p>
                     </div>
                     <div className="flex items-start gap-3">
@@ -103,12 +107,12 @@ export default function BookingHistoryPage() {
 
                   <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                     <div className="flex items-center gap-2">
-                       <div className="bg-emerald-50 p-1.5 rounded-lg text-emerald-600">
+                       <div className="bg-primary/5 p-1.5 rounded-lg text-primary">
                           <Banknote size={14} />
                        </div>
                        <span className="text-sm font-black text-slate-800">{t("currency")}{booking.fare}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-[10px] font-black text-slate-300 group-hover:text-emerald-500 transition-colors uppercase tracking-widest">
+                    <div className="flex items-center gap-1 text-[10px] font-black text-slate-300 group-hover:text-primary transition-colors uppercase tracking-widest">
                        {t("view_details")} <ChevronRight size={14} />
                     </div>
                   </div>

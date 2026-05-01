@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
 import { FormField } from "@/components/FormField";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { Header } from "@/components/layout/Header";
 import { driverLoginSchema, type DriverLoginInput } from "@/lib/schemas/auth";
 
 
@@ -59,14 +59,13 @@ export default function DriverLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center border-t-4 border-emerald-500 relative">
-      <div className="absolute top-4 right-4 z-50">
-        <LanguageSwitcher />
-      </div>
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <Header showBack={true} role="driver" />
+      <div className="flex-1 flex flex-col justify-center">
       <div className="max-w-md w-full mx-auto p-6">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-slate-800 flex items-center justify-center gap-2">
-            <LogIn className="text-emerald-500" /> {t("driver_portal")}
+            <LogIn className="text-primary" /> {t("driver_portal")}
           </h1>
           <p className="text-slate-500 mt-2 flex items-center justify-center gap-1.5">
              {t("signin_desc")}
@@ -74,7 +73,7 @@ export default function DriverLogin() {
         </div>
 
         <Card className="shadow-2xl shadow-slate-200/50 border-none rounded-3xl overflow-hidden">
-          <div className="bg-emerald-500 h-2 w-full" />
+          <div className="bg-primary h-2 w-full" />
           <CardContent className="p-6">
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {serverError && (
@@ -97,7 +96,7 @@ export default function DriverLogin() {
                   type="submit"
                   loading={loading}
                   fullWidth
-                  className="mt-4 h-14 text-lg font-bold rounded-2xl shadow-emerald-200/50 shadow-xl"
+                  className="mt-4 h-14 text-lg font-bold rounded-2xl shadow-primary/20 shadow-xl"
                 >
                   <div className="flex items-center gap-2">
                      {t("login_btn")}
@@ -112,10 +111,11 @@ export default function DriverLogin() {
            New driver? <AppButton 
             variant="ghost" 
             onClick={() => router.push("/driver/signup")}
-            className="text-emerald-600 h-10 px-2 font-bold inline-flex"
+            className="text-primary h-10 px-2 font-bold inline-flex"
           >
             {t("signup_btn")}
           </AppButton>
+        </div>
         </div>
       </div>
     </div>

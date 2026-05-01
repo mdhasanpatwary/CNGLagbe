@@ -77,7 +77,7 @@ export function GoogleMapPreview({
         <div className="fixed inset-0 z-[9999] bg-white flex flex-col animate-in fade-in zoom-in duration-300">
           <div className="p-4 bg-white border-b flex items-center justify-between shadow-sm">
             <h3 className="font-bold text-slate-800 flex items-center gap-2">
-              <Maximize2 size={18} className="text-emerald-500" />
+              <Maximize2 size={18} className="text-primary" />
               Detailed Map View
             </h3>
             <AppButton

@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, Navigation, Pin, Banknote, Clock, Route, ChevronLeft, CheckCircle2, Search, X, LocateFixed } from "lucide-react";
+import { MapPin, Navigation, Pin, Banknote, Clock, Route, CheckCircle2, Search, X, LocateFixed } from "lucide-react";
 import { AppButton } from "@/components/ui/AppButton";
 import { Badge } from "@/components/ui/badge";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { Header } from "@/components/layout/Header";
 import { useLang } from "@/hooks/useLang";
+import { COLORS } from "@/constants/colors";
 
 import {
   saveBookingSession,
@@ -34,8 +35,8 @@ interface RouteInfo {
   encodedPolyline: string;
 }
 
-// Primary route colour (emerald-500)
-const ROUTE_COLOR = "#10b981";
+// Primary route colour (matches globals.css primary)
+const ROUTE_COLOR = COLORS.primary;
 const ROUTE_WEIGHT = 5;
 
 export default function UserMapPage() {
@@ -228,7 +229,7 @@ export default function UserMapPage() {
     
     const labelDiv = document.createElement("div");
     labelDiv.style.backgroundColor = color;
-    labelDiv.style.color = "white";
+    labelDiv.style.color = COLORS.glyph;
     labelDiv.style.padding = "2px 6px";
     labelDiv.style.borderRadius = "4px";
     labelDiv.style.fontSize = "10px";
@@ -340,24 +341,24 @@ export default function UserMapPage() {
           setStep("CONFIRM");
           setSessionRestored(true);
 
-          const pinGreen = new PinElement({ background: "#10b981", borderColor: "#064e3b", glyphColor: "white" });
+          const pinGreen = new PinElement({ background: COLORS.primary, borderColor: COLORS.pickupBorder, glyphColor: COLORS.glyph });
           const pickupM = new AdvancedMarkerElement({
             position: restoredPickup,
             map: mapInstance,
             title: t("pickup"),
-            content: createLabeledMarker(pinGreen, t("pickup"), "#10b981", 'pickup'),
+            content: createLabeledMarker(pinGreen, t("pickup"), COLORS.primary, 'pickup'),
             gmpDraggable: true,
           });
           pickupM.addListener("drag", () => handleMarkerDrag(pickupM, 'pickup', false));
           pickupM.addListener("dragend", () => handleMarkerDrag(pickupM, 'pickup', true));
           pickupMarkerRef.current = pickupM;
 
-          const pinRed = new PinElement({ background: "#ef4444", borderColor: "#7f1d1d", glyphColor: "white" });
+          const pinRed = new PinElement({ background: COLORS.drop, borderColor: COLORS.dropBorder, glyphColor: COLORS.glyph });
           const dropM = new AdvancedMarkerElement({
             position: restoredDrop,
             map: mapInstance,
             title: t("drop"),
-            content: createLabeledMarker(pinRed, t("drop"), "#ef4444", 'drop'),
+            content: createLabeledMarker(pinRed, t("drop"), COLORS.drop, 'drop'),
             gmpDraggable: true,
           });
           dropM.addListener("drag", () => handleMarkerDrag(dropM, 'drop', false));
@@ -373,12 +374,12 @@ export default function UserMapPage() {
           mapInstance.setCenter(pos);
           setPickup(pos);
 
-          const pinGreen = new PinElement({ background: "#10b981", borderColor: "#064e3b", glyphColor: "white" });
+          const pinGreen = new PinElement({ background: COLORS.primary, borderColor: COLORS.pickupBorder, glyphColor: COLORS.glyph });
           const marker = new AdvancedMarkerElement({
             position: pos,
             map: mapInstance,
             title: t("pickup"),
-            content: createLabeledMarker(pinGreen, t("pickup"), "#10b981", 'pickup'),
+            content: createLabeledMarker(pinGreen, t("pickup"), COLORS.primary, 'pickup'),
             gmpDraggable: true,
           });
           marker.addListener("drag", () => handleMarkerDrag(marker, 'pickup', false));
@@ -395,12 +396,12 @@ export default function UserMapPage() {
           setLocFallbackVisible(true);
           setTimeout(() => setLocFallbackVisible(false), 3500);
 
-          const pinGreen = new PinElement({ background: "#10b981", borderColor: "#064e3b", glyphColor: "white" });
+          const pinGreen = new PinElement({ background: COLORS.primary, borderColor: COLORS.pickupBorder, glyphColor: COLORS.glyph });
           const marker = new AdvancedMarkerElement({
             position: pos,
             map: mapInstance,
             title: t("pickup"),
-            content: createLabeledMarker(pinGreen, t("pickup"), "#10b981", 'pickup'),
+            content: createLabeledMarker(pinGreen, t("pickup"), COLORS.primary, 'pickup'),
             gmpDraggable: true,
           });
           marker.addListener("drag", () => handleMarkerDrag(marker, 'pickup', false));
@@ -752,12 +753,12 @@ export default function UserMapPage() {
         (await window.google.maps.importLibrary("marker")) as google.maps.MarkerLibrary;
 
       if (pickup && !pickupMarkerRef.current) {
-        const pinGreen = new PinElement({ background: "#10b981", borderColor: "#064e3b" });
+        const pinGreen = new PinElement({ background: COLORS.primary, borderColor: COLORS.pickupBorder });
         const marker = new AdvancedMarkerElement({
           position: pickup,
           map,
           title: t("pickup"),
-          content: createLabeledMarker(pinGreen, t("pickup"), "#10b981", 'pickup'),
+          content: createLabeledMarker(pinGreen, t("pickup"), COLORS.primary, 'pickup'),
           gmpDraggable: true,
         });
         marker.addListener("drag", () => handleMarkerDrag(marker, 'pickup', false));
@@ -777,12 +778,12 @@ export default function UserMapPage() {
       }
 
       if (destination && !destMarkerRef.current) {
-        const pinRed = new PinElement({ background: "#ef4444", borderColor: "#7f1d1d" });
+        const pinRed = new PinElement({ background: COLORS.drop, borderColor: COLORS.dropBorder });
         const marker = new AdvancedMarkerElement({
           position: destination,
           map,
           title: t("drop"),
-          content: createLabeledMarker(pinRed, t("drop"), "#ef4444", 'drop'),
+          content: createLabeledMarker(pinRed, t("drop"), COLORS.drop, 'drop'),
           gmpDraggable: true,
         });
         marker.addListener("drag", () => handleMarkerDrag(marker, 'drop', false));
@@ -934,38 +935,21 @@ export default function UserMapPage() {
         </div>
       )}
 
-      {/* ── Floating top-left back button ─────────────────────────────────── */}
-      <div className="absolute top-4 left-4 md:left-[416px] z-30 flex flex-col items-center gap-1 transition-all duration-300">
-        <AppButton
-          onClick={handleBack}
-          className="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-slate-700 hover:bg-slate-50 active:scale-95 transition-all p-0 border-none"
-          aria-label={t("back") as string}
-          variant="ghost"
-          leftIcon={<ChevronLeft size={22} />}
-        />
-        <span className="bg-white/80 backdrop-blur-sm px-2 py-0.5 rounded text-[8px] uppercase font-black text-slate-600 shadow-sm">
-          {t("back")}
-        </span>
-      </div>
+      {/* ── Floating Header ─────────────────────────────────────────────────── */}
+      <Header
+        role="user"
+        variant="floating"
+        user={syncData?.user}
+        showBack
+        onBack={handleBack}
+        onRecenter={() => { const p = pickup ?? destination; if (p) { map?.panTo(p); map?.setZoom(15); } }}
+      />
 
-      {/* ── Floating top-right: recenter + language ───────────────────────── */}
-      <div className="absolute top-4 right-4 z-30 flex flex-col items-center gap-2">
-        <LanguageSwitcher />
-        {map && (
-          <AppButton
-            onClick={() => { const p = pickup ?? destination; if (p) { map.panTo(p); map.setZoom(15); } }}
-            className="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-50 active:scale-95 transition-all p-0 border-none"
-            aria-label={t("recenter") as string}
-            variant="ghost"
-            leftIcon={<Navigation size={20} />}
-          />
-        )}
-      </div>
 
       {/* ── Route pill (CONFIRM step, floats at map top-center) ──────────── */}
       {step === "CONFIRM" && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-white/95 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-slate-100 flex items-center gap-2 max-w-[70vw] animate-in fade-in slide-in-from-top-2">
-          <span className="text-[10px] font-black uppercase text-emerald-600 flex items-center gap-1">
+          <span className="text-[10px] font-black uppercase text-primary flex items-center gap-1">
             <MapPin size={10} /> {t("pickup")}
           </span>
           <span className="text-slate-300 text-xs">→</span>
@@ -977,7 +961,7 @@ export default function UserMapPage() {
 
       {/* ── Session-restored toast ────────────────────────────────────────── */}
       {toastVisible && (
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-40 bg-emerald-600 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 animate-in slide-in-from-top-4">
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-40 bg-primary text-primary-foreground text-xs font-bold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 animate-in slide-in-from-top-4">
           <CheckCircle2 size={14} /> {t("restored_msg")}
         </div>
       )}
@@ -993,11 +977,11 @@ export default function UserMapPage() {
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm">
           {/* Pulsing rings */}
           <div className="relative flex items-center justify-center mb-8">
-            <div className="absolute w-32 h-32 rounded-full bg-emerald-400/30 pulse-ring" />
-            <div className="absolute w-32 h-32 rounded-full bg-emerald-400/20 pulse-ring pulse-ring-delay-1" />
-            <div className="absolute w-32 h-32 rounded-full bg-emerald-400/10 pulse-ring pulse-ring-delay-2" />
-            <div className="w-20 h-20 rounded-full bg-emerald-500 shadow-2xl flex items-center justify-center">
-              <Navigation size={32} className="text-white" />
+            <div className="absolute w-32 h-32 rounded-full bg-primary/30 pulse-ring" />
+            <div className="absolute w-32 h-32 rounded-full bg-primary/20 pulse-ring pulse-ring-delay-1" />
+            <div className="absolute w-32 h-32 rounded-full bg-primary/10 pulse-ring pulse-ring-delay-2" />
+            <div className="w-20 h-20 rounded-full bg-primary shadow-2xl flex items-center justify-center">
+              <Navigation size={32} className="text-primary-foreground" />
             </div>
           </div>
           <div className="text-center">
@@ -1024,14 +1008,14 @@ export default function UserMapPage() {
             <div className="animate-in fade-in slide-in-from-bottom-3 duration-300">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-black text-slate-900">{t("set_pickup_title")}</h2>
-                <Badge className="bg-emerald-100 text-emerald-700 border-none text-[10px] font-bold px-2 py-0.5">
+                <Badge className="bg-primary-light text-primary-dark border-none text-[10px] font-bold px-2 py-0.5">
                   {t("pickup")}
                 </Badge>
               </div>
 
               {/* Pickup search */}
               <div className="relative mb-3">
-                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-500 pointer-events-none">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none">
                   <Search size={16} />
                 </div>
                 <input
@@ -1041,7 +1025,7 @@ export default function UserMapPage() {
                   value={pickupSearchValue}
                   onChange={(e) => setPickupSearchValue(e.target.value)}
                   placeholder={t("type_location") as string}
-                  className="w-full pl-10 pr-9 py-3.5 rounded-2xl border-2 border-emerald-200 bg-emerald-50/60 text-sm font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-emerald-400 focus:bg-white transition-all"
+                  className="w-full pl-10 pr-9 py-3.5 rounded-2xl border-2 border-primary/20 bg-primary/5 text-sm font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-primary/40 focus:bg-white transition-all"
                   autoComplete="off"
                 />
                 {pickupSearchValue && (
@@ -1059,18 +1043,18 @@ export default function UserMapPage() {
               {pickup?.address ? (
                 <AppButton
                   onClick={handleUseCurrentLocation}
-                  className="w-full flex items-center justify-start text-left gap-3 bg-emerald-50 border border-emerald-100 hover:bg-emerald-100 transition-colors rounded-2xl px-4 py-3 mb-3 cursor-pointer active:scale-[0.98] h-auto"
+                  className="w-full flex items-center justify-start text-left gap-3 bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors rounded-2xl px-4 py-3 mb-3 cursor-pointer active:scale-[0.98] h-auto"
                   variant="outline"
                 >
-                  <LocateFixed size={16} className="text-emerald-500 shrink-0" />
+                  <LocateFixed size={16} className="text-primary shrink-0" />
                   <p className="text-sm font-semibold text-slate-700 truncate flex-1">{pickup.address}</p>
-                  <span className="text-[9px] font-black uppercase text-emerald-600 bg-emerald-200/50 px-2 py-0.5 rounded-full shrink-0">
+                  <span className="text-[9px] font-black uppercase text-primary-dark bg-primary/20 px-2 py-0.5 rounded-full shrink-0">
                     {t("use_current_loc")}
                   </span>
                 </AppButton>
               ) : (
                 <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 mb-3">
-                  <div className="w-4 h-4 rounded-full border-2 border-slate-200 border-t-emerald-400 animate-spin shrink-0" />
+                  <div className="w-4 h-4 rounded-full border-2 border-slate-200 border-t-primary animate-spin shrink-0" />
                   <p className="text-sm font-semibold text-slate-400 truncate flex-1">{t("loading")}</p>
                 </div>
               )}
@@ -1095,7 +1079,7 @@ export default function UserMapPage() {
               {/* Mini pickup summary */}
               <div className="flex items-center gap-2 mb-4 px-0.5">
                 <div className="flex flex-col items-center gap-0.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-primary" />
                   <div className="w-0.5 h-5 bg-slate-200" />
                   <div className="w-2.5 h-2.5 rounded-sm bg-red-400" />
                 </div>
@@ -1175,7 +1159,7 @@ export default function UserMapPage() {
                     destAutocompleteRef.current = null;
                     setStep("DESTINATION");
                   }}
-                  className="text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-full transition-colors h-auto border-none"
+                  className="text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-full transition-colors h-auto border-none"
                   variant="ghost"
                 >
                   {t("edit_route")}
@@ -1185,7 +1169,7 @@ export default function UserMapPage() {
               {/* Route summary */}
               <div className="flex items-start gap-3 mb-5 bg-slate-50 rounded-2xl px-4 py-3">
                 <div className="flex flex-col items-center gap-1 mt-1 shrink-0">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-primary" />
                   <div className="w-0.5 h-8 bg-slate-300 border-dashed" />
                   <div className="w-2.5 h-2.5 rounded-sm bg-red-400" />
                 </div>
@@ -1198,15 +1182,15 @@ export default function UserMapPage() {
               </div>
 
               {/* Fare card */}
-              <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-3xl px-5 pt-5 pb-4 mb-4 shadow-lg">
+              <div className="bg-gradient-to-br from-primary to-primary-dark rounded-3xl px-5 pt-5 pb-4 mb-4 shadow-lg">
                 <div className="flex items-end justify-between mb-4">
                   <div>
-                    <p className="text-emerald-100 text-[11px] font-black uppercase tracking-wider mb-1">
+                    <p className="text-primary-foreground/80 text-[11px] font-black uppercase tracking-wider mb-1">
                       {t("fixed_fare")}
                     </p>
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl font-black text-white">{t("currency")}{fareData.fare}</span>
-                      <span className="text-emerald-200 text-sm font-bold">{t("bdt")}</span>
+                      <span className="text-primary-foreground/60 text-sm font-bold">{t("bdt")}</span>
                     </div>
                   </div>
                   <Badge className="bg-white/20 text-white border-none font-black text-[11px] px-3 py-1 gap-1.5">
@@ -1214,20 +1198,20 @@ export default function UserMapPage() {
                   </Badge>
                 </div>
 
-                <div className="flex gap-4 pt-3 border-t border-emerald-400/40">
+                <div className="flex gap-4 pt-3 border-t border-white/20">
                   <div className="flex items-center gap-2">
-                    <Route size={14} className="text-emerald-200" />
+                    <Route size={14} className="text-primary-foreground/70" />
                     <div>
-                      <p className="text-[9px] font-black uppercase text-emerald-200">{t("distance")}</p>
+                      <p className="text-[9px] font-black uppercase text-primary-foreground/60">{t("distance")}</p>
                       <p className="text-sm font-black text-white">
                         {routeInfo?.distanceText ?? `${fareData.distance} ${t("km_unit")}`}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock size={14} className="text-emerald-200" />
+                    <Clock size={14} className="text-primary-foreground/70" />
                     <div>
-                      <p className="text-[9px] font-black uppercase text-emerald-200">{t("est_time")}</p>
+                      <p className="text-[9px] font-black uppercase text-primary-foreground/60">{t("est_time")}</p>
                       <p className="text-sm font-black text-white">
                         ~{routeInfo?.durationMinutes ?? "?"} {t("min_unit")}
                       </p>

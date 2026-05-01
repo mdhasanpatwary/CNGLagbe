@@ -19,67 +19,18 @@ import { useQuery } from "@tanstack/react-query";
 import { type TextKey } from "@/constants/text";
 import { BOOKING_REQUEST_TIMEOUT_SECONDS } from "@/constants/booking";
 import { saveBookingSession } from "@/utils/bookingSession";
+import { COLORS } from "@/constants/colors";
 import { ReportModal } from "@/components/ReportModal";
 import { CancelModal } from "@/components/CancelModal";
 import { Badge } from "@/components/ui/badge";
 import { AppButton } from "@/components/ui/AppButton";
+import { Header } from "@/components/layout/Header";
+import { apiFetch } from "@/utils/api";
 import { useLang } from "@/hooks/useLang";
 import { supabase } from "@/lib/supabase";
-
-interface Booking {
-  id: string;
-  status: "PENDING" | "ACCEPTED" | "STARTED" | "COMPLETED" | "CANCELLED" | "TIMED_OUT";
-  fare: number;
-  distance: number;
-  pickupLat: number;
-  pickupLng: number;
-  destLat: number;
-  destLng: number;
-  pickupAddress?: string | null;
-  destAddress?: string | null;
-  polyline?: string | null;
-  createdAt: string;
-  acceptedAt?: string | null;
-  completedAt?: string | null;
-  cancelledAt?: string | null;
-  driver?: {
-    name: string;
-    phone: string;
-    vehicleNumber?: string;
-    photoUrl?: string;
-  } | null;
-}
-
-type RideUiState =
-  | "FINDING_DRIVER"
-  | "DRIVER_ASSIGNED"
-  | "RIDE_STARTED"
-  | "COMPLETED"
-  | "CANCELLED";
-
-function getRemainingSeconds(createdAt: string, now = Date.now()) {
-  const elapsedSeconds = Math.floor((now - new Date(createdAt).getTime()) / 1000);
-  return Math.max(0, BOOKING_REQUEST_TIMEOUT_SECONDS - elapsedSeconds);
-}
-
-function getRideUiState(booking: Booking, countdown: number): RideUiState {
-  if (booking.status === "COMPLETED") return "COMPLETED";
-  if (booking.status === "CANCELLED" || booking.status === "TIMED_OUT" || countdown === 0) {
-    return "CANCELLED";
-  }
-  if (booking.status === "STARTED") return "RIDE_STARTED";
-  if (booking.status === "ACCEPTED") return "DRIVER_ASSIGNED";
-  return "FINDING_DRIVER";
-}
-
-function formatDuration(totalSeconds: number, justNowLabel: string) {
-  if (totalSeconds <= 0) return justNowLabel;
-  const totalMinutes = Math.max(1, Math.round(totalSeconds / 60));
-  if (totalMinutes < 60) return `${totalMinutes} min`;
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}m`;
-}
+import { Booking, RideUiState } from "@/lib/types/booking";
+import { User } from "@/lib/types/user";
+import { getRemainingSeconds, getRideUiState, formatDuration } from "@/lib/booking-utils";
 
 export default function UserBookingPage({ params }: { params: Promise<{ id: string }> }) {
   const { t } = useLang();
@@ -90,10 +41,26 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
   const [showReport, setShowReport] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
   const [now, setNow] = useState(() => Date.now());
+  const [user, setUser] = useState<User | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<google.maps.Map | null>(null);
   const pickupMarker = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
   const driverMarker = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await apiFetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+        }
+      } catch (err) {
+        console.error("User fetch error:", err);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const { data: bookingData, refetch: fetchBooking } = useQuery({
     queryKey: ["booking", id],
@@ -185,7 +152,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
           map: mapInstance.current,
           position: { lat: booking.pickupLat, lng: booking.pickupLng },
           title: t("pickup"),
-          content: new PinElement({ background: "#10b981", borderColor: "#047857", glyphColor: "#ffffff" }).element,
+          content: new PinElement({ background: COLORS.pickup, borderColor: COLORS.pickupBorder, glyphColor: COLORS.glyph }).element,
         });
       }
 
@@ -194,7 +161,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
           map: mapInstance.current,
           position: driverLocation,
           title: t("driver"),
-          content: new PinElement({ background: "#2563eb", borderColor: "#1d4ed8", glyphColor: "#ffffff" }).element,
+          content: new PinElement({ background: COLORS.driver, borderColor: COLORS.driverBorder, glyphColor: COLORS.glyph }).element,
         });
       } else if (driverLocation && driverMarker.current) {
         driverMarker.current.position = driverLocation;
@@ -209,9 +176,9 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
     return (
       <div className="flex h-screen flex-col items-center justify-center bg-slate-50">
         <div className="relative flex items-center justify-center mb-6">
-          <div className="absolute w-24 h-24 rounded-full bg-emerald-400/30 pulse-ring" />
-          <div className="absolute w-24 h-24 rounded-full bg-emerald-400/20 pulse-ring pulse-ring-delay-1" />
-          <div className="w-16 h-16 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg">
+          <div className="absolute w-24 h-24 rounded-full bg-primary/30 pulse-ring" />
+          <div className="absolute w-24 h-24 rounded-full bg-primary/20 pulse-ring pulse-ring-delay-1" />
+          <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center shadow-lg">
             <Navigation size={24} className="text-white" />
           </div>
         </div>
@@ -244,7 +211,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
     FINDING_DRIVER: { tone: "bg-amber-100 text-amber-700", label: "finding_driver" },
     DRIVER_ASSIGNED: { tone: "bg-blue-100 text-blue-700", label: "driver_assigned" },
     RIDE_STARTED: { tone: "bg-blue-100 text-blue-700", label: "ride_started" },
-    COMPLETED: { tone: "bg-emerald-100 text-emerald-700", label: "booking_done" },
+    COMPLETED: { tone: "bg-primary/10 text-primary-dark", label: "booking_done" },
     CANCELLED: {
       tone: "bg-red-100 text-red-700",
       label: booking.status === "TIMED_OUT" ? "no_driver" : "ride_cancelled",
@@ -282,16 +249,19 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
-      {/* Header */}
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-4 py-4 shadow-sm">
-        <div className="flex items-center gap-2">
-          <Navigation size={16} className="text-emerald-500" />
-          <span className="text-sm font-black text-slate-800">#{id.slice(-6).toUpperCase()}</span>
-        </div>
-        <Badge className={`border-none px-3 py-1 text-xs font-bold ${badge.tone}`}>
-          {t(badge.label)}
-        </Badge>
-      </header>
+      <Header 
+        role="user"
+        theme="light"
+        title={`#${id.slice(-6).toUpperCase()}`}
+        user={user}
+        showBack
+        onBack={() => router.push("/user/history")}
+        rightContent={
+          <Badge className={`border-none px-3 py-1 text-[10px] font-black uppercase tracking-widest ${badge.tone}`}>
+            {t(badge.label)}
+          </Badge>
+        }
+      />
 
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 p-4">
 
@@ -301,10 +271,10 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
             {/* Animated visual */}
             <div className="flex flex-col items-center py-10 px-6">
               <div className="relative flex items-center justify-center mb-6">
-                <div className="absolute w-36 h-36 rounded-full bg-emerald-400/20 pulse-ring" />
-                <div className="absolute w-36 h-36 rounded-full bg-emerald-400/15 pulse-ring pulse-ring-delay-1" />
-                <div className="absolute w-36 h-36 rounded-full bg-emerald-400/10 pulse-ring pulse-ring-delay-2" />
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-2xl flex items-center justify-center">
+                <div className="absolute w-36 h-36 rounded-full bg-primary/20 pulse-ring" />
+                <div className="absolute w-36 h-36 rounded-full bg-primary/15 pulse-ring pulse-ring-delay-1" />
+                <div className="absolute w-36 h-36 rounded-full bg-primary/10 pulse-ring pulse-ring-delay-2" />
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary-light to-primary-dark shadow-2xl flex items-center justify-center">
                   <Navigation size={36} className="text-white" />
                 </div>
               </div>
@@ -319,7 +289,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                 </div>
                 <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-emerald-400 to-amber-400 rounded-full transition-all duration-1000"
+                    className="h-full bg-gradient-to-r from-primary to-amber-400 rounded-full transition-all duration-1000"
                     style={{ width: `${progressPct}%` }}
                   />
                 </div>
@@ -376,7 +346,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                 </div>
                 <a
                   href={`tel:${booking.driver.phone}`}
-                  className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-600 text-sm font-bold text-white transition hover:bg-blue-700 active:scale-[0.98]"
+                  className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-primary text-sm font-bold text-white transition hover:bg-primary-dark active:scale-[0.98]"
                 >
                   <Phone size={16} />
                   {t("call_driver")}
@@ -388,7 +358,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
             <div className="bg-white rounded-3xl shadow-sm px-5 py-4">
               <div className="flex items-start gap-3">
                 <div className="flex flex-col items-center gap-1 mt-1 shrink-0">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-primary" />
                   <div className="w-0.5 h-5 bg-slate-200" />
                   <div className="w-2.5 h-2.5 rounded-sm bg-red-400" />
                 </div>
@@ -433,8 +403,8 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
         {uiState === "COMPLETED" && (
           <div className="bg-white rounded-3xl shadow-sm overflow-hidden">
             <div className="flex flex-col items-center py-10 px-6">
-              <div className="w-24 h-24 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
-                <CheckCircle2 size={44} className="text-emerald-500" />
+              <div className="w-24 h-24 rounded-full bg-primary/5 flex items-center justify-center mb-4">
+                <CheckCircle2 size={44} className="text-primary" />
               </div>
               <h2 className="text-xl font-black text-slate-900 mb-1">{t("booking_done")}</h2>
               <p className="text-sm font-medium text-slate-500 text-center">{t("driver_arrived_desc")}</p>
@@ -482,7 +452,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                   <AppButton
                     fullWidth
                     onClick={handleRequestAgain}
-                    className="h-12 rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700 text-sm font-bold shadow-lg shadow-emerald-200"
+                    className="h-12 rounded-2xl bg-primary text-white hover:bg-primary-dark text-sm font-bold shadow-lg shadow-primary/20"
                     leftIcon={<Navigation size={16} />}
                   >
                     {t("retry_booking")}
@@ -494,17 +464,17 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
         )}
 
         {/* ── Booking summary card (always shown) ──────────────────────── */}
-        <div className={`rounded-3xl shadow-sm ${uiState === "COMPLETED" ? "bg-emerald-50 border border-emerald-100" : "bg-white"}`}>
+        <div className={`rounded-3xl shadow-sm ${uiState === "COMPLETED" ? "bg-primary/5 border border-primary/10" : "bg-white"}`}>
           <div className="p-5">
             <div className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-4">
-              <Banknote size={16} className="text-emerald-600" />
+              <Banknote size={16} className="text-primary" />
               <span>{t("booking_summary")}</span>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
               <div className="rounded-2xl bg-white/80 p-3">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 mb-1.5">
-                  <Banknote size={13} className="text-emerald-600" />
+                  <Banknote size={13} className="text-primary" />
                   <span>{t("fixed_fare")}</span>
                 </div>
                 <p className="text-base font-black text-slate-900">{t("currency")}{booking.fare}</p>
@@ -536,7 +506,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
           <div className="bg-white rounded-3xl shadow-sm px-5 py-4">
             <div className="flex items-start gap-3">
               <div className="flex flex-col items-center gap-1 mt-1 shrink-0">
-                <MapPin size={14} className="text-emerald-500" />
+                <MapPin size={14} className="text-primary" />
                 <div className="w-0.5 h-6 bg-slate-200" />
                 <MapPin size={14} className="text-red-400" />
               </div>

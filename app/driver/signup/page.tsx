@@ -11,7 +11,7 @@ import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
 import { FormField } from "@/components/FormField";
 import { supabase } from "@/lib/supabase";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { Header } from "@/components/layout/Header";
 import { driverSignupSchema, type DriverSignupInput } from "@/lib/schemas/auth";
 
 function SignupForm() {
@@ -126,10 +126,9 @@ function SignupForm() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center border-t-4 border-emerald-500 relative">
-      <div className="absolute top-4 right-4 z-50">
-        <LanguageSwitcher />
-      </div>
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <Header showBack={true} role="driver" />
+      <div className="flex-1 flex flex-col justify-center">
       <div className="max-w-md w-full mx-auto p-6">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-slate-800 flex items-center justify-center gap-2">
@@ -139,14 +138,14 @@ function SignupForm() {
              {[1, 2, 3].map(s => (
                 <div 
                   key={s} 
-                  className={`h-1.5 rounded-full transition-all duration-500 ${step >= s ? "w-8 bg-emerald-500" : "w-4 bg-slate-200"}`} 
+                  className={`h-1.5 rounded-full transition-all duration-500 ${step >= s ? "w-8 bg-primary" : "w-4 bg-slate-200"}`} 
                 />
              ))}
           </div>
         </div>
 
         <Card className="shadow-2xl shadow-slate-200/50 border-none rounded-3xl overflow-hidden">
-          <div className="bg-emerald-500 h-2 w-full" />
+          <div className="bg-primary h-2 w-full" />
           <CardContent className="p-6">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {serverError && (
@@ -210,10 +209,10 @@ function SignupForm() {
                       />
                       <label
                         htmlFor="photo-upload"
-                        className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${photoUrl ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 hover:border-emerald-400 bg-slate-50'}`}
+                        className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${photoUrl ? 'border-primary bg-primary/5' : 'border-slate-200 hover:border-primary/50 bg-slate-50'}`}
                       >
                         {uploading ? (
-                          <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+                          <Loader2 className="w-8 h-8 text-primary animate-spin" />
                         ) : photoUrl ? (
                           <div className="relative w-full h-full p-2 group/preview">
                              <Image 
@@ -221,9 +220,9 @@ function SignupForm() {
                                alt="Preview" 
                                width={128}
                                height={128}
-                               className="w-full h-full object-cover rounded-xl shadow-inner border border-emerald-100"
+                               className="w-full h-full object-cover rounded-xl shadow-inner border border-primary/20"
                              />
-                             <div className="absolute top-3 right-3 bg-emerald-500 text-white px-2 py-1 rounded-lg shadow-lg flex items-center gap-1.5 animate-in zoom-in-50 duration-300">
+                             <div className="absolute top-3 right-3 bg-primary text-white px-2 py-1 rounded-lg shadow-lg flex items-center gap-1.5 animate-in zoom-in-50 duration-300">
                                <CheckCircle2 size={14} />
                                <span className="text-[10px] font-black uppercase tracking-wider">{t("uploaded")}</span>
                              </div>
@@ -234,7 +233,7 @@ function SignupForm() {
                           </div>
                         ) : (
                           <div className="flex flex-col items-center gap-2">
-                            <Camera className="w-8 h-8 text-slate-400 group-hover:text-emerald-500" />
+                            <Camera className="w-8 h-8 text-slate-400 group-hover:text-primary" />
                             <span className="text-xs text-slate-500 font-medium">{t("upload_photo")}</span>
                           </div>
                         )}
@@ -296,6 +295,7 @@ function SignupForm() {
             </form>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );
@@ -303,7 +303,7 @@ function SignupForm() {
 
 export default function DriverSignup() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center"><Loader2 className="animate-spin text-emerald-500" /></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>}>
       <SignupForm />
     </Suspense>
   );
