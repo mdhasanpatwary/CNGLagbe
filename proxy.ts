@@ -3,12 +3,6 @@ import type { NextRequest } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import { getAppRole, getUserUrl, getDriverUrl, isConfiguredProductionHost } from "@/lib/subdomain";
 
-export async function middleware(request: NextRequest) {
-  return proxy(request);
-}
-
-export default middleware;
-
 export async function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   const host = request.headers.get("host");
@@ -47,6 +41,9 @@ export async function proxy(request: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
     } else if (path.startsWith("/api/admin")) {
+      if (path === "/api/admin/auth/login") {
+        return NextResponse.next();
+      }
       if (!user || user.role !== "ADMIN") {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
@@ -94,6 +91,9 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(driverUrl("/dashboard"));
     }
 
+    // Allow ADMIN to access the root page as well.
+    // If you want to redirect them, do it explicitly from the UI or let them navigate.
+
     // If not logged in and trying to access protected user paths
     if (!user && !isAuthPage) {
       if (path.startsWith("/user/") || path === "/map" || path === "/history") {
@@ -119,8 +119,11 @@ export async function proxy(request: NextRequest) {
     
     // Admin protection
     if (path.startsWith("/admin")) {
+      if (path === "/admin/login") {
+        return NextResponse.next();
+      }
       if (!user || user.role !== "ADMIN") {
-        return NextResponse.redirect(userUrl("/login"));
+        return NextResponse.redirect(userUrl("/admin/login"));
       }
     }
   }

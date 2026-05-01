@@ -19,14 +19,14 @@ async function main() {
   
   const driver1 = await prisma.driver.upsert({
     where: { phone: '01711111111' },
-    update: { passwordHash: hashedPassword, isApproved: true, currentLat: 23.8103, currentLng: 90.4125 },
+    update: { passwordHash: hashedPassword, isApproved: true, currentLat: 23.0361, currentLng: 91.5194 },
     create: {
       name: 'Karim Driver',
       phone: '01711111111',
       passwordHash: hashedPassword,
       isApproved: true,
-      currentLat: 23.8103,
-      currentLng: 90.4125,
+      currentLat: 23.0361,
+      currentLng: 91.5194,
     },
   })
 
@@ -38,8 +38,8 @@ async function main() {
     data: [
       {
         userId: user.id,
-        pickupLat: 23.8103,
-        pickupLng: 90.4125,
+        pickupLat: 23.0361,
+        pickupLng: 91.5194,
         destLat: 23.8203,
         destLng: 90.4225,
         pickupAddress: 'Dhanmondi 32',
@@ -68,8 +68,8 @@ async function main() {
     data: {
       userId: user.id,
       driverId: driver1.id,
-      pickupLat: 23.8103,
-      pickupLng: 90.4125,
+      pickupLat: 23.0361,
+      pickupLng: 91.5194,
       destLat: 23.8503,
       destLng: 90.4525,
       pickupAddress: 'Uttara Sector 7',

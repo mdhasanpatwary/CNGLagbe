@@ -114,7 +114,7 @@ function SignupForm() {
       const resData = await res.json();
 
       if (res.ok) {
-        router.push("/dashboard");
+        router.push("/driver/dashboard");
       } else {
         setServerError(resData.error || t("error"));
       }

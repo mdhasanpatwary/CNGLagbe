@@ -12,8 +12,8 @@ async function signToken(payload: Record<string, unknown>) {
 }
 
 const bookingData = {
-  pickupLat: 23.8103,
-  pickupLng: 90.4125,
+  pickupLat: 23.0361,
+  pickupLng: 91.5194,
   destLat: 23.8203,
   destLng: 90.4225,
   pickupAddress: "Dhanmondi 32, Dhaka",

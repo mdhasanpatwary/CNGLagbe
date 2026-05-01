@@ -34,7 +34,7 @@ export async function POST(
 
       let cancelledBy: "USER" | "DRIVER" | null = null;
 
-      if (user.role === "USER" && booking.userId === user.sub) {
+      if ((user.role === "USER" || user.role === "ADMIN") && booking.userId === user.sub) {
         cancelledBy = "USER";
       } else if (user.role === "DRIVER" && booking.driverId === user.sub) {
         cancelledBy = "DRIVER";

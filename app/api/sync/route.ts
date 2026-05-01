@@ -29,7 +29,7 @@ export async function GET() {
       timestamp: Date.now(),
     };
 
-    if (session.role === "USER") {
+    if (session.role === "USER" || session.role === "ADMIN") {
       // 1. Get User Data
       const user = await prisma.user.findUnique({
         where: { id: userId },
@@ -81,12 +81,11 @@ export async function GET() {
         return NextResponse.json({ authenticated: false }, { status: 401 });
       }
 
-      // 2. Calculate today's stats
+      // 2. Fetch stats, current booking, and nearby requests in parallel
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      // Use aggregation for stats (much faster than fetching all bookings)
-      const stats = await prisma.booking.aggregate({
+      const statsPromise = prisma.booking.aggregate({
         where: {
           driverId: userId,
           status: "COMPLETED",
@@ -96,8 +95,7 @@ export async function GET() {
         _count: { id: true },
       });
 
-      // 3. Get Current Booking or Nearby Requests
-      const currentBooking = await prisma.booking.findFirst({
+      const currentBookingPromise = prisma.booking.findFirst({
         where: {
           driverId: userId,
           status: "ACCEPTED",
@@ -112,23 +110,24 @@ export async function GET() {
           destAddress: true,
           fare: true,
           distance: true,
+          polyline: true,
         }
       });
 
-      let requests: unknown[] = [];
-      if (!currentBooking && driver.isOnline && driver.isApproved && driver.currentLat && driver.currentLng) {
+      let requestsPromise: Promise<unknown[]> = Promise.resolve([]);
+      if (driver.isOnline && driver.isApproved && driver.currentLat && driver.currentLng) {
         const timeoutThreshold = getBookingRequestTimeoutThreshold();
         
-        // Bounding box for 5km (~0.045 degrees) to use B-Tree index
-        const latDelta = 0.045;
-        const lngDelta = 0.045;
+        // Bounding box for 3km (~0.027 degrees) to use B-Tree index
+        const latDelta = 0.027;
+        const lngDelta = 0.027;
         const minLat = driver.currentLat - latDelta;
         const maxLat = driver.currentLat + latDelta;
         const minLng = driver.currentLng - lngDelta;
         const maxLng = driver.currentLng + lngDelta;
 
         // Optimized geospatial query with bounding box pre-filter
-        requests = await prisma.$queryRaw`
+        requestsPromise = prisma.$queryRaw`
           SELECT
             b."id",
             b."pickupLat",
@@ -140,6 +139,7 @@ export async function GET() {
             b."pickupAddress",
             b."destAddress",
             b."createdAt",
+            b."polyline",
             ST_DistanceSphere(
               ST_MakePoint(b."pickupLng", b."pickupLat"),
               ST_MakePoint(${driver.currentLng}::float8, ${driver.currentLat}::float8)
@@ -155,12 +155,19 @@ export async function GET() {
             AND ST_DWithin(
               ST_MakePoint(b."pickupLng", b."pickupLat"),
               ST_MakePoint(${driver.currentLng}::float8, ${driver.currentLat}::float8),
-              5000
+              3000
             )
           ORDER BY "calculatedDistance" ASC
           LIMIT 10
         `;
       }
+
+      const [stats, currentBooking, rawRequests] = await Promise.all([
+        statsPromise,
+        currentBookingPromise,
+        requestsPromise
+      ]);
+      const requests = currentBooking ? [] : rawRequests;
 
       responseData.driver = driver;
       responseData.stats = {

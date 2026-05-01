@@ -16,7 +16,7 @@
     - **Live Tracking**: Load Google Maps once per session; move markers locally via Supabase Realtime/Polling. 0 repeated Google API calls during tracking.
     - **Static vs Dynamic**: Use **Maps Static API** for non-interactive views (Confirm Location, History, Mini-maps) to save $5/1k loads.
     - **Geocoding Cache**: Store address results in a local `GeoCache` table to avoid $5/1k calls for same coords.
-    - **Payload Throttling**: Drive location updates only if moved >5m or >10s elapsed.
+    - **Payload Throttling**: Drive location updates only if moved >100m or >30s elapsed.
 
 ---
 
@@ -43,7 +43,7 @@
 
 ### Booking Flow
 - [x] GPS auto-detect pickup location with manual override
-- [x] Destination selection **ONLY via map marker drop** (no Google Places Autocomplete for MVP)
+- [x] Destination selection via map marker drop & Google Places Autocomplete
 - [x] Map pin drag-to-adjust for both pickup and destination
 - [x] Confirm location step before requesting — show map preview
 - [x] **Fixed Fare** estimate shown before confirm (server-calculated, locked in at request time)
@@ -83,7 +83,7 @@
 ### Booking Request Handling
 - [x] Incoming request = fullscreen modal takeover, cannot be accidentally dismissed
 - [x] Alert sound via Web Audio API
-- [x] 20-second accept timer — auto-reject if no action
+- [x] 5-minute accept timer — auto-reject if no action
 - [x] Show user pickup point on map before accepting
 - [x] Accept → deep link to Google Maps for navigation to pickup
 - [x] **"I've arrived" button → Completes the booking, ends system tracking, shows fare to collect.**

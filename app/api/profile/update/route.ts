@@ -16,7 +16,7 @@ export async function PATCH(request: Request) {
     if (photoUrl) updateData.photoUrl = photoUrl;
     if (birthday) updateData.birthday = new Date(birthday);
 
-    if (session.role === "USER") {
+    if (session.role === "USER" || session.role === "ADMIN") {
       await prisma.user.update({
         where: { id: session.sub },
         data: updateData,

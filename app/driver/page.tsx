@@ -5,8 +5,8 @@ export default async function DriverRoot() {
   const user = await getAuthUser();
   
   if (user && user.role === "DRIVER") {
-    redirect("/dashboard");
+    redirect("/driver/dashboard");
   } else {
-    redirect("/login");
+    redirect("/driver/login");
   }
 }

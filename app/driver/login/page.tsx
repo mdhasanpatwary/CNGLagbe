@@ -44,10 +44,10 @@ export default function DriverLogin() {
       const resData = await res.json();
 
       if (res.ok) {
-        router.push("/dashboard");
+        router.push("/driver/dashboard");
       } else if (resData.signupRequired) {
         // Carry phone to signup
-        router.push(`/signup?phone=${data.phone}`);
+        router.push(`/driver/signup?phone=${data.phone}`);
       } else {
         setServerError(resData.error || t("login_failed"));
       }
@@ -111,7 +111,7 @@ export default function DriverLogin() {
         <div className="mt-8 text-center text-slate-400 text-sm">
            New driver? <AppButton 
             variant="ghost" 
-            onClick={() => router.push("/signup")}
+            onClick={() => router.push("/driver/signup")}
             className="text-emerald-600 h-10 px-2 font-bold inline-flex"
           >
             {t("signup_btn")}

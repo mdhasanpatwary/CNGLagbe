@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedAdmin } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
-    // In a real app, check for admin session here
+    const admin = await getAuthenticatedAdmin();
+    if (!admin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { driverId, action } = await request.json();
 
     if (!driverId) {
@@ -47,6 +52,11 @@ export async function POST(request: Request) {
 
 export async function GET() {
     try {
+        const admin = await getAuthenticatedAdmin();
+        if (!admin) {
+          return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
         const pendingDrivers = await prisma.driver.findMany({
             where: { isApproved: false },
             orderBy: { createdAt: "desc" }

@@ -22,4 +22,8 @@ Refer to [/docs/ui-rules.md](file:///Users/patwary/Projects/CNGLagbe/docs/ui-rul
 4. **Standard Fields**: Use the `FormField` component for inputs to ensure consistent error styling and ref forwarding.
 5. **Step-wise Validation**: In multi-step forms, use `trigger(['field1', 'field2'])` to validate current step fields before proceeding.
 6. **Types**: Always export the input type using `z.infer<typeof schema>`.
+
+## Taste & Regression Tracking (taste.md)
+1. **Always Update**: Whenever you fix a bug, address an edge case, or implement a specific UI/UX preference requested by the user, you MUST document it in `taste.md`.
+2. **Review First**: Before making UI or behavioral changes, quickly review `taste.md` to ensure you aren't breaking previously established preferences or fixes.
 <!-- END:nextjs-agent-rules -->

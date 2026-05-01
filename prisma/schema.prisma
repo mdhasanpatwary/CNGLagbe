@@ -6,68 +6,70 @@ generator client {
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
-  directUrl  = env("DIRECT_URL")
-  extensions = [postgis]
+  directUrl  = env("DIRECT_DATABASE_URL")
+  extensions = [postgis, uuid_ossp(map: "uuid-ossp", schema: "extensions")]
 }
 
 model User {
   id        String    @id @default(cuid())
   name      String
   phone     String    @unique
-  role      String    @default("USER") // USER, ADMIN
-  bookings  Booking[]
-  photoUrl  String?
-  birthday  DateTime?
   createdAt DateTime  @default(now())
+  role      String    @default("USER")
+  birthday  DateTime?
+  photoUrl  String?
+  bookings  Booking[]
 }
 
 model Driver {
-  id              String    @id @default(cuid())
-  name            String
-  phone           String    @unique
-  passwordHash    String
-  isOnline        Boolean   @default(false)
-  currentLat      Float?
-  currentLng      Float?
-  nidNumber       String?
-  licenseNumber   String?
-  vehicleNumber   String?
-  vehicleType     String?
-  photoUrl        String?
-  isApproved      Boolean   @default(false)
-  isSuspended     Boolean   @default(false)
-  bookings        Booking[]
-  rejections      BookingRejection[]
-  birthday        DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id            String             @id @default(cuid())
+  name          String
+  phone         String             @unique
+  passwordHash  String
+  isOnline      Boolean            @default(false)
+  currentLat    Float?
+  currentLng    Float?
+  createdAt     DateTime           @default(now())
+  isApproved    Boolean            @default(false)
+  licenseNumber String?
+  nidNumber     String?
+  vehicleNumber String?
+  photoUrl      String?
+  vehicleType   String?
+  isSuspended   Boolean            @default(false)
+  updatedAt     DateTime           @updatedAt
+  birthday      DateTime?
+  bookings      Booking[]
+  rejections    BookingRejection[]
 }
 
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model Booking {
-  id              String        @id @default(cuid())
-  userId          String?
-  driverId        String?
-  pickupLat       Float
-  pickupLng       Float
-  destLat         Float
-  destLng         Float
-  pickupAddress   String?
-  destAddress     String?
-  distance        Float
-  fare            Float
-  polyline        String?       // Encoded polyline from Google Maps
-  status          String        @default("PENDING") // PENDING, ACCEPTED, COMPLETED, CANCELLED
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  acceptedAt      DateTime?     // When a driver accepts the booking
-  completedAt     DateTime?     // When the ride is completed
-  user            User?         @relation(fields: [userId], references: [id])
-  driver          Driver?       @relation(fields: [driverId], references: [id])
-  cancelReason    String?
-  cancelledAt     DateTime?
-  cancelledBy     String?       // 'USER' or 'DRIVER'
-  rejections      BookingRejection[]
-  issueReports    IssueReport[]
+  id             String             @id @default(cuid())
+  userId         String?
+  driverId       String?
+  pickupLat      Float
+  pickupLng      Float
+  destLat        Float
+  destLng        Float
+  pickupAddress  String?
+  destAddress    String?
+  distance       Float
+  fare           Float
+  status         String             @default("PENDING")
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  acceptedAt     DateTime?
+  cancelReason   String?
+  cancelledAt    DateTime?
+  cancelledBy    String?
+  completedAt    DateTime?
+  polyline       String?
+  mapSnapshotUrl String?
+  driver         Driver?            @relation(fields: [driverId], references: [id])
+  user           User?              @relation(fields: [userId], references: [id])
+  rejections     BookingRejection[]
+  issueReports   IssueReport[]
 
   @@index([status, createdAt])
   @@index([driverId, status])
@@ -84,19 +86,18 @@ model IssueReport {
   userId    String
   reason    String
   details   String?
-  status    String   @default("OPEN") // OPEN, RESOLVED
+  status    String   @default("OPEN")
   createdAt DateTime @default(now())
   booking   Booking  @relation(fields: [bookingId], references: [id])
 }
-
 
 model GeoCache {
   id        String    @id @default(cuid())
   lat       Float
   lng       Float
   address   String
-  expiresAt DateTime?
   createdAt DateTime  @default(now())
+  expiresAt DateTime?
 
   @@unique([lat, lng], name: "lat_lng")
   @@index([lat, lng])
@@ -108,7 +109,6 @@ model BookingRejection {
   bookingId String
   driverId  String
   createdAt DateTime @default(now())
-
   booking   Booking  @relation(fields: [bookingId], references: [id])
   driver    Driver   @relation(fields: [driverId], references: [id])
 
@@ -120,20 +120,29 @@ model IdempotencyKey {
   id             String   @id @default(uuid())
   key            String   @unique
   userId         String
-  responseBody   String   // JSON stringified response
+  responseBody   String
   responseStatus Int
   createdAt      DateTime @default(now())
-  
+
   @@unique([key, userId])
   @@index([key, userId])
 }
 
 model RateLimit {
   id          String   @id @default(cuid())
-  key         String   @unique // e.g., "login:phone_number" or "login:ip"
+  key         String   @unique
   attempts    Int      @default(0)
   lastAttempt DateTime @default(now())
   expiresAt   DateTime
-  
+
   @@index([key, expiresAt])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
 }

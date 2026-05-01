@@ -24,3 +24,11 @@ export const driverSignupSchema = z.object({
 });
 
 export type DriverSignupInput = z.infer<typeof driverSignupSchema>;
+
+export const adminLoginSchema = z.object({
+  phone: z.string().min(11, "Phone number must be at least 11 characters").max(14, "Phone number too long"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+export type AdminLoginInput = z.infer<typeof adminLoginSchema>;
+

@@ -10,7 +10,7 @@ export async function GET() {
     }
 
     let userData = null;
-    if (session.role === "USER") {
+    if (session.role === "USER" || session.role === "ADMIN") {
       userData = await prisma.user.findUnique({
         where: { id: session.sub },
       });

@@ -23,14 +23,14 @@ export async function GET() {
     const hashedPassword = bcrypt.hashSync("driver123", 10);
     const driver = await prisma.driver.upsert({
       where: { phone: "01711111111" },
-      update: { passwordHash: hashedPassword, isApproved: true, currentLat: 23.8103, currentLng: 90.4125 },
+      update: { passwordHash: hashedPassword, isApproved: true, currentLat: 23.0361, currentLng: 91.5194 },
       create: {
         name: "Karim Driver",
         phone: "01711111111",
         passwordHash: hashedPassword,
         isApproved: true,
-        currentLat: 23.8103,
-        currentLng: 90.4125,
+        currentLat: 23.0361,
+        currentLng: 91.5194,
       },
     });
 
@@ -38,8 +38,8 @@ export async function GET() {
     const pendingBookings = [
       {
         userId: user.id,
-        pickupLat: 23.8103,
-        pickupLng: 90.4125,
+        pickupLat: 23.0361,
+        pickupLng: 91.5194,
         destLat: 23.8203,
         destLng: 90.4225,
         pickupAddress: "Dhanmondi 32, Dhaka",
@@ -62,8 +62,8 @@ export async function GET() {
       },
       {
         userId: user.id,
-        pickupLat: 23.8103,
-        pickupLng: 90.4125,
+        pickupLat: 23.0361,
+        pickupLng: 91.5194,
         destLat: 23.8003,
         destLng: 90.3825,
         pickupAddress: "Mirpur 10 Circle",
@@ -83,8 +83,8 @@ export async function GET() {
       data: {
         userId: user.id,
         driverId: driver.id,
-        pickupLat: 23.8103,
-        pickupLng: 90.4125,
+        pickupLat: 23.0361,
+        pickupLng: 91.5194,
         destLat: 23.8503,
         destLng: 90.4525,
         pickupAddress: "Uttara Sector 7, Lake View",

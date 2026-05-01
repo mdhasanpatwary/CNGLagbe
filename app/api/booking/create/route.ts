@@ -7,7 +7,7 @@ import { withIdempotency } from "@/lib/idempotency";
 export async function POST(request: Request) {
   try {
     const user = await getAuthUser();
-    if (!user || user.role !== "USER") {
+    if (!user || (user.role !== "USER" && user.role !== "ADMIN")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

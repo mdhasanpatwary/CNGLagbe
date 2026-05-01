@@ -43,7 +43,11 @@ export default function UserLogin() {
       const resData = await res.json();
 
       if (res.ok) {
-        router.push("/user/map");
+        if (resData.user.role === "ADMIN") {
+          router.push("/admin");
+        } else {
+          router.push("/user/map");
+        }
       } else {
         setServerError(resData.error || t("login_failed"));
       }

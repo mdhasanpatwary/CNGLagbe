@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, Navigation, Pin, Banknote, Clock, Route, ChevronLeft, CheckCircle2, Info } from "lucide-react";
+import { MapPin, Navigation, Pin, Banknote, Clock, Route, ChevronLeft, CheckCircle2, Search, X, LocateFixed } from "lucide-react";
 import { AppButton } from "@/components/ui/AppButton";
 import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLang } from "@/hooks/useLang";
-import { StaticMap } from "@/components/StaticMap";
+
 import {
   saveBookingSession,
   getBookingSession,
@@ -59,8 +59,20 @@ export default function UserMapPage() {
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [sessionRestored, setSessionRestored] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
+  const [locFallbackVisible, setLocFallbackVisible] = useState(false);
   const [isRequesting, setIsRequesting] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const restoredFromSession = useRef(false);
+  const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // ─── Search input refs (for Places Autocomplete) ──────────────────────────
+  const pickupSearchRef = useRef<HTMLInputElement>(null);
+  const destSearchRef = useRef<HTMLInputElement>(null);
+  const pickupAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const destAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const [pickupSearchValue, setPickupSearchValue] = useState("");
+  const [destSearchValue, setDestSearchValue] = useState("");
+  const geocodeCache = useRef<Record<string, string>>({});
 
   // ─── Step based camera movement ──────────────────────────────────────────
   useEffect(() => {
@@ -109,19 +121,102 @@ export default function UserMapPage() {
   const reverseGeocode = useCallback(
     async (pos: Point): Promise<string> => {
       try {
-        // Round to 5 decimal places (~1m precision) to match server cache logic
-        const lat = Math.round(pos.lat * 100000) / 100000;
-        const lng = Math.round(pos.lng * 100000) / 100000;
-        const res = await apiFetch(`/api/geocode?lat=${lat}&lng=${lng}`);
-        if (!res.ok) throw new Error("Geocode API failed");
-        const data = await res.json();
-        return data.address;
+        // Round to 4 decimal places (~11m precision) for caching
+        const lat = Math.round(pos.lat * 10000) / 10000;
+        const lng = Math.round(pos.lng * 10000) / 10000;
+        const cacheKey = `${lat},${lng}`;
+        
+        if (geocodeCache.current[cacheKey]) {
+          return geocodeCache.current[cacheKey];
+        }
+
+        let address = "";
+        
+        // Try client-side Google Maps Geocoder first (Best UX, uses Maps JS API quota)
+        if (window.google?.maps?.Geocoder) {
+          try {
+            const geocoder = new window.google.maps.Geocoder();
+            const response = await geocoder.geocode({ location: { lat: pos.lat, lng: pos.lng } });
+            if (response.results && response.results.length > 0) {
+              // Filter out plus_code results to get a more human-readable address
+              const validResults = response.results.filter((r) => !r.types.includes('plus_code'));
+              if (validResults.length > 0) {
+                address = validResults[0].formatted_address;
+              } else {
+                address = response.results[0].formatted_address;
+              }
+            }
+          } catch (geocoderErr) {
+            console.warn("Client geocoder failed, falling back to API", geocoderErr);
+          }
+        }
+        
+        // Fallback to our backend API if client geocoder fails or isn't loaded
+        if (!address) {
+          try {
+            const res = await apiFetch(`/api/geocode?lat=${lat}&lng=${lng}`);
+            if (res.ok) {
+              const data = await res.json();
+              // Make sure the API didn't just return lat/lng
+              if (data.address && !data.address.match(/^-?\d+\.\d+,\s*-?\d+\.\d+$/)) {
+                address = data.address;
+              }
+            }
+          } catch (apiErr) {
+            console.warn("API geocode failed", apiErr);
+          }
+        }
+        
+        // Final fallback to lat, lng string
+        if (!address) {
+          address = `${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`;
+        } else {
+          geocodeCache.current[cacheKey] = address;
+        }
+        
+        return address;
       } catch (err) {
         console.error("Geocode error:", err);
         return `${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`;
       }
     },
     []
+  );
+
+  const handleMarkerDrag = useCallback(
+    (marker: google.maps.marker.AdvancedMarkerElement, type: 'pickup' | 'drop', isEnd: boolean) => {
+      const p = marker.position;
+      if (!p) return;
+      const latVal = typeof p.lat === "function" ? p.lat() : (p.lat as number);
+      const lngVal = typeof p.lng === "function" ? p.lng() : (p.lng as number);
+      const point: Point = { lat: latVal, lng: lngVal };
+
+      const setFunc = type === 'pickup' ? setPickup : setDestination;
+
+      // Update state without address to trigger loading spinner / update coordinates
+      setFunc(point);
+
+      if (dragTimeoutRef.current) clearTimeout(dragTimeoutRef.current);
+
+      if (isEnd) {
+        // Immediate geocode on drop
+        (async () => {
+          const address = await reverseGeocode(point);
+          clearBookingSession();
+          restoredFromSession.current = false;
+          setRouteInfo(null);
+          setSessionRestored(false);
+          setFunc({ ...point, address });
+        })();
+      } else {
+        // Debounced geocode while dragging
+        dragTimeoutRef.current = setTimeout(async () => {
+          const address = await reverseGeocode(point);
+          setFunc({ ...point, address });
+        }, 300);
+      }
+    },
+    [reverseGeocode]
   );
 
   // ─── Branded Marker Content ───────────────────────────────────────────────
@@ -169,7 +264,7 @@ export default function UserMapPage() {
       console.warn("GOOGLE MAPS API KEY is missing.");
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setMapError(true);
-      setPickup({ lat: 23.8103, lng: 90.4125 });
+      setPickup({ lat: 23.0361, lng: 91.5194 });
       return;
     }
 
@@ -195,7 +290,7 @@ export default function UserMapPage() {
         await window.google.maps.importLibrary("places");
         await window.google.maps.importLibrary("geometry");
 
-        const defaultLocation = { lat: 23.8103, lng: 90.4125 };
+        const defaultLocation = { lat: 23.0361, lng: 91.5194 };
 
         const mapInstance = new window.google.maps.Map(
           mapRef.current as HTMLElement,
@@ -253,20 +348,8 @@ export default function UserMapPage() {
             content: createLabeledMarker(pinGreen, t("pickup"), "#10b981", 'pickup'),
             gmpDraggable: true,
           });
-          pickupM.addListener("dragend", async () => {
-            const p = pickupM.position;
-            if (p) {
-              const latVal = typeof p.lat === "function" ? p.lat() : (p.lat as number);
-              const lngVal = typeof p.lng === "function" ? p.lng() : (p.lng as number);
-              const point: Point = { lat: latVal, lng: lngVal };
-              point.address = await reverseGeocode(point);
-              clearBookingSession();
-              restoredFromSession.current = false;
-              setRouteInfo(null);
-              setSessionRestored(false);
-              setPickup(point);
-            }
-          });
+          pickupM.addListener("drag", () => handleMarkerDrag(pickupM, 'pickup', false));
+          pickupM.addListener("dragend", () => handleMarkerDrag(pickupM, 'pickup', true));
           pickupMarkerRef.current = pickupM;
 
           const pinRed = new PinElement({ background: "#ef4444", borderColor: "#7f1d1d", glyphColor: "white" });
@@ -277,59 +360,58 @@ export default function UserMapPage() {
             content: createLabeledMarker(pinRed, t("drop"), "#ef4444", 'drop'),
             gmpDraggable: true,
           });
-          dropM.addListener("dragend", async () => {
-            const p = dropM.position;
-            if (p) {
-              const latVal = typeof p.lat === "function" ? p.lat() : (p.lat as number);
-              const lngVal = typeof p.lng === "function" ? p.lng() : (p.lng as number);
-              const point: Point = { lat: latVal, lng: lngVal };
-              point.address = await reverseGeocode(point);
-              clearBookingSession();
-              restoredFromSession.current = false;
-              setRouteInfo(null);
-              setSessionRestored(false);
-              setDestination(point);
-            }
-          });
+          dropM.addListener("drag", () => handleMarkerDrag(dropM, 'drop', false));
+          dropM.addListener("dragend", () => handleMarkerDrag(dropM, 'drop', true));
           destMarkerRef.current = dropM;
           return;
         }
 
         // ── Normal block ──────────────────────────────────────────────────
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            async (position) => {
-              const pos: Point = { lat: position.coords.latitude, lng: position.coords.longitude };
-              pos.address = await reverseGeocode(pos);
-              mapInstance.setCenter(pos);
-              setPickup(pos);
+        const handleGeoSuccess = async (position: GeolocationPosition) => {
+          const pos: Point = { lat: position.coords.latitude, lng: position.coords.longitude };
+          pos.address = await reverseGeocode(pos);
+          mapInstance.setCenter(pos);
+          setPickup(pos);
 
-              const pinGreen = new PinElement({ background: "#10b981", borderColor: "#064e3b", glyphColor: "white" });
-              const marker = new AdvancedMarkerElement({
-                position: pos,
-                map: mapInstance,
-                title: t("pickup"),
-                content: createLabeledMarker(pinGreen, t("pickup"), "#10b981", 'pickup'),
-                gmpDraggable: true,
-              });
-              marker.addListener("dragend", async () => {
-                const newPos = marker.position;
-                if (newPos) {
-                  const latVal = typeof newPos.lat === "function" ? newPos.lat() : (newPos.lat as number);
-                  const lngVal = typeof newPos.lng === "function" ? newPos.lng() : (newPos.lng as number);
-                  const p: Point = { lat: latVal, lng: lngVal };
-                  p.address = await reverseGeocode(p);
-                  clearBookingSession();
-                  restoredFromSession.current = false;
-                  setRouteInfo(null);
-                  setSessionRestored(false);
-                  setPickup(p);
-                }
-              });
-              pickupMarkerRef.current = marker;
-            },
-            () => console.log("Geolocation failed.")
-          );
+          const pinGreen = new PinElement({ background: "#10b981", borderColor: "#064e3b", glyphColor: "white" });
+          const marker = new AdvancedMarkerElement({
+            position: pos,
+            map: mapInstance,
+            title: t("pickup"),
+            content: createLabeledMarker(pinGreen, t("pickup"), "#10b981", 'pickup'),
+            gmpDraggable: true,
+          });
+          marker.addListener("drag", () => handleMarkerDrag(marker, 'pickup', false));
+          marker.addListener("dragend", () => handleMarkerDrag(marker, 'pickup', true));
+          pickupMarkerRef.current = marker;
+        };
+
+        const handleGeoError = async () => {
+          console.log("Geolocation failed.");
+          const pos: Point = { ...defaultLocation };
+          pos.address = await reverseGeocode(pos);
+          mapInstance.setCenter(pos);
+          setPickup(pos);
+          setLocFallbackVisible(true);
+          setTimeout(() => setLocFallbackVisible(false), 3500);
+
+          const pinGreen = new PinElement({ background: "#10b981", borderColor: "#064e3b", glyphColor: "white" });
+          const marker = new AdvancedMarkerElement({
+            position: pos,
+            map: mapInstance,
+            title: t("pickup"),
+            content: createLabeledMarker(pinGreen, t("pickup"), "#10b981", 'pickup'),
+            gmpDraggable: true,
+          });
+          marker.addListener("drag", () => handleMarkerDrag(marker, 'pickup', false));
+          marker.addListener("dragend", () => handleMarkerDrag(marker, 'pickup', true));
+          pickupMarkerRef.current = marker;
+        };
+
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(handleGeoSuccess, handleGeoError, { timeout: 10000 });
+        } else {
+          void handleGeoError();
         }
       } catch (e) {
         console.error("Map initialization failed", e);
@@ -362,7 +444,107 @@ export default function UserMapPage() {
     };
 
     initMapWrapper();
-  }, [reverseGeocode, createLabeledMarker, t]); // Include t for proper dependency tracking
+  }, [reverseGeocode, createLabeledMarker, t, handleMarkerDrag]); // Include t for proper dependency tracking
+
+  // ─── Initialize Places Autocomplete for search inputs ────────────────────
+  const initPickupAutocomplete = useCallback(() => {
+    if (!pickupSearchRef.current || pickupAutocompleteRef.current) return;
+    if (!window.google?.maps?.places?.Autocomplete) return;
+
+    const ac = new window.google.maps.places.Autocomplete(pickupSearchRef.current, {
+      componentRestrictions: { country: "BD" },
+      fields: ["geometry", "formatted_address", "name"],
+    });
+    pickupAutocompleteRef.current = ac;
+
+    ac.addListener("place_changed", async () => {
+      const place = ac.getPlace();
+      if (!place?.geometry?.location) return;
+
+      const pos: Point = {
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng(),
+        address: place.formatted_address || place.name || "",
+      };
+
+      // Move/create marker
+      if (pickupMarkerRef.current) {
+        pickupMarkerRef.current.position = pos;
+      }
+      if (map) {
+        map.panTo(pos);
+        map.setZoom(16);
+      }
+
+      clearBookingSession();
+      restoredFromSession.current = false;
+      setRouteInfo(null);
+      setSessionRestored(false);
+      setPickup(pos);
+      setPickupSearchValue(pos.address ?? "");
+    });
+  }, [map]);
+
+  const initDestAutocomplete = useCallback(() => {
+    if (!destSearchRef.current || destAutocompleteRef.current) return;
+    if (!window.google?.maps?.places?.Autocomplete) return;
+
+    const ac = new window.google.maps.places.Autocomplete(destSearchRef.current, {
+      componentRestrictions: { country: "BD" },
+      fields: ["geometry", "formatted_address", "name"],
+    });
+    destAutocompleteRef.current = ac;
+
+    ac.addListener("place_changed", async () => {
+      const place = ac.getPlace();
+      if (!place?.geometry?.location) return;
+
+      const pos: Point = {
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng(),
+        address: place.formatted_address || place.name || "",
+      };
+
+      // Move/create marker
+      if (destMarkerRef.current) {
+        destMarkerRef.current.position = pos;
+      }
+      if (map) {
+        map.panTo(pos);
+        map.setZoom(15);
+      }
+
+      clearBookingSession();
+      restoredFromSession.current = false;
+      setRouteInfo(null);
+      setSessionRestored(false);
+      setDestination(pos);
+      setDestSearchValue(pos.address ?? "");
+    });
+  }, [map]);
+
+  // Re-init autocompletes when step changes (inputs mount/unmount)
+  useEffect(() => {
+    if (!map) return;
+    const timer = setTimeout(() => {
+      if (step === "PICKUP") initPickupAutocomplete();
+      if (step === "DESTINATION") initDestAutocomplete();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [step, map, initPickupAutocomplete, initDestAutocomplete]);
+
+  // Sync search display values when point changes externally (map click / drag)
+  const prevPickupAddressRef = useRef<string | undefined>(undefined);
+  if (pickup?.address !== prevPickupAddressRef.current) {
+    prevPickupAddressRef.current = pickup?.address;
+    if (pickup?.address) setPickupSearchValue(pickup.address);
+  }
+
+  const prevDestAddressRef = useRef<string | undefined>(undefined);
+  if (destination?.address !== prevDestAddressRef.current) {
+    prevDestAddressRef.current = destination?.address;
+    if (destination?.address) setDestSearchValue(destination.address);
+  }
 
   // ─── Step navigation ──────────────────────────────────────────────────────
   const handleNextStep = async () => {
@@ -393,6 +575,7 @@ export default function UserMapPage() {
       }
     } else if (step === "CONFIRM") {
       setIsRequesting(true);
+      setIsSearching(true);
       try {
         const res = await apiFetch("/api/booking/create", {
           method: "POST",
@@ -412,7 +595,6 @@ export default function UserMapPage() {
           clearBookingSession();
           router.push(`/user/booking/${data.booking.id}`);
         } else if (data.bookingId) {
-          // Exists already
           router.push(`/user/booking/${data.bookingId}`);
         }
       } catch (e: unknown) {
@@ -422,6 +604,7 @@ export default function UserMapPage() {
           alert(t("cancel_user_limit"));
         }
         setIsRequesting(false);
+        setIsSearching(false);
       }
     }
   };
@@ -433,10 +616,58 @@ export default function UserMapPage() {
     }
   }, []);
 
+  const handleUseCurrentLocation = useCallback(() => {
+    if (!navigator.geolocation || !map) return;
+
+    // Immediately trigger loading state
+    setPickup(prev => prev ? { ...prev, address: undefined } : null);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const pos: Point = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        map.panTo(pos);
+        map.setZoom(15);
+        
+        if (pickupMarkerRef.current) {
+           pickupMarkerRef.current.position = pos;
+        }
+
+        pos.address = await reverseGeocode(pos);
+        clearBookingSession();
+        restoredFromSession.current = false;
+        setRouteInfo(null);
+        setSessionRestored(false);
+        setPickup(pos);
+      },
+      (err) => {
+        console.error("Geo error:", err);
+        setLocFallbackVisible(true);
+        setTimeout(() => setLocFallbackVisible(false), 3500);
+        // Fallback to updating address for the current position anyway
+        if (pickupMarkerRef.current?.position) {
+          const p = pickupMarkerRef.current.position;
+          const point: Point = { 
+            lat: typeof p.lat === "function" ? p.lat() : (p.lat as number),
+            lng: typeof p.lng === "function" ? p.lng() : (p.lng as number) 
+          };
+          reverseGeocode(point).then(address => {
+            setPickup({ ...point, address });
+          });
+        }
+      },
+      { timeout: 10000, maximumAge: 0 }
+    );
+  }, [map, reverseGeocode]);
+
   const handleBack = () => {
     if (step === "PICKUP") router.push("/");
     if (step === "DESTINATION") {
       setDestination(null);
+      setDestSearchValue("");
+      destAutocompleteRef.current = null; // allow reinit on next mount
       if (destMarkerRef.current) {
         destMarkerRef.current.map = null;
         destMarkerRef.current = null;
@@ -446,6 +677,7 @@ export default function UserMapPage() {
     }
     if (step === "CONFIRM") {
       clearRoute();
+      destAutocompleteRef.current = null; // allow reinit on next mount
       setStep("DESTINATION");
     }
   };
@@ -463,15 +695,40 @@ export default function UserMapPage() {
           lng: e.latLng.lng(),
         };
 
+        let address = "";
+        
+        // Handle POI (Point of Interest) clicks
+        const iconEvent = e as google.maps.MapMouseEvent & { placeId?: string; stop?: () => void };
+        if (iconEvent.placeId && typeof iconEvent.stop === "function") {
+          iconEvent.stop(); // Prevent the default Google Maps InfoWindow
+          try {
+            if (window.google?.maps?.places?.PlacesService) {
+              const service = new window.google.maps.places.PlacesService(map);
+              await new Promise<void>((resolve) => {
+                service.getDetails({ placeId: iconEvent.placeId, fields: ['name', 'formatted_address'] }, (place, status) => {
+                  if (status === window.google.maps.places.PlacesServiceStatus.OK && place) {
+                    address = place.name || place.formatted_address || "";
+                  }
+                  resolve();
+                });
+              });
+            }
+          } catch (err) {
+            console.error("Failed to fetch POI details:", err);
+          }
+        }
+
         if (step === "PICKUP") {
-          pos.address = await reverseGeocode(pos);
+          if (!address) address = await reverseGeocode(pos);
+          pos.address = address;
           clearBookingSession();
           restoredFromSession.current = false;
           setRouteInfo(null);
           setSessionRestored(false);
           setPickup(pos);
         } else if (step === "DESTINATION") {
-          pos.address = await reverseGeocode(pos);
+          if (!address) address = await reverseGeocode(pos);
+          pos.address = address;
           clearBookingSession();
           restoredFromSession.current = false;
           setRouteInfo(null);
@@ -503,22 +760,20 @@ export default function UserMapPage() {
           content: createLabeledMarker(pinGreen, t("pickup"), "#10b981", 'pickup'),
           gmpDraggable: true,
         });
-        marker.addListener("dragend", async () => {
-          const p = marker.position;
-          if (p) {
-            const point: Point = { 
-              lat: typeof p.lat === "function" ? p.lat() : (p.lat as number),
-              lng: typeof p.lng === "function" ? p.lng() : (p.lng as number) 
-            };
-            point.address = await reverseGeocode(point);
-            clearBookingSession();
-            restoredFromSession.current = false;
-            setPickup(point);
-          }
-        });
+        marker.addListener("drag", () => handleMarkerDrag(marker, 'pickup', false));
+        marker.addListener("dragend", () => handleMarkerDrag(marker, 'pickup', true));
         pickupMarkerRef.current = marker;
       } else if (pickup && pickupMarkerRef.current) {
-        pickupMarkerRef.current.position = pickup;
+        const curPos = pickupMarkerRef.current.position;
+        let isSame = false;
+        if (curPos) {
+          const curLat = typeof curPos.lat === "function" ? curPos.lat() : (curPos.lat as number);
+          const curLng = typeof curPos.lng === "function" ? curPos.lng() : (curPos.lng as number);
+          isSame = Math.abs(curLat - pickup.lat) < 0.000001 && Math.abs(curLng - pickup.lng) < 0.000001;
+        }
+        if (!isSame) {
+          pickupMarkerRef.current.position = pickup;
+        }
       }
 
       if (destination && !destMarkerRef.current) {
@@ -530,26 +785,24 @@ export default function UserMapPage() {
           content: createLabeledMarker(pinRed, t("drop"), "#ef4444", 'drop'),
           gmpDraggable: true,
         });
-        marker.addListener("dragend", async () => {
-          const p = marker.position;
-          if (p) {
-            const point: Point = { 
-              lat: typeof p.lat === "function" ? p.lat() : (p.lat as number),
-              lng: typeof p.lng === "function" ? p.lng() : (p.lng as number) 
-            };
-            point.address = await reverseGeocode(point);
-            clearBookingSession();
-            restoredFromSession.current = false;
-            setDestination(point);
-          }
-        });
+        marker.addListener("drag", () => handleMarkerDrag(marker, 'drop', false));
+        marker.addListener("dragend", () => handleMarkerDrag(marker, 'drop', true));
         destMarkerRef.current = marker;
       } else if (destination && destMarkerRef.current) {
-        destMarkerRef.current.position = destination;
+        const curPos = destMarkerRef.current.position;
+        let isSame = false;
+        if (curPos) {
+          const curLat = typeof curPos.lat === "function" ? curPos.lat() : (curPos.lat as number);
+          const curLng = typeof curPos.lng === "function" ? curPos.lng() : (curPos.lng as number);
+          isSame = Math.abs(curLat - destination.lat) < 0.000001 && Math.abs(curLng - destination.lng) < 0.000001;
+        }
+        if (!isSame) {
+          destMarkerRef.current.position = destination;
+        }
       }
     };
     update();
-  }, [pickup, destination, map, reverseGeocode, createLabeledMarker, t]);
+  }, [pickup, destination, map, reverseGeocode, createLabeledMarker, t, handleMarkerDrag]);
 
   // ─── Route Logic ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -606,8 +859,8 @@ export default function UserMapPage() {
           travelMode: window.google.maps.TravelMode.DRIVING,
         });
 
-        if (result.status !== "OK" || !result.routes?.length) {
-          console.error("Directions request failed:", result.status);
+        if (!result.routes?.length) {
+          console.error("Directions request returned no routes");
           drawPolyline(
             [new google.maps.LatLng(pickup!.lat, pickup!.lng), new google.maps.LatLng(destination!.lat, destination!.lng)],
             0.7
@@ -666,196 +919,342 @@ export default function UserMapPage() {
     }
   }, [step, map, pickup, destination, clearRoute, fareData, routeInfo?.encodedPolyline]);
 
+  // Derive sheet height class per step (mobile bottom sheet vs desktop sidebar)
+  const sheetHeight = step === "CONFIRM" ? "h-[56vh] md:h-full" : "h-[48vh] md:h-full";
+
   return (
-    <div className="h-screen w-full flex flex-col md:flex-row overflow-hidden bg-slate-50">
-      <div className="order-1 md:order-2 flex-1 h-full relative bg-slate-200">
-        <div ref={mapRef} className="w-full h-full" />
-        
-        {mapError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-100 p-8 text-center px-4">
-            <h3 className="text-red-500 font-bold mb-2">{t("map_error")}</h3>
-            <p className="text-slate-500 text-sm mb-4">{t("sim_mode")}</p>
-          </div>
-        )}
+    <div className="relative h-screen w-screen overflow-hidden bg-slate-900">
+      {/* ── Full-screen map ───────────────────────────────────────────────── */}
+      <div ref={mapRef} className="absolute inset-0 z-0" />
 
-        {/* Header Overlay */}
-        <div className="absolute top-4 right-16 z-10 hidden md:block">
-           <LanguageSwitcher />
+      {mapError && (
+        <div className="absolute inset-0 z-0 flex flex-col items-center justify-center bg-slate-100 p-8 text-center">
+          <h3 className="text-red-500 font-bold mb-2">{t("map_error")}</h3>
+          <p className="text-slate-500 text-sm mb-4">{t("sim_mode")}</p>
         </div>
+      )}
 
-        {/* Back Button */}
-        <div className="absolute top-4 left-4 z-10 flex flex-col items-center gap-1">
-          <AppButton variant="secondary" onClick={handleBack} className="bg-white rounded-full shadow-md w-12 h-12 p-0">
-            <ChevronLeft className="w-6 h-6" />
-          </AppButton>
-          <span className="bg-white/80 backdrop-blur-sm px-2 py-0.5 rounded text-[8px] uppercase font-black text-slate-600 shadow-sm">{t("back")}</span>
-        </div>
+      {/* ── Floating top-left back button ─────────────────────────────────── */}
+      <div className="absolute top-4 left-4 md:left-[416px] z-30 flex flex-col items-center gap-1 transition-all duration-300">
+        <AppButton
+          onClick={handleBack}
+          className="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-slate-700 hover:bg-slate-50 active:scale-95 transition-all p-0 border-none"
+          aria-label={t("back") as string}
+          variant="ghost"
+          leftIcon={<ChevronLeft size={22} />}
+        />
+        <span className="bg-white/80 backdrop-blur-sm px-2 py-0.5 rounded text-[8px] uppercase font-black text-slate-600 shadow-sm">
+          {t("back")}
+        </span>
+      </div>
 
-        {/* Recenter Button */}
+      {/* ── Floating top-right: recenter + language ───────────────────────── */}
+      <div className="absolute top-4 right-4 z-30 flex flex-col items-center gap-2">
+        <LanguageSwitcher />
         {map && (
-          <div className="absolute top-4 right-4 z-10 flex flex-col items-center gap-1">
-            <AppButton onClick={() => { const t = pickup ?? destination; if (t) { map.panTo(t); map.setZoom(15); } }} className="bg-white rounded-full w-12 h-12 shadow-md text-slate-600 hover:bg-slate-50 p-0" variant="secondary">
-               <Navigation size={20} />
-            </AppButton>
-            <span className="bg-white/80 backdrop-blur-sm px-2 py-0.5 rounded text-[8px] uppercase font-black text-slate-600 shadow-sm">{t("recenter")}</span>
-          </div>
-        )}
-
-        {/* Confirm Overlay */}
-        {step === "CONFIRM" && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg z-10 flex items-center gap-3 border border-slate-200 animate-in slide-in-from-top-4">
-            <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-[10px] uppercase">
-              <MapPin size={12} /> {t("pickup")}
-            </div>
-            <span className="text-slate-300">→</span>
-            <div className="flex items-center gap-1.5 text-red-600 font-bold text-[10px] uppercase">
-              <Pin size={12} /> {t("drop")}
-            </div>
-          </div>
-        )}
-
-        {/* Restored Toast */}
-        {toastVisible && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 bg-emerald-600 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 animate-in slide-in-from-bottom-4">
-            <CheckCircle2 size={14} /> {t("restored_msg")}
-          </div>
+          <AppButton
+            onClick={() => { const p = pickup ?? destination; if (p) { map.panTo(p); map.setZoom(15); } }}
+            className="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-50 active:scale-95 transition-all p-0 border-none"
+            aria-label={t("recenter") as string}
+            variant="ghost"
+            leftIcon={<Navigation size={20} />}
+          />
         )}
       </div>
 
-      {/* Sidebar */}
-      <div className="order-2 md:order-1 w-full md:w-[320px] lg:w-[380px] h-auto max-h-[85vh] md:h-screen md:max-h-screen bg-white z-20 overflow-y-auto shadow-2xl md:shadow-none rounded-t-3xl md:rounded-none border-t md:border-t-0 md:border-r border-slate-200 flex flex-col">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6 md:hidden">
-             <div className="w-12 h-1 bg-slate-200 rounded-full" />
-             <LanguageSwitcher />
-          </div>
+      {/* ── Route pill (CONFIRM step, floats at map top-center) ──────────── */}
+      {step === "CONFIRM" && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-white/95 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-slate-100 flex items-center gap-2 max-w-[70vw] animate-in fade-in slide-in-from-top-2">
+          <span className="text-[10px] font-black uppercase text-emerald-600 flex items-center gap-1">
+            <MapPin size={10} /> {t("pickup")}
+          </span>
+          <span className="text-slate-300 text-xs">→</span>
+          <span className="text-[10px] font-black uppercase text-red-500 flex items-center gap-1">
+            <Pin size={10} /> {t("drop")}
+          </span>
+        </div>
+      )}
 
+      {/* ── Session-restored toast ────────────────────────────────────────── */}
+      {toastVisible && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-40 bg-emerald-600 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 animate-in slide-in-from-top-4">
+          <CheckCircle2 size={14} /> {t("restored_msg")}
+        </div>
+      )}
+
+      {locFallbackVisible && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-40 bg-amber-600 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 animate-in slide-in-from-top-4">
+          <MapPin size={14} /> {t("loc_fallback")}
+        </div>
+      )}
+
+      {/* ── Searching overlay (glass, appears after "Get Driver" tap) ─────── */}
+      {isSearching && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm">
+          {/* Pulsing rings */}
+          <div className="relative flex items-center justify-center mb-8">
+            <div className="absolute w-32 h-32 rounded-full bg-emerald-400/30 pulse-ring" />
+            <div className="absolute w-32 h-32 rounded-full bg-emerald-400/20 pulse-ring pulse-ring-delay-1" />
+            <div className="absolute w-32 h-32 rounded-full bg-emerald-400/10 pulse-ring pulse-ring-delay-2" />
+            <div className="w-20 h-20 rounded-full bg-emerald-500 shadow-2xl flex items-center justify-center">
+              <Navigation size={32} className="text-white" />
+            </div>
+          </div>
+          <div className="text-center">
+            <p className="text-white text-xl font-black mb-2">{t("finding_nearby")}</p>
+            <p className="text-white/70 text-sm font-medium">{t("requesting_ride")}</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Bottom Sheet (Mobile) / Sidebar (Desktop) ────────────────────── */}
+      <div
+        className={`absolute bottom-0 left-0 right-0 md:top-0 md:right-auto md:w-[400px] md:rounded-none md:border-r md:border-slate-100 z-20 bg-white rounded-t-3xl shadow-2xl sheet-transition flex flex-col ${sheetHeight}`}
+      >
+        {/* Drag handle (mobile only) */}
+        <div className="md:hidden flex justify-center pt-3 pb-1 shrink-0">
+          <div className="w-10 h-1 rounded-full bg-slate-200" />
+        </div>
+
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto px-5 pb-8 pt-2">
+
+          {/* ── PICKUP STEP ─────────────────────────────────────────────── */}
           {step === "PICKUP" && (
-            <div className="animate-in fade-in slide-in-from-bottom-2">
-              <h2 className="text-xl font-bold mb-4">{t("current_loc")}</h2>
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6 flex items-center gap-3">
-                <div className="flex flex-col items-center gap-1">
-                  <MapPin className="text-emerald-500" size={18} />
-                  <span className="text-[7px] font-black uppercase text-slate-400">{t("pickup")}</span>
-                </div>
-                <p className="text-sm font-bold text-slate-700 truncate">{pickup?.address ?? t("loading")}</p>
+            <div className="animate-in fade-in slide-in-from-bottom-3 duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-black text-slate-900">{t("set_pickup_title")}</h2>
+                <Badge className="bg-emerald-100 text-emerald-700 border-none text-[10px] font-bold px-2 py-0.5">
+                  {t("pickup")}
+                </Badge>
               </div>
-              <AppButton className="w-full h-14 rounded-xl shadow-lg text-lg" onClick={handleNextStep} disabled={!pickup}>
+
+              {/* Pickup search */}
+              <div className="relative mb-3">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-500 pointer-events-none">
+                  <Search size={16} />
+                </div>
+                <input
+                  ref={pickupSearchRef}
+                  id="pickup-search-input"
+                  type="text"
+                  value={pickupSearchValue}
+                  onChange={(e) => setPickupSearchValue(e.target.value)}
+                  placeholder={t("type_location") as string}
+                  className="w-full pl-10 pr-9 py-3.5 rounded-2xl border-2 border-emerald-200 bg-emerald-50/60 text-sm font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-emerald-400 focus:bg-white transition-all"
+                  autoComplete="off"
+                />
+                {pickupSearchValue && (
+                  <AppButton
+                    onClick={() => { setPickupSearchValue(""); pickupSearchRef.current?.focus(); }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 h-auto w-auto border-none"
+                    aria-label="Clear"
+                    variant="ghost"
+                    leftIcon={<X size={14} />}
+                  />
+                )}
+              </div>
+
+              {/* Current location chip */}
+              {pickup?.address ? (
+                <AppButton
+                  onClick={handleUseCurrentLocation}
+                  className="w-full flex items-center justify-start text-left gap-3 bg-emerald-50 border border-emerald-100 hover:bg-emerald-100 transition-colors rounded-2xl px-4 py-3 mb-3 cursor-pointer active:scale-[0.98] h-auto"
+                  variant="outline"
+                >
+                  <LocateFixed size={16} className="text-emerald-500 shrink-0" />
+                  <p className="text-sm font-semibold text-slate-700 truncate flex-1">{pickup.address}</p>
+                  <span className="text-[9px] font-black uppercase text-emerald-600 bg-emerald-200/50 px-2 py-0.5 rounded-full shrink-0">
+                    {t("use_current_loc")}
+                  </span>
+                </AppButton>
+              ) : (
+                <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 mb-3">
+                  <div className="w-4 h-4 rounded-full border-2 border-slate-200 border-t-emerald-400 animate-spin shrink-0" />
+                  <p className="text-sm font-semibold text-slate-400 truncate flex-1">{t("loading")}</p>
+                </div>
+              )}
+
+              <p className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">
+                {t("tap_map_hint")}
+              </p>
+
+              <AppButton
+                className="w-full h-14 rounded-2xl shadow-lg text-base font-bold"
+                onClick={handleNextStep}
+                disabled={!pickup}
+              >
                 {t("confirm_pickup")}
               </AppButton>
             </div>
           )}
 
+          {/* ── DESTINATION STEP ─────────────────────────────────────────── */}
           {step === "DESTINATION" && (
-            <div className="animate-in fade-in slide-in-from-bottom-2">
-              <h2 className="text-xl font-bold mb-4">{t("where_to")}</h2>
-              
-              {!destination ? (
-                <div className="bg-slate-50 border-2 border-dashed border-emerald-200 rounded-2xl p-8 mb-6 flex flex-col items-center justify-center text-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
-                    <Pin size={24} />
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-700">{t("tap_map_dest")}</p>
-                  </div>
+            <div className="animate-in fade-in slide-in-from-bottom-3 duration-300">
+              {/* Mini pickup summary */}
+              <div className="flex items-center gap-2 mb-4 px-0.5">
+                <div className="flex flex-col items-center gap-0.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                  <div className="w-0.5 h-5 bg-slate-200" />
+                  <div className="w-2.5 h-2.5 rounded-sm bg-red-400" />
                 </div>
-              ) : (
-                <div className="bg-red-50 p-4 rounded-xl border border-red-100 mb-6 flex items-center gap-3">
-                  <div className="flex flex-col items-center gap-1">
-                    <Pin className="text-red-500" size={18} />
-                    <span className="text-[7px] font-black uppercase text-slate-400">{t("drop")}</span>
-                  </div>
-                  <p className="text-sm font-bold text-slate-700 truncate">{destination.address ?? t("loading")}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-black uppercase text-slate-400 mb-0.5">{t("pickup")}</p>
+                  <p className="text-xs font-semibold text-slate-600 truncate">{pickup?.address ?? "..."}</p>
+                  <p className="text-[10px] font-black uppercase text-slate-400 mt-1.5 mb-0.5">{t("drop")}</p>
+                  <p className="text-xs font-semibold text-slate-400 truncate">{destination?.address ?? t("tap_map_hint")}</p>
                 </div>
+              </div>
+
+              <div className="h-px bg-slate-100 mb-4" />
+
+              <h2 className="text-lg font-black text-slate-900 mb-3">{t("set_dest_title")}</h2>
+
+              {/* Destination search */}
+              <div className="relative mb-3">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-red-400 pointer-events-none">
+                  <Search size={16} />
+                </div>
+                <input
+                  ref={destSearchRef}
+                  id="destination-search-input"
+                  type="text"
+                  value={destSearchValue}
+                  onChange={(e) => setDestSearchValue(e.target.value)}
+                  placeholder={t("type_location") as string}
+                  className="w-full pl-10 pr-9 py-3.5 rounded-2xl border-2 border-red-200 bg-red-50/40 text-sm font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-red-400 focus:bg-white transition-all"
+                  autoComplete="off"
+                  autoFocus
+                />
+                {destSearchValue && (
+                  <AppButton
+                    onClick={() => {
+                      setDestSearchValue("");
+                      setDestination(null);
+                      if (destMarkerRef.current) {
+                        destMarkerRef.current.map = null;
+                        destMarkerRef.current = null;
+                      }
+                      destSearchRef.current?.focus();
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 h-auto w-auto border-none"
+                    aria-label="Clear"
+                    variant="ghost"
+                    leftIcon={<X size={14} />}
+                  />
+                )}
+              </div>
+
+              {!destination && (
+                <p className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">
+                  {t("tap_map_hint")}
+                </p>
               )}
 
-              <AppButton className="w-full h-14 rounded-xl shadow-lg text-lg" onClick={handleNextStep} disabled={!destination} loading={loading}>
+              <AppButton
+                className="w-full h-14 rounded-2xl shadow-lg text-base font-bold mt-2"
+                onClick={handleNextStep}
+                disabled={!destination}
+                loading={loading}
+              >
                 {t("calc_fare")}
               </AppButton>
             </div>
           )}
 
+          {/* ── CONFIRM STEP ─────────────────────────────────────────────── */}
           {step === "CONFIRM" && fareData && (
-            <div className="animate-in fade-in slide-in-from-bottom-2">
-              <h2 className="text-xl font-bold mb-6 text-slate-800">{t("booking_summary")}</h2>
-              
-              <div className="space-y-4 mb-8">
-                <StaticMap 
-                  lat={(pickup!.lat + destination!.lat) / 2} 
-                  lng={(pickup!.lng + destination!.lng) / 2} 
-                  zoom={12}
-                  height={180}
-                  className="mb-4"
-                  markers={[
-                    { lat: pickup!.lat, lng: pickup!.lng, color: "#10b981", label: "P" },
-                    { lat: destination!.lat, lng: destination!.lng, color: "#ef4444", label: "D" }
-                  ]}
-                />
-                <div className="flex items-start gap-3">
-                  <div className="flex flex-col items-center gap-1 mt-1">
-                    <MapPin className="text-emerald-500" size={16} />
-                    <span className="text-[7px] font-black uppercase text-emerald-600">{t("pickup")}</span>
-                  </div>
-                  <p className="text-sm font-bold text-slate-600 truncate flex-1">{pickup?.address ?? "..."}</p>
+            <div className="animate-in fade-in slide-in-from-bottom-3 duration-300">
+              {/* Header row */}
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-black text-slate-900">{t("confirm_title")}</h2>
+                <AppButton
+                  onClick={() => {
+                    clearRoute();
+                    destAutocompleteRef.current = null;
+                    setStep("DESTINATION");
+                  }}
+                  className="text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-full transition-colors h-auto border-none"
+                  variant="ghost"
+                >
+                  {t("edit_route")}
+                </AppButton>
+              </div>
+
+              {/* Route summary */}
+              <div className="flex items-start gap-3 mb-5 bg-slate-50 rounded-2xl px-4 py-3">
+                <div className="flex flex-col items-center gap-1 mt-1 shrink-0">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                  <div className="w-0.5 h-8 bg-slate-300 border-dashed" />
+                  <div className="w-2.5 h-2.5 rounded-sm bg-red-400" />
                 </div>
-                <div className="flex items-start gap-3">
-                  <div className="flex flex-col items-center gap-1 mt-1">
-                    <Pin className="text-red-500" size={16} />
-                    <span className="text-[7px] font-black uppercase text-red-600">{t("drop")}</span>
-                  </div>
-                  <p className="text-sm font-bold text-slate-600 truncate flex-1">{destination?.address ?? "..."}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-black uppercase text-slate-400 mb-0.5">{t("pickup")}</p>
+                  <p className="text-sm font-semibold text-slate-800 mb-2 truncate">{pickup?.address ?? "..."}</p>
+                  <p className="text-[10px] font-black uppercase text-slate-400 mb-0.5">{t("drop")}</p>
+                  <p className="text-sm font-semibold text-slate-800 truncate">{destination?.address ?? "..."}</p>
                 </div>
               </div>
 
-              <div className="bg-emerald-50 p-5 rounded-2xl border border-emerald-100 mb-6">
-                <div className="flex justify-between items-center mb-6">
+              {/* Fare card */}
+              <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-3xl px-5 pt-5 pb-4 mb-4 shadow-lg">
+                <div className="flex items-end justify-between mb-4">
                   <div>
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <Banknote size={14} className="text-emerald-600" />
-                      <span className="text-[10px] font-black uppercase text-emerald-800 tracking-wider font-bold mb-1">{t("fixed_fare")}</span>
-                      <div className="relative group">
-                         <Info size={12} className="text-emerald-400 cursor-help" />
-                         <div className="absolute bottom-full left-0 mb-2 w-48 bg-slate-900 text-white text-[10px] p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
-                            {t("fare_tooltip")}
-                         </div>
-                      </div>
-                    </div>
+                    <p className="text-emerald-100 text-[11px] font-black uppercase tracking-wider mb-1">
+                      {t("fixed_fare")}
+                    </p>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-black text-emerald-600">{t("currency")}{fareData.fare}</span>
-                      <span className="text-[10px] font-bold text-emerald-700/50 uppercase">{t("bdt")}</span>
+                      <span className="text-4xl font-black text-white">{t("currency")}{fareData.fare}</span>
+                      <span className="text-emerald-200 text-sm font-bold">{t("bdt")}</span>
                     </div>
                   </div>
-                  <Badge variant="outline" className="bg-white/80 border-emerald-200 text-emerald-700 font-bold px-3 py-1 uppercase text-[10px] gap-1.5">
-                    <Banknote size={12} /> {t("cash")}
+                  <Badge className="bg-white/20 text-white border-none font-black text-[11px] px-3 py-1 gap-1.5">
+                    <Banknote size={13} /> {t("cash")}
                   </Badge>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-emerald-200/50">
-                  <div>
-                    <p className="text-[8px] font-black uppercase text-slate-400 flex items-center gap-1 mb-1">
-                       <Route size={10} /> {t("distance")}
-                    </p>
-                    <p className="text-lg font-black text-slate-800">{routeInfo?.distanceText ?? `${fareData.distance} ${t("km_unit")}`}</p>
+                <div className="flex gap-4 pt-3 border-t border-emerald-400/40">
+                  <div className="flex items-center gap-2">
+                    <Route size={14} className="text-emerald-200" />
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-emerald-200">{t("distance")}</p>
+                      <p className="text-sm font-black text-white">
+                        {routeInfo?.distanceText ?? `${fareData.distance} ${t("km_unit")}`}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[8px] font-black uppercase text-slate-400 flex items-center gap-1 mb-1">
-                       <Clock size={10} /> {t("est_time")}
-                    </p>
-                    <p className="text-lg font-black text-slate-800">~{routeInfo?.durationMinutes ?? "?"} {t("min_unit")}</p>
+                  <div className="flex items-center gap-2">
+                    <Clock size={14} className="text-emerald-200" />
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-emerald-200">{t("est_time")}</p>
+                      <p className="text-sm font-black text-white">
+                        ~{routeInfo?.durationMinutes ?? "?"} {t("min_unit")}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <AppButton className="w-full h-16 rounded-2xl shadow-xl text-xl font-bold" onClick={handleNextStep} loading={isRequesting} leftIcon={<Navigation size={20} />}>
+              {/* Get Driver CTA */}
+              <AppButton
+                className="w-full h-16 rounded-2xl shadow-xl text-lg font-black bounce-soft"
+                onClick={handleNextStep}
+                loading={isRequesting}
+                leftIcon={<Navigation size={22} />}
+              >
                 {t("confirm_find_driver")}
               </AppButton>
+
+              <p className="text-center text-[10px] text-slate-400 font-medium mt-3">
+                {t("pay_driver")}: {t("currency")}{fareData.fare} • {t("cash_only")}
+              </p>
             </div>
           )}
         </div>
-        <footer className="mt-auto p-6 text-center text-slate-300 text-[10px] font-medium tracking-widest uppercase">
-          {t("app_name")} &copy; {new Date().getFullYear()}
-        </footer>
       </div>
     </div>
   );
 }
+
+

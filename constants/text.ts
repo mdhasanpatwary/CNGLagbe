@@ -19,6 +19,10 @@ export const TEXT = {
     en: "Driver",
     bn: "ড্রাইভার"
   },
+  admin_login: {
+    en: "Admin Login",
+    bn: "অ্যাডমিন লগিন"
+  },
   need_cng: {
     en: "Need CNG?",
     bn: "সিএনজি লাগবে?"
@@ -138,6 +142,8 @@ export const TEXT = {
   bk_another: { en: "New Booking", bn: "আবার বুকিং" },
   nav_pickup: { en: "Pickup Map", bn: "পিকআপ ম্যাপ" },
   nav_drop: { en: "Drop Map", bn: "ড্রপ ম্যাপ" },
+  open_google_maps: { en: "Google Maps", bn: "গুগল ম্যাপ" },
+  nav_google_maps: { en: "Navigation", bn: "নেভিগেশন" },
   to_collect: { en: "Collect", bn: "নিবেন" },
   finish: { en: "Finish", bn: "শেষ করুন" },
   online: { en: "Online", bn: "অনলাইন" },
@@ -288,7 +294,21 @@ export const TEXT = {
   save_changes: { en: "Save", bn: "সেভ করুন" },
   birthday: { en: "Birthday", bn: "জন্মদিন" },
   update_success: { en: "Saved", bn: "সেভ হয়েছে" },
-  profile_photo: { en: "Profile Photo", bn: "প্রোফাইল ছবি" }
+  profile_photo: { en: "Profile Photo", bn: "প্রোফাইল ছবি" },
+  search_pickup: { en: "Search pickup location", bn: "পিকআপ জায়গা খুঁজুন" },
+  search_dest: { en: "Search destination", bn: "গন্তব্য খুঁজুন" },
+  or_tap_map: { en: "or tap on map", bn: "বা ম্যাপে ট্যাপ করুন" },
+  type_location: { en: "Type a location...", bn: "জায়গার নাম লিখুন..." },
+  use_current_loc: { en: "Use current location", bn: "এখানে আছি" },
+  finding_nearby: { en: "Finding nearby drivers…", bn: "কাছের ড্রাইভার খোঁজা হচ্ছে…" },
+  set_pickup_title: { en: "Where are you?", bn: "কোথায় আছেন?" },
+  set_dest_title: { en: "Where to?", bn: "কোথায় যাবেন?" },
+  confirm_title: { en: "Your ride", bn: "আপনার রাইড" },
+  edit_route: { en: "Edit", bn: "পাল্টান" },
+  tap_map_hint: { en: "or tap anywhere on map", bn: "বা ম্যাপে ট্যাপ করুন" },
+  requesting_ride: { en: "Requesting ride…", bn: "রাইড নিশ্চিত হচ্ছে…" },
+  loc_fallback: { en: "Default location used", bn: "ডিফল্ট লোকেশন" },
+  loc_paused: { en: "Location paused", bn: "লোকেশন বন্ধ" }
 } as const;
 
 

@@ -4,17 +4,18 @@ import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { LogOut, Power, User, MapPin, Navigation, Info, ExternalLink, CheckCircle2, XCircle, Banknote, Clock } from "lucide-react";
+import { LogOut, Power, User, MapPin, Navigation, Info, ExternalLink, CheckCircle2, XCircle, Banknote, Clock, AlertTriangle } from "lucide-react";
 import { AppButton } from "@/components/ui/AppButton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useLang } from "@/hooks/useLang";
 import { supabase } from "@/lib/supabase";
-import { StaticMap } from "@/components/StaticMap";
 import { CancelModal } from "@/components/CancelModal";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { apiFetch } from "@/utils/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { GoogleMapPreview } from "@/components/GoogleMapPreview";
+import { simplifyAddress } from "@/utils/address";
 
 
 
@@ -28,6 +29,7 @@ interface RequestItem {
   destLng: number;
   pickupAddress?: string;
   destAddress?: string;
+  polyline?: string;
   createdAt: string;
 }
 
@@ -42,8 +44,8 @@ interface PendingLocationUpdate {
   reason: "initial" | "interval" | "movement" | "resume";
 }
 
-const LOCATION_INTERVAL_MS = 60_000;
-const LOCATION_SEND_THROTTLE_MS = 15_000;
+const LOCATION_INTERVAL_MS = 30_000;
+const LOCATION_SEND_THROTTLE_MS = 5_000;
 const LOCATION_MOVEMENT_THRESHOLD_METERS = 100;
 
 function getDistanceMeters(a: DriverLocationPoint, b: DriverLocationPoint) {
@@ -62,14 +64,22 @@ function getDistanceMeters(a: DriverLocationPoint, b: DriverLocationPoint) {
 
 
 
+const geoOptions: PositionOptions = {
+  enableHighAccuracy: false,
+  timeout: 10000,
+  maximumAge: 5000,
+};
+
 export default function DriverDashboard() {
   const router = useRouter();
   const { t } = useLang();
   const [isOnlineOverride, setIsOnlineOverride] = useState<boolean | null>(null);
   const [rejectedIds, setRejectedIds] = useState<Set<string>>(new Set());
-  const [timeLeft, setTimeLeft] = useState(20);
+  const [timeLeft, setTimeLeft] = useState(300);
   const [showCancel, setShowCancel] = useState(false);
   const [arrivedBooking, setArrivedBooking] = useState<{ fare: number; distance: number } | null>(null);
+  const [locationIssue, setLocationIssue] = useState(false);
+  const consecutiveFailures = useRef(0);
 
   const queryClient = useQueryClient();
 
@@ -125,6 +135,8 @@ export default function DriverDashboard() {
   }, []);
 
   const handleAccept = useCallback(async (req: RequestItem) => {
+    // Open map window synchronously to prevent popup blocker
+    const mapWindow = window.open('about:blank', '_blank');
     try {
       const res = await apiFetch("/api/driver/accept", {
         method: "POST",
@@ -134,13 +146,19 @@ export default function DriverDashboard() {
         body: JSON.stringify({ bookingId: req.id })
       });
       if (res.ok) {
-         // Clear rejected IDs to start fresh for next search if needed
          setRejectedIds(new Set());
-         window.open(`https://www.google.com/maps/dir/?api=1&destination=${req.pickupLat},${req.pickupLng}`, "_blank");
+         const url = `https://www.google.com/maps/dir/?api=1&destination=${req.pickupLat},${req.pickupLng}`;
+         if (mapWindow) {
+           mapWindow.location.href = url;
+         } else {
+           window.open(url, "_blank");
+         }
       } else {
+         if (mapWindow) mapWindow.close();
          alert(t("error") as string);
       }
     } catch (e) {
+      if (mapWindow) mapWindow.close();
       console.error(e);
     }
   }, [t]);
@@ -282,6 +300,9 @@ export default function DriverDashboard() {
   ) => {
     if (!isOnline || document.visibilityState === "hidden") return;
 
+    consecutiveFailures.current = 0;
+    setLocationIssue(false);
+
     const lastSentLocation = lastLocation.current;
     const distanceFromLastSent = lastSentLocation
       ? getDistanceMeters(
@@ -351,6 +372,13 @@ export default function DriverDashboard() {
   }, [sendLocationUpdate]);
 
   const handleLocationError = useCallback((err: GeolocationPositionError) => {
+    if (err.code === 3 || err.code === 2) {
+      consecutiveFailures.current += 1;
+      if (consecutiveFailures.current >= 3) {
+        setLocationIssue(true);
+      }
+      return; // Silently retry/ignore on timeout or unavailable
+    }
     console.error("Geolocation Error:", { code: err.code, message: err.message });
 
     if (err.code === err.PERMISSION_DENIED && !permissionDeniedShown.current) {
@@ -368,11 +396,7 @@ export default function DriverDashboard() {
         lng: pos.coords.longitude,
         timestamp: pos.timestamp || Date.now(),
       }, reason);
-    }, handleLocationError, {
-      enableHighAccuracy: true,
-      timeout: 20000,
-      maximumAge: reason === "interval" ? 30000 : 10000,
-    });
+    }, handleLocationError, geoOptions);
   }, [handleLocationError, sendLocationUpdate]);
 
   // ─── Real-time Location Push ──────────────────────────────────────────────
@@ -407,11 +431,7 @@ export default function DriverDashboard() {
           lng: pos.coords.longitude,
           timestamp: pos.timestamp || Date.now(),
         }, "movement");
-      }, handleLocationError, {
-        enableHighAccuracy: true,
-        timeout: 20000,
-        maximumAge: 15000,
-      });
+      }, handleLocationError, geoOptions);
     };
 
     const handleVisibilityChange = () => {
@@ -435,34 +455,53 @@ export default function DriverDashboard() {
   }, [clearLocationTimers, handleLocationError, isOnline, requestCurrentLocation, sendLocationUpdate]);
 
   // ─── Request Timer & Sound ────────────────────────────────────────────────
+  const lastActiveReqId = useRef<string | null>(null);
+
   useEffect(() => {
-    const activeReqId = requests[0]?.id;
-    if (!isOnline || !activeReqId || currentBooking) return;
+    const activeReq = requests[0];
+    const activeReqId = activeReq?.id;
     
-    const playAlertTone = () => {
-      try {
-        const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        if (!AudioCtx) return;
-        const audioCtx = new AudioCtx();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        oscillator.type = "sine";
-        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.5);
-        gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.5);
-      } catch (e) {
-        console.error(e);
-      }
-    };
-    
-    playAlertTone();
-    // Use a timeout to avoid synchronous setState inside effect body
-    const timerReset = setTimeout(() => setTimeLeft(20), 0);
+    if (!isOnline || !activeReqId || currentBooking) {
+      lastActiveReqId.current = null;
+      return;
+    }
+
+    // Only reset timer and play sound if it's a NEW request
+    if (activeReqId !== lastActiveReqId.current) {
+      lastActiveReqId.current = activeReqId;
+      
+      // Calculate how much time is actually left based on createdAt
+      // This is better than just 300 to keep sync with backend
+      const createdAt = new Date(activeReq.createdAt).getTime();
+      const now = Date.now();
+      const elapsedSeconds = Math.floor((now - createdAt) / 1000);
+      const initialTimeLeft = Math.max(0, 300 - elapsedSeconds);
+      
+      setTimeLeft(initialTimeLeft);
+
+      const playAlertTone = () => {
+        try {
+          const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+          if (!AudioCtx) return;
+          const audioCtx = new AudioCtx();
+          const oscillator = audioCtx.createOscillator();
+          const gainNode = audioCtx.createGain();
+          oscillator.connect(gainNode);
+          gainNode.connect(audioCtx.destination);
+          oscillator.type = "sine";
+          oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+          oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.5);
+          gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+          oscillator.start();
+          oscillator.stop(audioCtx.currentTime + 0.5);
+        } catch (e) {
+          console.error(e);
+        }
+      };
+      
+      playAlertTone();
+    }
     
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
@@ -475,7 +514,6 @@ export default function DriverDashboard() {
     }, 1000);
 
     return () => {
-      clearTimeout(timerReset);
       clearInterval(interval);
     };
   }, [requests, isOnline, currentBooking, handleReject]);
@@ -511,7 +549,7 @@ export default function DriverDashboard() {
         </div>
       </header>
 
-      <main className="relative z-10 p-6 w-full max-w-md flex flex-col gap-6 flex-1">
+      <main className="relative p-6 w-full max-w-md flex flex-col gap-6 flex-1">
         {!isApproved ? (
           <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in-95 duration-700">
              <div className="w-24 h-24 bg-amber-100 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl shadow-amber-200/50">
@@ -531,6 +569,13 @@ export default function DriverDashboard() {
           </div>
         ) : (
           <>
+        {locationIssue && isOnline && (
+          <div className="bg-amber-500/10 backdrop-blur-sm border border-amber-500/30 text-amber-700 text-xs font-bold px-4 py-3 rounded-2xl flex items-center gap-3 shadow-sm animate-in fade-in slide-in-from-top-2">
+            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+            <span>{t("loc_paused")}</span>
+          </div>
+        )}
+
         {/* Status & Stats Card */}
         {!currentBooking && isApproved && (
           <div className="flex flex-col gap-4">
@@ -603,6 +648,24 @@ export default function DriverDashboard() {
             <Card className="border-none shadow-2xl shadow-blue-500/10 rounded-[2rem] bg-white overflow-hidden">
               <CardContent className="p-6">
                 <div className="space-y-6">
+                  <div className="w-full h-48 rounded-2xl overflow-hidden shadow-inner bg-slate-100 mb-2">
+                    <GoogleMapPreview 
+                      pickupLat={currentBooking.pickupLat}
+                      pickupLng={currentBooking.pickupLng}
+                      destLat={currentBooking.destLat}
+                      destLng={currentBooking.destLng}
+                      apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
+                    />
+                  </div>
+                  <div className="px-1 flex justify-end">
+                    <a 
+                      target="_blank" 
+                      href={`https://www.google.com/maps/dir/?api=1&origin=${currentBooking.pickupLat},${currentBooking.pickupLng}&destination=${currentBooking.destLat},${currentBooking.destLng}&travelmode=driving`}
+                      className="inline-flex items-center gap-2 text-emerald-600 text-[10px] font-black uppercase bg-emerald-50 px-4 py-2 rounded-full hover:bg-emerald-100 transition-all border border-emerald-100"
+                    >
+                      <Navigation size={12} /> {t("nav_google_maps")}
+                    </a>
+                  </div>
                   {/* Locations */}
                   <div className="relative space-y-6 before:absolute before:left-3 before:top-4 before:bottom-4 before:w-px before:bg-slate-100">
                     <div className="flex gap-4 relative">
@@ -611,11 +674,16 @@ export default function DriverDashboard() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[10px] font-black text-slate-400 uppercase mb-1">{t("pickup")}</p>
-                        <p className="text-sm font-bold text-slate-800 truncate">{currentBooking.pickupAddress || `${currentBooking.pickupLat.toFixed(4)}, ${currentBooking.pickupLng.toFixed(4)}`}</p>
+                        <p className="text-sm font-bold text-slate-800 truncate">
+                          {simplifyAddress(currentBooking.pickupAddress) || t("pickup")}
+                        </p>
+                        <p className="text-[10px] text-slate-400 mb-1 truncate">
+                          {`${currentBooking.pickupLat.toFixed(4)}, ${currentBooking.pickupLng.toFixed(4)}`}
+                        </p>
                         <a 
                           target="_blank" 
                           href={`https://www.google.com/maps/dir/?api=1&destination=${currentBooking.pickupLat},${currentBooking.pickupLng}`}
-                          className="inline-flex items-center gap-2 text-blue-600 text-[10px] font-black uppercase mt-2 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors"
+                          className="inline-flex items-center gap-2 text-blue-600 text-[10px] font-black uppercase mt-1 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors"
                         >
                           <ExternalLink size={10} /> {t("nav_pickup")}
                         </a>
@@ -628,11 +696,16 @@ export default function DriverDashboard() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[10px] font-black text-slate-400 uppercase mb-1">{t("drop")}</p>
-                        <p className="text-sm font-bold text-slate-800 truncate">{currentBooking.destAddress || `${currentBooking.destLat.toFixed(4)}, ${currentBooking.destLng.toFixed(4)}`}</p>
+                        <p className="text-sm font-bold text-slate-800 truncate">
+                          {simplifyAddress(currentBooking.destAddress) || t("drop")}
+                        </p>
+                        <p className="text-[10px] text-slate-400 mb-1 truncate">
+                          {`${currentBooking.destLat.toFixed(4)}, ${currentBooking.destLng.toFixed(4)}`}
+                        </p>
                         <a 
                           target="_blank" 
                           href={`https://www.google.com/maps/dir/?api=1&destination=${currentBooking.destLat},${currentBooking.destLng}`}
-                          className="inline-flex items-center gap-2 text-blue-600 text-[10px] font-black uppercase mt-2 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors"
+                          className="inline-flex items-center gap-2 text-blue-600 text-[10px] font-black uppercase mt-1 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors"
                         >
                           <ExternalLink size={10} /> {t("nav_drop")}
                         </a>
@@ -752,16 +825,27 @@ export default function DriverDashboard() {
                     </div>
                   </div>
                   
-                  <div className="mb-6 rounded-2xl overflow-hidden border-2 border-slate-100 relative group">
-                    <StaticMap 
-                      lat={req.pickupLat} 
-                      lng={req.pickupLng} 
-                      markers={[{ lat: req.pickupLat, lng: req.pickupLng, color: "blue", label: "P" }]} 
-                      height={180} 
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent pointer-events-none" />
-                  </div>
 
+
+                  <div className="w-full h-56 rounded-3xl overflow-hidden shadow-inner bg-slate-100 mb-4 border border-slate-100">
+                    <GoogleMapPreview 
+                      pickupLat={req.pickupLat}
+                      pickupLng={req.pickupLng}
+                      destLat={req.destLat}
+                      destLng={req.destLng}
+                      apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
+                    />
+                  </div>
+                  <div className="flex justify-end mb-4">
+                    <a 
+                      target="_blank" 
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${req.pickupLat},${req.pickupLng}&travelmode=driving`}
+                      className="inline-flex items-center gap-2 text-blue-600 text-[10px] font-black uppercase bg-blue-50 px-4 py-2 rounded-full hover:bg-blue-100 transition-all border border-blue-100"
+                    >
+                      <Navigation size={12} /> {t("nav_google_maps")}
+                    </a>
+                  </div>
+                  
                   <div className="flex flex-col gap-4 mb-8 bg-slate-50/80 p-5 rounded-2xl border border-slate-100">
                     <div className="flex gap-4 text-slate-600 items-start">
                         <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0 mt-0.5">
@@ -769,7 +853,12 @@ export default function DriverDashboard() {
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t("pickup")}</p>
-                          <span className="text-sm font-bold text-slate-800 leading-tight block">{req.pickupAddress || `${req.pickupLat.toFixed(4)}, ${req.pickupLng.toFixed(4)}`}</span>
+                          <span className="text-sm font-bold text-slate-800 leading-tight block">
+                            {simplifyAddress(req.pickupAddress) || t("pickup")}
+                          </span>
+                          <span className="text-[10px] text-slate-400 block mt-0.5">
+                            {`${req.pickupLat.toFixed(4)}, ${req.pickupLng.toFixed(4)}`}
+                          </span>
                         </div>
                     </div>
                     <div className="w-px h-6 bg-slate-200 ml-4 -my-2" />
@@ -777,9 +866,14 @@ export default function DriverDashboard() {
                         <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-0.5">
                           <Navigation size={16} className="text-red-600" />
                         </div>
-                        <div>
+                        <div className="min-w-0">
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t("drop")}</p>
-                          <span className="text-sm font-bold text-slate-800 leading-tight block">{req.destAddress || `${req.destLat.toFixed(4)}, ${req.destLng.toFixed(4)}`}</span>
+                          <span className="text-sm font-bold text-slate-800 leading-tight block">
+                            {simplifyAddress(req.destAddress) || t("drop")}
+                          </span>
+                          <span className="text-[10px] text-slate-400 block mt-0.5">
+                            {`${req.destLat.toFixed(4)}, ${req.destLng.toFixed(4)}`}
+                          </span>
                         </div>
                     </div>
                   </div>
