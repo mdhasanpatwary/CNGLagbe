@@ -40,13 +40,30 @@ export async function generateMetadata(): Promise<Metadata> {
   const isDriver = role === "driver";
   
   return {
-    title: isDriver ? "CNGLagbe Driver" : "CNGLagbe",
-    description: isDriver ? "Manage your CNG rides" : "Fixed fare rural CNG booking system",
+    title: isDriver
+      ? "CNGLagbe Driver | Manage Your Rides"
+      : "CNG Booking in Chhagalnaiya | Fast, Fixed Fare, Local Service",
+    description: isDriver
+      ? "Manage your CNG rides — accept requests, navigate, and track your earnings."
+      : "Book CNG instantly in Chhagalnaiya. 100+ local drivers, fixed fare, fast pickup. Cash payment available. CNG near me.",
     manifest: "/manifest.json",
+    keywords: isDriver
+      ? ["CNG driver", "CNGLagbe", "ride sharing Bangladesh"]
+      : ["CNG booking Chhagalnaiya", "local auto rickshaw", "CNG near me", "fixed fare CNG", "চাঁগলনাইয়া CNG", "সিএনজি বুকিং"],
     appleWebApp: {
       capable: true,
       title: isDriver ? "CNG Driver" : "CNGLagbe",
       statusBarStyle: "default",
+    },
+    openGraph: {
+      title: isDriver
+        ? "CNGLagbe Driver"
+        : "CNG Booking in Chhagalnaiya | Fast, Fixed Fare, Local Service",
+      description: isDriver
+        ? "Manage your CNG rides."
+        : "Book CNG instantly in Chhagalnaiya. 100+ local drivers, fixed fare, fast pickup.",
+      locale: "bn_BD",
+      type: "website",
     },
   };
 }

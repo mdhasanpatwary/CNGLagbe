@@ -26,3 +26,15 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 ## ⚙️ Performance & Database
 - **Direct Database Connections:** Prisma is configured with a dedicated direct URL and proper connection pooling to eliminate database performance overhead.
 - **Parallel Queries:** API routes (like `/api/sync`) execute independent queries in parallel to optimize response times.
+
+## 🏠 Landing Page (Homepage)
+- **Full Landing Page Architecture:** The homepage (`app/page.tsx`) is now a full-length, conversion-optimized landing page — NOT a minimal centered card. It must contain all 11 sections: Hero, Local Trust, How It Works, Why Choose Us, Popular Routes, Features, Service Area, Testimonials, FAQ, Final CTA, and Footer.
+- **Sticky Bottom CTA (Mobile):** A persistent `fixed bottom-0` bar with "Book Now" + "Call to Book" buttons must always be present. This is critical for mobile conversion. The padding-bottom on the footer must account for this bar.
+- **Call-to-Book Button:** A `tel:` phone link (☎️) must always appear alongside the primary CTA — many local users prefer calling over using the app.
+- **Trust Badges in Hero:** The hero section must display badges: "১০০+ লোকাল ড্রাইভার", "নিরাপদ ও যাচাইকৃত", "দ্রুত পিকআপ", "ক্যাশে পেমেন্ট" to build immediate trust.
+- **Animated Driver Count:** An animated green pulsing dot with "১০০+ ড্রাইভার সক্রিয়" must appear at the top of the hero to signal live service.
+- **Popular Routes Section:** Quick-tap route cards (Bazar→Hospital, Home→School, etc.) directly call `handleBookNow`, giving users a fast path to booking.
+- **FAQ Accordion:** The FAQ section uses a client-side accordion (no library) for SEO and UX. Questions are in Bangla-first, answers explain cash payment clearly.
+- **Service Area SEO Block:** A dark section includes visible keywords ("CNG booking in Chhagalnaiya", "local auto rickshaw service", "CNG near me") for Google and AI search indexing.
+- **Text Dictionary Compliance:** All landing page text lives in `constants/text.ts`. No hardcoded Bangla/English strings in `page.tsx`.
+

@@ -308,7 +308,97 @@ export const TEXT = {
   tap_map_hint: { en: "or tap anywhere on map", bn: "বা ম্যাপে ট্যাপ করুন" },
   requesting_ride: { en: "Requesting ride…", bn: "রাইড নিশ্চিত হচ্ছে…" },
   loc_fallback: { en: "Default location used", bn: "ডিফল্ট লোকেশন" },
-  loc_paused: { en: "Location paused", bn: "লোকেশন বন্ধ" }
+  loc_paused: { en: "Location paused", bn: "লোকেশন বন্ধ" },
+
+  /* ── Landing Page: Hero ─────────────────────────────────────────────── */
+  hero_headline: { en: "Book CNG Fast Across Chhagalnaiya", bn: "চাঁগলনাইয়া জুড়ে দ্রুত CNG বুক করুন" },
+  hero_sub: { en: "Fixed Fare • Verified Driver • Instant Ride", bn: "ফিক্সড ভাড়া • ভেরিফাইড ড্রাইভার • সাথে সাথে রাইড" },
+  hero_book_now: { en: "Book Now", bn: "এখনই বুক করুন" },
+  hero_pickup_ph: { en: "Your pickup location", bn: "কোথায় আছেন?" },
+  hero_dest_ph: { en: "Your destination", bn: "কোথায় যাবেন?" },
+  hero_badge_drivers: { en: "100+ Local Drivers", bn: "১০০+ লোকাল ড্রাইভার" },
+  hero_badge_safe: { en: "Verified & Safe", bn: "নিরাপদ ও যাচাইকৃত" },
+  hero_badge_fast: { en: "Fast Pickup", bn: "দ্রুত পিকআপ" },
+  hero_cash_note: { en: "Cash payment", bn: "ক্যাশে পেমেন্ট" },
+  call_to_book: { en: "Call to Book", bn: "কল করে বুক করুন" },
+
+  /* ── Landing Page: Local Trust ───────────────────────────────────────── */
+  trust_title: { en: "For the People of Chhagalnaiya", bn: "চাঁগলনাইয়ার মানুষের জন্য" },
+  trust_local_drivers: { en: "Our drivers are from this very area", bn: "আমাদের ড্রাইভাররা এই এলাকারই" },
+  trust_familiar_roads: { en: "Fast service on roads you know well", bn: "আপনার পরিচিত রাস্তায় দ্রুত সার্ভিস" },
+  trust_reliable: { en: "Trustworthy and safe travel", bn: "বিশ্বাসযোগ্য ও নিরাপদ যাতায়াত" },
+  trust_drivers_active: { en: "100+ Drivers Active", bn: "১০০+ ড্রাইভার সক্রিয়" },
+
+  /* ── Landing Page: How It Works ─────────────────────────────────────── */
+  how_title: { en: "How It Works", bn: "কিভাবে ব্যবহার করবেন" },
+  how_step1: { en: "Enter Location", bn: "লোকেশন দিন" },
+  how_step1_sub: { en: "Set pickup & drop", bn: "পিকআপ ও গন্তব্য দিন" },
+  how_step2: { en: "See Fare", bn: "ভাড়া দেখুন" },
+  how_step2_sub: { en: "Fixed price shown", bn: "সাথে সাথে ভাড়া দেখুন" },
+  how_step3: { en: "Confirm Ride", bn: "রাইড কনফার্ম করুন" },
+  how_step3_sub: { en: "Driver comes to you", bn: "ড্রাইভার চলে আসবে" },
+
+  /* ── Landing Page: Why Choose Us ────────────────────────────────────── */
+  why_title: { en: "Why Choose Us", bn: "কেন আমাদের বেছে নেবেন" },
+  why_fixed_fare: { en: "No Bargaining", bn: "দরাদরি ছাড়াই ফিক্সড ভাড়া" },
+  why_instant: { en: "Instant CNG", bn: "সাথে সাথে CNG পাওয়া যায়" },
+  why_drivers: { en: "100+ Local Drivers", bn: "১০০+ লোকাল ড্রাইভার" },
+  why_simple: { en: "Easy Booking", bn: "সহজ ও দ্রুত বুকিং" },
+
+  /* ── Landing Page: Popular Routes ───────────────────────────────────── */
+  routes_title: { en: "Popular Routes", bn: "জনপ্রিয় রুট" },
+  route_1_from: { en: "Bazar", bn: "বাজার" },
+  route_1_to: { en: "Hospital", bn: "হাসপাতাল" },
+  route_2_from: { en: "Home", bn: "বাড়ি" },
+  route_2_to: { en: "School", bn: "স্কুল" },
+  route_3_from: { en: "Stand", bn: "স্ট্যান্ড" },
+  route_3_to: { en: "Market", bn: "মার্কেট" },
+  route_4_from: { en: "College", bn: "কলেজ" },
+  route_4_to: { en: "Station", bn: "স্টেশন" },
+
+  /* ── Landing Page: Features ─────────────────────────────────────────── */
+  feat_title: { en: "Our Features", bn: "আমাদের সুবিধা" },
+  feat_fast_booking: { en: "Fast Booking", bn: "দ্রুত বুকিং" },
+  feat_fast_booking_sub: { en: "Done in seconds", bn: "মাত্র কয়েক সেকেন্ডে" },
+  feat_nearby: { en: "Nearby Driver", bn: "কাছের ড্রাইভার" },
+  feat_nearby_sub: { en: "Driver comes to you", bn: "লোকেশন অনুযায়ী ড্রাইভার পাবেন" },
+  feat_simple_ui: { en: "Simple to Use", bn: "সহজ ব্যবহার" },
+  feat_simple_ui_sub: { en: "Anyone can book", bn: "সহজেই ব্যবহার করুন" },
+  feat_instant_confirm: { en: "Instant Confirm", bn: "ইনস্ট্যান্ট কনফার্মেশন" },
+  feat_instant_confirm_sub: { en: "No waiting", bn: "তাৎক্ষণিক নিশ্চিতকরণ" },
+
+  /* ── Landing Page: Service Area ─────────────────────────────────────── */
+  area_title: { en: "Our Service Area", bn: "আমাদের সার্ভিস এলাকা" },
+  area_desc: { en: "CNG booking service across Chhagalnaiya Upazila — local auto rickshaw service for all routes.", bn: "চাঁগলনাইয়া উপজেলা জুড়ে CNG বুকিং সার্ভিস — সব রুটে লোকাল অটোরিকশা সার্ভিস।" },
+  area_coverage: { en: "Full Chhagalnaiya coverage", bn: "পুরো চাঁগলনাইয়া কভার" },
+
+  /* ── Landing Page: Testimonials ─────────────────────────────────────── */
+  reviews_title: { en: "What People Say", bn: "সবাই কী বলছেন" },
+
+  /* ── Landing Page: FAQ ───────────────────────────────────────────────── */
+  faq_title: { en: "Common Questions", bn: "সাধারণ প্রশ্ন" },
+  faq_q1: { en: "How do I book a CNG?", bn: "কিভাবে CNG বুক করবো?" },
+  faq_a1: { en: "Open the app, enter your pickup and destination, see the fare, and confirm. A nearby driver will come to you.", bn: "অ্যাপ খুলুন, পিকআপ ও গন্তব্য দিন, ভাড়া দেখুন এবং কনফার্ম করুন। কাছের ড্রাইভার চলে আসবে।" },
+  faq_q2: { en: "Is the fare fixed?", bn: "ভাড়া কি ফিক্সড?" },
+  faq_a2: { en: "Yes, the fare is fixed and shown before you book. No bargaining needed.", bn: "হ্যাঁ, ভাড়া বুকিংয়ের আগেই জানানো হয়। দরাদরির দরকার নেই।" },
+  faq_q3: { en: "How long to get a CNG?", bn: "কত সময় লাগে CNG পেতে?" },
+  faq_a3: { en: "Usually 3–7 minutes. With 100+ local drivers always active, you won't wait long.", bn: "সাধারণত ৩–৭ মিনিট। ১০০+ লোকাল ড্রাইভার সবসময় সক্রিয়, তাই বেশি অপেক্ষা নেই।" },
+  faq_q4: { en: "Are drivers safe?", bn: "ড্রাইভার কি নিরাপদ?" },
+  faq_a4: { en: "All drivers are verified with NID and license checks. Only approved locals can drive.", bn: "সব ড্রাইভার NID ও লাইসেন্স যাচাই করা। শুধু অনুমোদিত লোকাল ড্রাইভাররাই সার্ভিস দিতে পারেন।" },
+  faq_q5: { en: "How do I pay?", bn: "পেমেন্ট কিভাবে করবো?" },
+  faq_a5: { en: "Cash only. Pay the driver directly after your ride ends.", bn: "শুধুমাত্র নগদ। রাইড শেষে সরাসরি ড্রাইভারকে দিন।" },
+
+  /* ── Landing Page: Final CTA ─────────────────────────────────────────── */
+  final_cta_title: { en: "Book Your CNG Now", bn: "এখনই আপনার CNG বুক করুন" },
+  final_cta_sub: { en: "Fast, fixed fare, local service", bn: "দ্রুত, ফিক্সড ভাড়া, লোকাল সার্ভিস" },
+
+  /* ── Landing Page: Footer ────────────────────────────────────────────── */
+  footer_about: { en: "About", bn: "আমাদের সম্পর্কে" },
+  footer_about_text: { en: "Reliable CNG booking service for Chhagalnaiya area", bn: "চাঁগলনাইয়া এলাকার জন্য নির্ভরযোগ্য CNG বুকিং সার্ভিস" },
+  footer_contact: { en: "Contact", bn: "যোগাযোগ" },
+  footer_terms: { en: "Terms", bn: "শর্তাবলী" },
+  footer_privacy: { en: "Privacy", bn: "গোপনীয়তা" },
+  footer_internet_fallback: { en: "No internet? Call us", bn: "ইন্টারনেট সমস্যা হলে কল করুন" },
 } as const;
 
 
