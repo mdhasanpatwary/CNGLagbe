@@ -12,6 +12,7 @@ import { supabase } from "@/lib/supabase";
 import { apiFetch } from "@/utils/api";
 import { Header } from "@/components/layout/Header";
 import { User as UserType } from "@/lib/types/user";
+import { cn } from "@/lib/utils";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { profileSchema, type ProfileInput } from "@/lib/schemas/profile";

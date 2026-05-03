@@ -216,6 +216,10 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
       tone: "bg-red-100 text-red-700",
       label: booking.status === "TIMED_OUT" ? "no_driver" : "ride_cancelled",
     },
+    TIMED_OUT: {
+      tone: "bg-red-100 text-red-700",
+      label: "no_driver",
+    },
   };
   const badge = badgeConfig[uiState];
 

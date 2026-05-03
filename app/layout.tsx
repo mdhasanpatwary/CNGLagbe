@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Noto_Sans_Bengali } from "next/font/google";
+import { Inter, Hind_Siliguri } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -9,7 +9,8 @@ const inter = Inter({
   display: "swap",
 });
 
-const notoBengali = Noto_Sans_Bengali({
+const hindSiliguri = Hind_Siliguri({
+  weight: ["300", "400", "500", "600", "700"],
   subsets: ["bengali"],
   variable: "--font-bangla",
   display: "swap",
@@ -45,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
     manifest: "/manifest.json",
     keywords: isDriver
       ? ["CNG driver", "CNGLagbe", "ride sharing Bangladesh"]
-      : ["CNG booking Chhagalnaiya", "local auto rickshaw", "CNG near me", "fixed fare CNG", "চাঁগলনাইয়া CNG", "সিএনজি বুকিং"],
+      : ["CNG booking Chhagalnaiya", "local auto rickshaw", "CNG near me", "fixed fare CNG", "ছাগলনাইয়া CNG", "সিএনজি বুকিং"],
     appleWebApp: {
       capable: true,
       title: isDriver ? "CNG Driver" : "CNGLagbe",
@@ -72,7 +73,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("antialiased", inter.variable, notoBengali.variable)}>
+    <html lang="en" className={cn("antialiased", inter.variable, hindSiliguri.variable)}>
       <body className="min-h-screen bg-slate-50 pb-safe font-sans relative">
         <Providers>
           {children}

@@ -706,7 +706,7 @@ export default function UserMapPage() {
             if (window.google?.maps?.places?.PlacesService) {
               const service = new window.google.maps.places.PlacesService(map);
               await new Promise<void>((resolve) => {
-                service.getDetails({ placeId: iconEvent.placeId, fields: ['name', 'formatted_address'] }, (place, status) => {
+                service.getDetails({ placeId: iconEvent.placeId || "", fields: ['name', 'formatted_address'] }, (place, status) => {
                   if (status === window.google.maps.places.PlacesServiceStatus.OK && place) {
                     address = place.name || place.formatted_address || "";
                   }
@@ -1044,7 +1044,7 @@ export default function UserMapPage() {
                 <AppButton
                   onClick={handleUseCurrentLocation}
                   className="w-full flex items-center justify-start text-left gap-3 bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors rounded-2xl px-4 py-3 mb-3 cursor-pointer active:scale-[0.98] h-auto"
-                  variant="outline"
+                  variant="secondary"
                 >
                   <LocateFixed size={16} className="text-primary shrink-0" />
                   <p className="text-sm font-semibold text-slate-700 truncate flex-1">{pickup.address}</p>

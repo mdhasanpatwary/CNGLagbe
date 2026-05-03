@@ -4,36 +4,32 @@
 import { useLang } from "@/hooks/useLang";
 import { AppButton } from "@/components/ui/AppButton";
 import { cn } from "@/lib/utils";
-import { Languages } from "lucide-react";
 
 export function LanguageSwitcher() {
   const { lang, setLang } = useLang();
 
   return (
-    <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border shadow-sm">
-      <div className="pl-2 pr-1 text-slate-400">
-        <Languages size={18} />
-      </div>
+    <div className="flex items-center bg-slate-100/80 p-1 rounded-full border border-slate-200/50 shadow-inner">
       <AppButton
-        variant={lang === "bn" ? "primary" : "ghost"}
+        variant="ghost"
         onClick={() => setLang("bn")}
         className={cn(
-          "rounded-xl px-4 transition-all duration-300 h-12 text-sm font-black",
+          "px-3 py-1 h-auto rounded-full text-[10px] font-black tracking-wider transition-all duration-300 border-none",
           lang === "bn" 
             ? "bg-white text-primary shadow-sm hover:bg-white" 
-            : "text-slate-500 hover:text-slate-900"
+            : "text-slate-400 hover:text-slate-600 bg-transparent hover:bg-transparent"
         )}
       >
         বাংলা
       </AppButton>
       <AppButton
-        variant={lang === "en" ? "primary" : "ghost"}
+        variant="ghost"
         onClick={() => setLang("en")}
         className={cn(
-          "rounded-xl px-4 transition-all duration-300 h-12 text-sm font-black",
+          "px-3 py-1 h-auto rounded-full text-[10px] font-black tracking-wider transition-all duration-300 border-none",
           lang === "en" 
             ? "bg-white text-primary shadow-sm hover:bg-white" 
-            : "text-slate-500 hover:text-slate-900"
+            : "text-slate-400 hover:text-slate-600 bg-transparent hover:bg-transparent"
         )}
       >
         EN

@@ -12,8 +12,9 @@ import { useLang } from "@/hooks/useLang";
 import { User as UserType } from "@/lib/types/user";
 import { Booking } from "@/lib/types/booking";
 import { AdminStats, PendingDriver } from "@/lib/types/admin";
+import { type TextKey } from "@/constants/text";
 
-const formatDate = (date: string | Date, t: (key: string) => string, includeDate = false) => {
+const formatDate = (date: string | Date | undefined, t: (key: TextKey) => string, includeDate = false) => {
   if (!date) return t("just_now");
   const d = new Date(date);
   if (isNaN(d.getTime())) return t("just_now");
@@ -70,24 +71,26 @@ export default function AdminDashboard() {
   const sortedBookings = [...bookings].sort((a, b) => {
     if (!sortConfig) return 0;
     const { key, direction } = sortConfig;
+    const aVal = (key === "fee" ? a.fare * 0.2 : 
+                  key === "driver_payout" ? a.fare * 0.8 : 
+                  key === "driver" ? a.driver?.name || "" : 
+                  a[key as keyof Booking]) ?? "";
     
-    let aVal: string | number | undefined = a[key as keyof Booking];
-    let bVal: string | number | undefined = b[key as keyof Booking];
-    
-    if (key === "fee") {
-      aVal = a.fare * 0.2;
-      bVal = b.fare * 0.2;
-    } else if (key === "driver_payout") {
-      aVal = a.fare * 0.8;
-      bVal = b.fare * 0.8;
-    } else if (key === "driver") {
-      aVal = a.driver?.name || "";
-      bVal = b.driver?.name || "";
-    }
+    const bVal = (key === "fee" ? b.fare * 0.2 : 
+                  key === "driver_payout" ? b.fare * 0.8 : 
+                  key === "driver" ? b.driver?.name || "" : 
+                  b[key as keyof Booking]) ?? "";
 
-    if (aVal < bVal) return direction === "asc" ? -1 : 1;
-    if (aVal > bVal) return direction === "asc" ? 1 : -1;
-    return 0;
+    if (aVal === bVal) return 0;
+    
+    let result = 0;
+    if (typeof aVal === "number" && typeof bVal === "number") {
+      result = aVal < bVal ? -1 : 1;
+    } else {
+      result = String(aVal).localeCompare(String(bVal));
+    }
+    
+    return direction === "asc" ? result : -result;
   });
 
   const paginatedBookings = sortedBookings.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -632,7 +635,7 @@ export default function AdminDashboard() {
                                       )}
                                       <AppButton 
                                          variant={driver.isSuspended ? "primary" : "ghost"}
-                                         onClick={() => handleToggleSuspend(driver.id, driver.isSuspended)}
+                                          onClick={() => handleToggleSuspend(driver.id, !!driver.isSuspended)}
                                          className={`h-9 px-4 text-[10px] font-black rounded-xl uppercase tracking-widest transition-all duration-300 ${
                                             driver.isSuspended 
                                                ? "bg-slate-900 hover:bg-slate-800 text-white" 

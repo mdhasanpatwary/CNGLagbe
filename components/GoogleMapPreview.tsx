@@ -64,7 +64,7 @@ export function GoogleMapPreview({
           onClick={() => setIsExpanded(true)}
           className="absolute top-3 right-3 bg-white/90 backdrop-blur-md p-2 rounded-xl shadow-lg border border-slate-200 text-slate-700 hover:bg-white hover:scale-105 transition-all duration-300 z-10 w-10 h-10 flex items-center justify-center"
           title="Full Screen"
-          variant="outline"
+          variant="secondary"
           leftIcon={<Maximize2 size={20} />}
         />
 

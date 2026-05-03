@@ -95,6 +95,22 @@ export const TEXT = {
     en: "Last Bookings",
     bn: "আগের বুকিং"
   },
+  no_bookings: {
+    en: "No bookings found",
+    bn: "কোন বুকিং পাওয়া যায়নি"
+  },
+  no_drivers: {
+    en: "No drivers found",
+    bn: "কোন ড্রাইভার পাওয়া যায়নি"
+  },
+  no_users: {
+    en: "No users found",
+    bn: "কোন ইউজার পাওয়া যায়নি"
+  },
+  just_now: {
+    en: "Just now",
+    bn: "এখনই"
+  },
   id: { en: "ID", bn: "আইডি" },
   status: { en: "Status", bn: "খবর" },
   distance: { en: "Distance", bn: "দূরত্ব" },
@@ -102,7 +118,6 @@ export const TEXT = {
   driver_payout: { en: "Driver", bn: "ড্রাইভার" },
   commission: { en: "Fee", bn: "ফি" },
   date: { en: "Date", bn: "তারিখ" },
-  no_bookings: { en: "No bookings", bn: "বুকিং নেই" },
   map_error: { en: "Map Error", bn: "ম্যাপে সমস্যা" },
   sim_mode: { en: "Demo Mode", bn: "ডেমো মোড" },
   current_loc: { en: "Pickup", bn: "কোথায় আছেন?" },
@@ -176,7 +191,7 @@ export const TEXT = {
   welcome_driver: { en: "Welcome", bn: "স্বাগতম" },
   approval_call: { en: "We will call you", bn: "আমরা আপনাকে কল দিবো" },
   approve_btn: { en: "Approve", bn: "অনুমোদন দিন" },
-  pending_drivers: { en: "New Drivers", bn: "নতুন ড্রাইভার" },
+  pending_drivers: { en: "Pending Drivers", bn: "বাকি ড্রাইভার" },
   user_login: { en: "Login", bn: "লগিন" },
   otp_label: { en: "OTP Code", bn: "কোড দিন" },
   enter_otp: { en: "Enter 4-digit code", bn: "৪ ডিজিট কোড" },
@@ -247,13 +262,13 @@ export const TEXT = {
   users: { en: "Users", bn: "ইউজার" },
   logs: { en: "Rides", bn: "রাইড" },
   refresh_status: { en: "Refresh", bn: "রিফ্রেশ" },
-  active_bookings: { en: "Active", bn: "চলমান" },
+  active_bookings: { en: "Active Bookings", bn: "চলতি বুকিং" },
   no_active_bookings: { en: "No active", bn: "রাইড নেই" },
-  online_drivers: { en: "Online", bn: "অনলাইন" },
+  online_drivers: { en: "Online Drivers", bn: "অনলাইন ড্রাইভার" },
   no_online_drivers: { en: "No drivers", bn: "কেউ নেই" },
-  driver_management: { en: "Drivers", bn: "ড্রাইভার" },
-  user_management: { en: "Users", bn: "ইউজার" },
-  full_booking_log: { en: "Ride Logs", bn: "সব রাইড" },
+  driver_management: { en: "Driver Management", bn: "ড্রাইভার ম্যানেজমেন্ট" },
+  user_management: { en: "User Management", bn: "ইউজার ম্যানেজমেন্ট" },
+  full_booking_log: { en: "Full Booking Log", bn: "সব বুকিং রেকর্ড" },
   filter: { en: "Filter", bn: "ফিল্টার" },
   approved: { en: "Approved", bn: "চালু" },
   pending: { en: "Pending", bn: "বাকি" },
@@ -266,9 +281,9 @@ export const TEXT = {
   identity_vehicle: { en: "Info", bn: "তথ্য" },
   actions: { en: "Action", bn: "কাজ" },
   unassigned: { en: "None", bn: "নাই" },
-  joined_date: { en: "Joined", bn: "শুরু" },
+  joined_date: { en: "Joined Date", bn: "যোগদানের তারিখ" },
   fare_distance: { en: "Price/Dist", bn: "ভাড়া/পথ" },
-  datetime: { en: "Time", bn: "সময়" },
+  datetime: { en: "Date & Time", bn: "তারিখ ও সময়" },
   new_label: { en: "New", bn: "নতুন" },
   uploaded: { en: "Uploaded", bn: "জমা হয়েছে" },
   change_photo: { en: "Change", bn: "পাল্টান" },
@@ -280,10 +295,6 @@ export const TEXT = {
   incomplete_profile_warning: {
     en: "Incomplete profile — cannot approve",
     bn: "প্রোফাইল অসম্পূর্ণ — অনুমোদন সম্ভব নয়"
-  },
-  just_now: {
-    en: "Just now",
-    bn: "এইমাত্র"
   },
   no_pending_drivers: {
     en: "No new drivers",
@@ -311,7 +322,7 @@ export const TEXT = {
   loc_paused: { en: "Location paused", bn: "লোকেশন বন্ধ" },
 
   /* ── Landing Page: Hero ─────────────────────────────────────────────── */
-  hero_headline: { en: "Book CNG Fast Across Chhagalnaiya", bn: "চাঁগলনাইয়া জুড়ে দ্রুত CNG বুক করুন" },
+  hero_headline: { en: "Book CNG Fast Across Chhagalnaiya", bn: "ছাগলনাইয়া জুড়ে দ্রুত CNG বুক করুন" },
   hero_sub: { en: "Fixed Fare • Verified Driver • Instant Ride", bn: "ফিক্সড ভাড়া • ভেরিফাইড ড্রাইভার • সাথে সাথে রাইড" },
   hero_book_now: { en: "Book Now", bn: "এখনই বুক করুন" },
   hero_pickup_ph: { en: "Your pickup location", bn: "কোথায় আছেন?" },
@@ -320,10 +331,9 @@ export const TEXT = {
   hero_badge_safe: { en: "Verified & Safe", bn: "নিরাপদ ও যাচাইকৃত" },
   hero_badge_fast: { en: "Fast Pickup", bn: "দ্রুত পিকআপ" },
   hero_cash_note: { en: "Cash payment", bn: "ক্যাশে পেমেন্ট" },
-  call_to_book: { en: "Call to Book", bn: "কল করে বুক করুন" },
 
   /* ── Landing Page: Local Trust ───────────────────────────────────────── */
-  trust_title: { en: "For the People of Chhagalnaiya", bn: "চাঁগলনাইয়ার মানুষের জন্য" },
+  trust_title: { en: "For the People of Chhagalnaiya", bn: "ছাগলনাইয়া মানুষের জন্য" },
   trust_local_drivers: { en: "Our drivers are from this very area", bn: "আমাদের ড্রাইভাররা এই এলাকারই" },
   trust_familiar_roads: { en: "Fast service on roads you know well", bn: "আপনার পরিচিত রাস্তায় দ্রুত সার্ভিস" },
   trust_reliable: { en: "Trustworthy and safe travel", bn: "বিশ্বাসযোগ্য ও নিরাপদ যাতায়াত" },
@@ -337,6 +347,11 @@ export const TEXT = {
   how_step2_sub: { en: "Fixed price shown", bn: "সাথে সাথে ভাড়া দেখুন" },
   how_step3: { en: "Confirm Ride", bn: "রাইড কনফার্ম করুন" },
   how_step3_sub: { en: "Driver comes to you", bn: "ড্রাইভার চলে আসবে" },
+
+  /* ── Admin Dashboard ────────────────────────────────────────────────── */
+  needs_review: { en: "Needs Review", bn: "রিভিউ লাগবে" },
+  waiting: { en: "Waiting", bn: "অপেক্ষা করছে" },
+
 
   /* ── Landing Page: Why Choose Us ────────────────────────────────────── */
   why_title: { en: "Why Choose Us", bn: "কেন আমাদের বেছে নেবেন" },
@@ -369,11 +384,20 @@ export const TEXT = {
 
   /* ── Landing Page: Service Area ─────────────────────────────────────── */
   area_title: { en: "Our Service Area", bn: "আমাদের সার্ভিস এলাকা" },
-  area_desc: { en: "CNG booking service across Chhagalnaiya Upazila — local auto rickshaw service for all routes.", bn: "চাঁগলনাইয়া উপজেলা জুড়ে CNG বুকিং সার্ভিস — সব রুটে লোকাল অটোরিকশা সার্ভিস।" },
-  area_coverage: { en: "Full Chhagalnaiya coverage", bn: "পুরো চাঁগলনাইয়া কভার" },
+  area_desc: { en: "CNG booking service across Chhagalnaiya Upazila — local auto rickshaw service for all routes.", bn: "ছাগলনাইয়া উপজেলা জুড়ে CNG বুকিং সার্ভিস — সব রুটে লোকাল অটোরিকশা সার্ভিস।" },
+  area_coverage: { en: "Full Chhagalnaiya coverage", bn: "পুরো ছাগলনাইয়া কভার" },
 
   /* ── Landing Page: Testimonials ─────────────────────────────────────── */
   reviews_title: { en: "What People Say", bn: "সবাই কী বলছেন" },
+  review_1_name: { en: "Rahim Mia", bn: "রহিম মিয়া" },
+  review_1_loc: { en: "Bazar", bn: "ছাগলনাইয়া বাজার" },
+  review_1_text: { en: "Got a CNG very fast. Driver arrived in just 5 minutes.", bn: "খুব দ্রুত CNG পেয়েছি। মাত্র ৫ মিনিটে ড্রাইভার চলে আসলো।" },
+  review_2_name: { en: "Sumaiya Begum", bn: "সুমাইয়া বেগম" },
+  review_2_loc: { en: "Hospital Road", bn: "হাসপাতাল রোড" },
+  review_2_text: { en: "Good driver. Fare is known upfront, no bargaining hassle.", bn: "ড্রাইভার ভালো ছিল। আগেই ভাড়া জানা যায়, দরাদরির ঝামেলা নেই।" },
+  review_3_name: { en: "Kamal Hossain", bn: "কামাল হোসেন" },
+  review_3_loc: { en: "Stand Area", bn: "স্ট্যান্ড এলাকা" },
+  review_3_text: { en: "Very easy to use app. I book CNG every day with this.", bn: "অ্যাপ ব্যবহার খুব সহজ। আমি প্রতিদিন এটা দিয়ে CNG ডাকি।" },
 
   /* ── Landing Page: FAQ ───────────────────────────────────────────────── */
   faq_title: { en: "Common Questions", bn: "সাধারণ প্রশ্ন" },
@@ -394,11 +418,21 @@ export const TEXT = {
 
   /* ── Landing Page: Footer ────────────────────────────────────────────── */
   footer_about: { en: "About", bn: "আমাদের সম্পর্কে" },
-  footer_about_text: { en: "Reliable CNG booking service for Chhagalnaiya area", bn: "চাঁগলনাইয়া এলাকার জন্য নির্ভরযোগ্য CNG বুকিং সার্ভিস" },
+  footer_about_text: { en: "Reliable CNG booking service for Chhagalnaiya area", bn: "ছাগলনাইয়া এলাকার জন্য নির্ভরযোগ্য CNG বুকিং সার্ভিস" },
   footer_contact: { en: "Contact", bn: "যোগাযোগ" },
   footer_terms: { en: "Terms", bn: "শর্তাবলী" },
   footer_privacy: { en: "Privacy", bn: "গোপনীয়তা" },
-  footer_internet_fallback: { en: "No internet? Call us", bn: "ইন্টারনেট সমস্যা হলে কল করুন" },
+  location_full: { en: "Chhagalnaiya, Feni, Bangladesh", bn: "ছাগলনাইয়া, ফেনী, বাংলাদেশ" },
+  location_upazila: { en: "Chhagalnaiya Upazila", bn: "ছাগলনাইয়া উপজেলা" },
+  
+  /* ── Landing Page: Download ─────────────────────────────────────────── */
+  download_title: { en: "Download Our App", bn: "আমাদের অ্যাপ নামান" },
+  download_sub: { en: "Get the best experience with our mobile apps. Coming soon to your phone.", bn: "মোবাইল অ্যাপ দিয়ে সেরা অভিজ্ঞতা নিন। শীঘ্রই আপনার ফোনে আসছে।" },
+  download_user_app: { en: "User App", bn: "ইউজার অ্যাপ" },
+  download_driver_app: { en: "Driver App", bn: "ড্রাইভার অ্যাপ" },
+  coming_soon: { en: "Coming Soon", bn: "শীঘ্রই আসছে" },
+  app_store: { en: "App Store", bn: "অ্যাপ স্টোর" },
+  google_play: { en: "Google Play", bn: "গুগল প্লে" },
 } as const;
 
 
