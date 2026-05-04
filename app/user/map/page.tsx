@@ -939,6 +939,7 @@ export default function UserMapPage() {
       <Header
         role="user"
         variant="floating"
+        className="md:left-[420px] left-4 right-4"
         user={syncData?.user}
         showBack
         onBack={handleBack}
@@ -948,7 +949,7 @@ export default function UserMapPage() {
 
       {/* ── Route pill (CONFIRM step, floats at map top-center) ──────────── */}
       {step === "CONFIRM" && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-white/95 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-slate-100 flex items-center gap-2 max-w-[70vw] animate-in fade-in slide-in-from-top-2">
+        <div className="absolute top-24 left-1/2 -translate-x-1/2 z-20 bg-white/95 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-slate-100 flex items-center gap-2 max-w-[70vw] animate-in fade-in slide-in-from-top-2">
           <span className="text-[10px] font-black uppercase text-primary flex items-center gap-1">
             <MapPin size={10} /> {t("pickup")}
           </span>
@@ -961,13 +962,13 @@ export default function UserMapPage() {
 
       {/* ── Session-restored toast ────────────────────────────────────────── */}
       {toastVisible && (
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-40 bg-primary text-primary-foreground text-xs font-bold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 animate-in slide-in-from-top-4">
+        <div className="absolute top-36 left-1/2 -translate-x-1/2 z-40 bg-primary text-primary-foreground text-xs font-bold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 animate-in slide-in-from-top-4">
           <CheckCircle2 size={14} /> {t("restored_msg")}
         </div>
       )}
 
       {locFallbackVisible && (
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-40 bg-amber-600 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 animate-in slide-in-from-top-4">
+        <div className="absolute top-36 left-1/2 -translate-x-1/2 z-40 bg-amber-600 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 animate-in slide-in-from-top-4">
           <MapPin size={14} /> {t("loc_fallback")}
         </div>
       )}

@@ -190,7 +190,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
   const uiState = getRideUiState(booking, countdown);
   const cancelLabelKey: TextKey = uiState === "FINDING_DRIVER" ? "cancel_request" : "cancel_booking";
   const showCancelAction = uiState === "FINDING_DRIVER" || uiState === "DRIVER_ASSIGNED" || uiState === "RIDE_STARTED";
-  const showMap = uiState === "DRIVER_ASSIGNED" || uiState === "RIDE_STARTED";
+  const showMap = false; // Map removed upon ride acceptance as per requirement
   const showDriverCard = (uiState === "DRIVER_ASSIGNED" || uiState === "RIDE_STARTED" || uiState === "COMPLETED") && Boolean(booking.driver);
   const showNewBookingAction = uiState === "COMPLETED" || uiState === "CANCELLED";
 
@@ -261,9 +261,11 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
         showBack
         onBack={() => router.push("/user/history")}
         rightContent={
-          <Badge className={`border-none px-3 py-1 text-[10px] font-black uppercase tracking-widest ${badge.tone}`}>
-            {t(badge.label)}
-          </Badge>
+          !showDriverCard && (
+            <Badge className={`border-none px-3 py-1 text-[10px] font-black uppercase tracking-widest ${badge.tone}`}>
+              {t(badge.label)}
+            </Badge>
+          )
         }
       />
 
@@ -328,9 +330,35 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
             {/* Driver card */}
             {showDriverCard && booking.driver && (
               <div className="bg-white rounded-3xl shadow-sm p-5">
-                <p className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-wider">
+                <p className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-wider">
                   {uiState === "DRIVER_ASSIGNED" ? t("driver_assigned") : t("ride_started")}
                 </p>
+
+                {/* Driver Arriving Animation (Only when assigned) */}
+                {uiState === "DRIVER_ASSIGNED" && (
+                  <div className="w-full h-12 relative bg-slate-50 rounded-xl overflow-hidden mb-5">
+                    <div className="absolute top-0 bottom-0 left-0 w-full flex items-center px-4">
+                      {/* Road line */}
+                      <div className="w-full border-b-2 border-dashed border-slate-300"></div>
+                    </div>
+                    {/* Moving CNG */}
+                    <div className="absolute top-1/2 -translate-y-1/2 animate-drive z-10">
+                      <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-dark">
+                           <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
+                           <circle cx="7" cy="17" r="2"/>
+                           <path d="M9 17h6"/>
+                           <circle cx="17" cy="17" r="2"/>
+                         </svg>
+                      </div>
+                    </div>
+                    {/* Destination pin */}
+                    <div className="absolute top-1/2 -translate-y-1/2 right-4 bg-slate-50 px-1 z-0">
+                      <MapPin size={20} className="text-primary" />
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center overflow-hidden shrink-0">
                     {booking.driver.photoUrl ? (
@@ -358,37 +386,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
               </div>
             )}
 
-            {/* Pickup location */}
-            <div className="bg-white rounded-3xl shadow-sm px-5 py-4">
-              <div className="flex items-start gap-3">
-                <div className="flex flex-col items-center gap-1 mt-1 shrink-0">
-                  <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-                  <div className="w-0.5 h-5 bg-slate-200" />
-                  <div className="w-2.5 h-2.5 rounded-sm bg-red-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-black uppercase text-slate-400 mb-0.5">{t("pickup")}</p>
-                  <p className="text-sm font-semibold text-slate-700 truncate">
-                    {booking.pickupAddress && !booking.pickupAddress.match(/^-?\d+\.\d+,\s*-?\d+\.\d+$/) 
-                      ? booking.pickupAddress 
-                      : t("pickup")}
-                  </p>
-                  <p className="text-[10px] text-slate-400 mb-2 truncate">
-                    {`${booking.pickupLat.toFixed(4)}, ${booking.pickupLng.toFixed(4)}`}
-                  </p>
-                  
-                  <p className="text-[10px] font-black uppercase text-slate-400 mb-0.5">{t("drop")}</p>
-                  <p className="text-sm font-semibold text-slate-700 truncate">
-                    {booking.destAddress && !booking.destAddress.match(/^-?\d+\.\d+,\s*-?\d+\.\d+$/)
-                      ? booking.destAddress
-                      : t("drop")}
-                  </p>
-                  <p className="text-[10px] text-slate-400 truncate">
-                    {`${booking.destLat.toFixed(4)}, ${booking.destLng.toFixed(4)}`}
-                  </p>
-                </div>
-              </div>
-            </div>
+
 
             {showCancelAction && (
               <AppButton
@@ -475,22 +473,49 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
               <span>{t("booking_summary")}</span>
             </div>
 
+            {/* Pickup/drop summary */}
+            {(booking.pickupAddress || booking.destAddress) && (
+              <div className="mb-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex flex-col items-center gap-1 mt-1 shrink-0">
+                    <MapPin size={14} className="text-primary" />
+                    <div className="w-0.5 h-6 bg-slate-200" />
+                    <MapPin size={14} className="text-red-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-slate-600 truncate">
+                      {booking.pickupAddress && !booking.pickupAddress.match(/^-?\d+\.\d+,\s*-?\d+\.\d+$/) ? booking.pickupAddress : t("pickup")}
+                    </p>
+                    <p className="text-[9px] text-slate-400 mb-2 truncate">
+                      {`${booking.pickupLat.toFixed(4)}, ${booking.pickupLng.toFixed(4)}`}
+                    </p>
+                    <p className="text-xs font-semibold text-slate-600 truncate">
+                      {booking.destAddress && !booking.destAddress.match(/^-?\d+\.\d+,\s*-?\d+\.\d+$/) ? booking.destAddress : t("drop")}
+                    </p>
+                    <p className="text-[9px] text-slate-400 truncate">
+                      {`${booking.destLat.toFixed(4)}, ${booking.destLng.toFixed(4)}`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-2xl bg-white/80 p-3">
+              <div className="rounded-2xl bg-slate-50 p-3">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 mb-1.5">
                   <Banknote size={13} className="text-primary" />
                   <span>{t("fixed_fare")}</span>
                 </div>
                 <p className="text-base font-black text-slate-900">{t("currency")}{booking.fare}</p>
               </div>
-              <div className="rounded-2xl bg-white/80 p-3">
+              <div className="rounded-2xl bg-slate-50 p-3">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 mb-1.5">
                   <Clock3 size={13} className="text-blue-500" />
                   <span>{t("est_time")}</span>
                 </div>
                 <p className="text-base font-black text-slate-900">{timeValue}</p>
               </div>
-              <div className="rounded-2xl bg-white/80 p-3">
+              <div className="rounded-2xl bg-slate-50 p-3">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 mb-1.5">
                   <Route size={13} className="text-amber-500" />
                   <span>{t("distance")}</span>
@@ -504,33 +529,6 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
             </div>
           </div>
         </div>
-
-        {/* Pickup/drop summary */}
-        {(booking.pickupAddress || booking.destAddress) && (
-          <div className="bg-white rounded-3xl shadow-sm px-5 py-4">
-            <div className="flex items-start gap-3">
-              <div className="flex flex-col items-center gap-1 mt-1 shrink-0">
-                <MapPin size={14} className="text-primary" />
-                <div className="w-0.5 h-6 bg-slate-200" />
-                <MapPin size={14} className="text-red-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-slate-600 truncate">
-                  {booking.pickupAddress && !booking.pickupAddress.match(/^-?\d+\.\d+,\s*-?\d+\.\d+$/) ? booking.pickupAddress : t("pickup")}
-                </p>
-                <p className="text-[9px] text-slate-400 mb-2 truncate">
-                  {`${booking.pickupLat.toFixed(4)}, ${booking.pickupLng.toFixed(4)}`}
-                </p>
-                <p className="text-xs font-semibold text-slate-600 truncate">
-                  {booking.destAddress && !booking.destAddress.match(/^-?\d+\.\d+,\s*-?\d+\.\d+$/) ? booking.destAddress : t("drop")}
-                </p>
-                <p className="text-[9px] text-slate-400 truncate">
-                  {`${booking.destLat.toFixed(4)}, ${booking.destLng.toFixed(4)}`}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Report issue */}
         {uiState === "COMPLETED" && (

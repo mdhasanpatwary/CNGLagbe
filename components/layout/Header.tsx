@@ -103,32 +103,30 @@ export function Header({
         )}
 
         <div className="flex items-center gap-3">
-          {!title && (
-            <Link href={isDriver ? "/driver/dashboard" : isAdmin ? "/admin" : "/"} className="flex items-center gap-2 group">
-              <div className="h-10 flex items-center group-hover:opacity-80 transition-opacity">
-                <Image
-                  src="/logo.png"
-                  alt="CNGLagbe Logo"
-                  width={160}
-                  height={40}
-                  className="h-full w-auto object-contain transition-all duration-300"
-                  priority
-                />
-              </div>
-            </Link>
-          )}
+          <Link href={isDriver ? "/driver/dashboard" : isAdmin ? "/admin" : "/"} className="flex items-center gap-2 group">
+            <div className={cn("flex items-center group-hover:opacity-80 transition-opacity", title ? "h-7" : "h-9")}>
+              <Image
+                src="/logo.png"
+                alt="CNGLagbe Logo"
+                width={140}
+                height={36}
+                className="h-full w-auto object-contain transition-all duration-300"
+                priority
+              />
+            </div>
+          </Link>
 
           {title && (
-            <div className="flex flex-col">
+            <div className="flex flex-col pl-3 border-l-2 border-slate-200/50">
               <h1 className={cn(
-                "text-base font-black tracking-tight uppercase",
+                "text-sm font-black tracking-tight uppercase",
                 isFloating ? "text-slate-800" : textStyles[effectiveTheme]
               )}>
                 {title}
               </h1>
               {subtitle && (
                 <p className={cn(
-                  "text-base font-bold uppercase tracking-widest mt-0.5 opacity-60",
+                  "text-[10px] font-bold uppercase tracking-widest mt-0.5 opacity-60",
                   isFloating ? "text-slate-400" : subTextStyles[effectiveTheme]
                 )}>
                   {subtitle}
@@ -138,22 +136,19 @@ export function Header({
           )}
 
           {!title && (isAdmin || isDriver) && (
-            <div className="flex flex-col">
-              <h1 className={cn(
-                "text-base font-black tracking-tight uppercase",
-                isFloating ? "text-slate-800" : textStyles[effectiveTheme]
-              )}>
-                {t("app_name")}
-                {isAdmin && (
-                  <span className="text-primary font-bold text-base ml-1 opacity-80 hidden sm:inline">
-                    {t("admin_dashboard")}
-                  </span>
-                )}
-              </h1>
+            <div className="flex flex-col pl-3 border-l-2 border-slate-200/50">
+              {isAdmin && (
+                <h1 className={cn(
+                  "text-sm font-black tracking-tight uppercase text-primary hidden sm:block",
+                  isFloating ? "text-slate-800" : textStyles[effectiveTheme]
+                )}>
+                  {t("admin_dashboard")}
+                </h1>
+              )}
               {isDriver && (
                 <p className={cn(
-                  "text-base font-bold uppercase tracking-widest mt-0.5 opacity-60",
-                  isFloating ? "text-slate-400" : subTextStyles[effectiveTheme]
+                  "text-xs font-bold uppercase tracking-widest opacity-80",
+                  isFloating ? "text-slate-500" : subTextStyles[effectiveTheme]
                 )}>
                   {user?.name?.split(" ")[0]} • ID: {user?.id?.slice(-4).toUpperCase()}
                 </p>
@@ -234,8 +229,8 @@ export function Header({
         ) : role === "landing" && (
           <div className="flex gap-2 ml-1">
             <Link href="/login">
-              <AppButton 
-                variant="ghost" 
+              <AppButton
+                variant="ghost"
                 className={cn(
                   "rounded-full font-bold text-base uppercase h-9 px-3 transition-colors",
                   effectiveTheme === "primary" || effectiveTheme === "dark" ? "text-white hover:bg-white/10" : "text-slate-800 hover:bg-slate-100"

@@ -264,3 +264,12 @@ body {
     radial-gradient(at 100% 0%, rgba(22, 163, 74, 0.05) 0px, transparent 50%),
     radial-gradient(at 50% 100%, rgba(22, 163, 74, 0.03) 0px, transparent 50%);
 }
+
+/* ─── Driving Animation ─────────────────────────────────────────────────── */
+@keyframes drive {
+  0% { left: -15%; }
+  100% { left: 115%; }
+}
+.animate-drive {
+  animation: drive 3s linear infinite;
+}
