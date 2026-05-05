@@ -273,3 +273,36 @@ body {
 .animate-drive {
   animation: drive 3s linear infinite;
 }
+
+/* ─── Driving Approach Animation ─────────────────────────────────────────── */
+@keyframes drive-approach {
+  0% { left: 0%; transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+  10% { opacity: 1; }
+  50% { left: 50%; transform: translate(-50%, -50%) scale(1); }
+  90% { left: 80%; transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { left: 85%; transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+}
+.animate-drive-approach {
+  animation: drive-approach 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes path-fill {
+  0% { width: 0%; opacity: 0.5; }
+  90% { width: 85%; opacity: 1; }
+  100% { width: 85%; opacity: 0; }
+}
+.animate-path-fill {
+  animation: path-fill 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.license-plate {
+  @apply bg-white border-2 border-slate-900 rounded-md px-2 py-0.5 text-slate-900 font-black text-sm tracking-tight shadow-sm;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.license-plate::before {
+  content: "";
+  @apply w-1.5 h-1.5 rounded-full bg-red-500;
+}

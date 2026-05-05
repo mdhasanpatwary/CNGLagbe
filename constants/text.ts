@@ -235,6 +235,9 @@ export const TEXT = {
   ride_cancelled_desc: { en: "This ride is now closed", bn: "এই রাইড এখন বন্ধ" },
   driver_assigned: { en: "Driver Assigned", bn: "ড্রাইভার মিলেছে" },
   driver_assigned_desc: { en: "Your driver is coming", bn: "আপনার ড্রাইভার আসছে" },
+  driver_on_the_way: { en: "Driver is on the way", bn: "ড্রাইভার পথে আছে" },
+  arriving_soon: { en: "Arriving soon", bn: "কিছুক্ষণের মধ্যেই পৌঁছাবে" },
+  wait_minutes: { en: "Wait 3-5 mins", bn: "৩-৫ মিনিট অপেক্ষা করুন" },
   ride_started: { en: "Ride Started", bn: "রাইড শুরু" },
   ride_started_desc: { en: "Your trip is in progress", bn: "আপনার রাইড চলছে" },
   timeout_label: { en: "Timeout", bn: "সময়সীমা" },
@@ -433,6 +436,9 @@ export const TEXT = {
   coming_soon: { en: "Coming Soon", bn: "শীঘ্রই আসছে" },
   app_store: { en: "App Store", bn: "অ্যাপ স্টোর" },
   google_play: { en: "Google Play", bn: "গুগল প্লে" },
+  no_photo: { en: "No Photo", bn: "ছবি নেই" },
+  top_rated: { en: "Top Rated", bn: "সেরা রেটেড" },
+  payment: { en: "Payment", bn: "পেমেন্ট" },
 } as const;
 
 
