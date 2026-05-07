@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { LogOut, User, ChevronLeft, RefreshCcw, Navigation, Settings, UserCircle } from "lucide-react";
+import { LogOut, User, ChevronLeft, RefreshCcw, Navigation, Settings, UserCircle, History } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppButton } from "@/components/ui/AppButton";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -245,6 +245,20 @@ export function Header({
                       <UserCircle size={18} className="opacity-60 group-hover:opacity-100 transition-opacity" />
                       <span>{t("profile")}</span>
                     </Link>
+
+                    {!isDriver && !isAdmin && (
+                      <Link
+                        href="/user/history"
+                        onClick={() => setIsMenuOpen(false)}
+                        className={cn(
+                          "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors group",
+                          effectiveTheme === "primary" || effectiveTheme === "dark" ? "hover:bg-white/10" : "hover:bg-slate-100"
+                        )}
+                      >
+                        <History size={18} className="opacity-60 group-hover:opacity-100 transition-opacity" />
+                        <span>{t("booking_history")}</span>
+                      </Link>
+                    )}
 
                     <Link
                       href={isDriver ? "/driver/profile" : "/profile"} // Fallback to profile for now as settings is usually inside
