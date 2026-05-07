@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import * as bcrypt from "bcryptjs";
-
-const prisma = new PrismaClient();
 
 export async function GET() {
   try {
@@ -19,11 +17,34 @@ export async function GET() {
       },
     });
 
+    // Create Default Bazars
+    const defaultBazars = [
+      "Shuvopur",
+      "Boktarhat",
+      "Chandgazi",
+      "Mirzarhat",
+      "Chhagalnaiya"
+    ];
+
+    for (const name of defaultBazars) {
+      await prisma.bazar.upsert({
+        where: { name },
+        update: {},
+        create: { name }
+      });
+    }
+
     // Create/Update Default Driver
     const hashedPassword = bcrypt.hashSync("driver123", 10);
     const driver = await prisma.driver.upsert({
       where: { phone: "01711111111" },
-      update: { passwordHash: hashedPassword, isApproved: true, currentLat: 23.0361, currentLng: 91.5194 },
+      update: { 
+        passwordHash: hashedPassword, 
+        isApproved: true, 
+        currentLat: 23.0361, 
+        currentLng: 91.5194,
+        nearbyBazar: "Chhagalnaiya"
+      },
       create: {
         name: "Karim Driver",
         phone: "01711111111",
@@ -31,6 +52,16 @@ export async function GET() {
         isApproved: true,
         currentLat: 23.0361,
         currentLng: 91.5194,
+        nearbyBazar: "Chhagalnaiya",
+        licenseNumber: "DEMO-LICENSE-123",
+        nidNumber: "1234567890",
+        vehicleNumber: "DHAKA-TH-11-2222",
+        photoUrl: "https://via.placeholder.com/150",
+        nidFrontUrl: "https://via.placeholder.com/300x200",
+        nidBackUrl: "https://via.placeholder.com/300x200",
+        licenseFrontUrl: "https://via.placeholder.com/300x200",
+        licenseBackUrl: "https://via.placeholder.com/300x200",
+        vehicleType: "CNG",
       },
     });
 
@@ -97,12 +128,10 @@ export async function GET() {
 
     return NextResponse.json({ 
       success: true, 
-      message: "Database seeded with 3 pending and 1 accepted booking for driver 01711111111" 
+      message: `Database seeded with 3 pending and 1 accepted booking.` 
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

@@ -15,6 +15,8 @@ export interface User {
   nidNumber?: string | null;
   licenseNumber?: string | null;
   vehicleNumber?: string | null;
+  address?: string | null;
+  nearbyBazar?: string | null;
   isOnline?: boolean;
   
   // Admin/Stats specific

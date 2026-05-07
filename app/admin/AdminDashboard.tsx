@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Users, UserCheck, TrendingUp, HandCoins, Banknote, Route, MapPin, Activity, ShieldAlert, History, Filter, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, UserCheck, TrendingUp, HandCoins, Banknote, Route, MapPin, Activity, ShieldAlert, History, Filter, ChevronLeft, ChevronRight, Store, Plus, Trash2, Edit2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AppButton } from "@/components/ui/AppButton";
@@ -49,10 +49,11 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [activeBookings, setActiveBookings] = useState<Booking[]>([]);
-  const [onlineDrivers, setOnlineDrivers] = useState<UserType[]>([]);
-  const [allDrivers, setAllDrivers] = useState<UserType[]>([]);
   const [allUsers, setAllUsers] = useState<UserType[]>([]);
-  const [activeTab, setActiveTab] = useState<"overview" | "drivers" | "users" | "logs">("overview");
+  const [bazars, setBazars] = useState<{ id: string, name: string, driverCount?: number }[]>([]);
+  const [newBazarName, setNewBazarName] = useState("");
+  const [editingBazar, setEditingBazar] = useState<{ id: string, name: string } | null>(null);
+  const [activeTab, setActiveTab] = useState<"overview" | "drivers" | "users" | "logs" | "bazars">("overview");
   const [isRefreshing, setIsRefreshing] = useState(true);
   
   // Sorting & Pagination state
@@ -98,37 +99,51 @@ export default function AdminDashboard() {
 
 
   const [pendingDrivers, setPendingDrivers] = useState<PendingDriver[]>([]);
+  const [onlineDrivers, setOnlineDrivers] = useState<PendingDriver[]>([]);
+  const [allDrivers, setAllDrivers] = useState<PendingDriver[]>([]);
 
   const fetchData = async (options?: { showLoading?: boolean }) => {
     if (options?.showLoading) setIsRefreshing(true);
     try {
-       const [resStats, resBookings, resDrivers, resActive, resOnline, resAllDrivers, resAllUsers] = await Promise.all([
+       const [resStats, resBookings, resDrivers, resActive, resOnline, resAllDrivers, resAllUsers, resBazars] = await Promise.all([
          fetch("/api/admin/stats"),
          fetch("/api/admin/bookings?limit=50"),
          fetch("/api/admin/drivers/approve"),
          fetch("/api/admin/bookings?type=active"),
          fetch("/api/admin/drivers/online"),
          fetch("/api/admin/drivers?limit=100"),
-         fetch("/api/admin/users?limit=100")
+         fetch("/api/admin/users?limit=100"),
+         fetch("/api/bazars")
        ]);
        
-       const dataStats = await resStats.json();
-       const dataBookings = await resBookings.json();
-       const dataDrivers = await resDrivers.json();
-       const dataActive = await resActive.json();
-       const dataOnline = await resOnline.json();
-       const dataAllDrivers = await resAllDrivers.json();
-       const dataAllUsers = await resAllUsers.json();
+       const dataStats = await resStats.json().catch(() => ({}));
+       const dataBookings = await resBookings.json().catch(() => ({}));
+       const dataDrivers = await resDrivers.json().catch(() => ({}));
+       const dataActive = await resActive.json().catch(() => ({}));
+       const dataOnline = await resOnline.json().catch(() => ({}));
+       const dataAllDrivers = await resAllDrivers.json().catch(() => ({}));
+       const dataAllUsers = await resAllUsers.json().catch(() => ({}));
+       const dataBazars = await resBazars.json().catch(() => ([]));
        
-       setStats(dataStats.stats);
-       setBookings(dataBookings.bookings);
-       setPendingDrivers(dataDrivers.drivers || []);
-       setActiveBookings(dataActive.bookings || []);
-       setOnlineDrivers(dataOnline.drivers || []);
-       setAllDrivers(dataAllDrivers.drivers || []);
-       setAllUsers(dataAllUsers.users || []);
+       setStats(dataStats?.stats || null);
+       setBookings(Array.isArray(dataBookings?.bookings) ? dataBookings.bookings : []);
+       setPendingDrivers(Array.isArray(dataDrivers?.drivers) ? dataDrivers.drivers : []);
+       setActiveBookings(Array.isArray(dataActive?.bookings) ? dataActive.bookings : []);
+       setOnlineDrivers(Array.isArray(dataOnline?.drivers) ? dataOnline.drivers : []);
+       setAllDrivers(Array.isArray(dataAllDrivers?.drivers) ? dataAllDrivers.drivers : []);
+       setAllUsers(Array.isArray(dataAllUsers?.users) ? dataAllUsers.users : []);
+       
+       // Explicitly handle bazars array detection
+        if (Array.isArray(dataBazars)) {
+          setBazars(dataBazars);
+        } else if (dataBazars && typeof dataBazars === 'object' && 'bazars' in dataBazars && Array.isArray((dataBazars as Record<string, unknown>).bazars)) {
+          setBazars((dataBazars as { bazars: { id: string; name: string; driverCount?: number }[] }).bazars);
+        } else {
+          setBazars([]);
+        }
+
     } catch (e: unknown) {
-       console.error(e);
+       console.error("Admin dashboard fetch error:", e);
     } finally {
        setIsRefreshing(false);
     }
@@ -173,6 +188,54 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleAddBazar = async () => {
+    if (!newBazarName.trim()) return;
+    try {
+      const res = await fetch("/api/bazars", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newBazarName.trim() })
+      });
+      if (res.ok) {
+        setNewBazarName("");
+        fetchData({ showLoading: false });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDeleteBazar = async (id: string) => {
+    if (!confirm(t("delete_bazar") + "?")) return;
+    try {
+      const res = await fetch(`/api/bazars/${id}`, {
+        method: "DELETE"
+      });
+      if (res.ok) {
+        fetchData({ showLoading: false });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleUpdateBazar = async () => {
+    if (!editingBazar || !editingBazar.name.trim()) return;
+    try {
+      const res = await fetch(`/api/bazars/${editingBazar.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editingBazar.name.trim() })
+      });
+      if (res.ok) {
+        setEditingBazar(null);
+        fetchData({ showLoading: false });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
       <Header 
@@ -190,11 +253,12 @@ export default function AdminDashboard() {
              { id: "overview", label: t("overview"), icon: Activity },
              { id: "drivers", label: t("drivers"), icon: Users },
              { id: "users", label: t("users"), icon: UserCheck },
+             { id: "bazars", label: t("bazars"), icon: Store },
              { id: "logs", label: t("logs"), icon: History }
            ].map((tab) => (
               <AppButton
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as "overview" | "drivers" | "users" | "logs")}
+                onClick={() => setActiveTab(tab.id as "overview" | "drivers" | "users" | "logs" | "bazars")}
                 variant={activeTab === tab.id ? "primary" : "ghost"}
                 className={`relative px-6 h-11 flex items-center gap-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 z-10 ${
                   activeTab === tab.id 
@@ -353,7 +417,7 @@ export default function AdminDashboard() {
                  <div className="max-h-80 overflow-y-auto">
                     {onlineDrivers.length > 0 ? (
                        <div className="divide-y divide-slate-50">
-                          {onlineDrivers.map((d) => (
+                          {onlineDrivers.map((d: PendingDriver) => (
                              <div key={d.id} className="p-4 hover:bg-slate-50 transition flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
@@ -584,7 +648,7 @@ export default function AdminDashboard() {
                           </TableRow>
                        </TableHeader>
                        <TableBody>
-                          {allDrivers.map((driver) => (
+                          {allDrivers.map((driver: PendingDriver) => (
                              <TableRow key={driver.id} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50">
                                 <TableCell className="px-8 py-6">
                                    <div className="flex items-center gap-4">
@@ -806,6 +870,126 @@ export default function AdminDashboard() {
                                 </TableCell>
                              </TableRow>
                           )}
+                       </TableBody>
+                    </Table>
+                 </CardContent>
+              </Card>
+           </div>
+        )}
+
+        {activeTab === "bazars" && (
+           <div className="space-y-6">
+              <Card className="border-none shadow-xl rounded-[2rem] overflow-hidden">
+                 <CardHeader className="bg-slate-50 border-b border-slate-100 p-8">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                       <CardTitle className="text-2xl font-black text-slate-800 uppercase tracking-tighter flex items-center gap-3">
+                          <Store className="text-primary" />
+                          {t("bazars")}
+                       </CardTitle>
+                       
+                       <div className="flex items-center gap-2">
+                          <input 
+                             type="text" 
+                             value={newBazarName}
+                             onChange={(e) => setNewBazarName(e.target.value)}
+                             placeholder={t("bazar_name")}
+                             className="h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white min-w-[200px]"
+                             onKeyDown={(e) => e.key === "Enter" && handleAddBazar()}
+                          />
+                          <AppButton 
+                             onClick={handleAddBazar}
+                             className="h-11 px-6 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black rounded-xl uppercase tracking-widest shadow-lg shadow-slate-900/10"
+                             leftIcon={<Plus size={16} />}
+                          >
+                             {t("add_bazar")}
+                          </AppButton>
+                       </div>
+                    </div>
+                 </CardHeader>
+                 <CardContent className="p-0">
+                    <Table>
+                       <TableHeader>
+                          <TableRow className="hover:bg-transparent border-none">
+                             <TableHead className="px-8 py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("bazar_name")}</TableHead>
+                             <TableHead className="px-8 py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("drivers")}</TableHead>
+                             <TableHead className="px-8 py-5 text-right text-xs font-black uppercase tracking-widest text-slate-400">{t("actions")}</TableHead>
+                          </TableRow>
+                       </TableHeader>
+                       <TableBody>
+                          {bazars.map((bazar) => (
+                             <TableRow key={bazar.id} className="hover:bg-slate-50/50 border-b border-slate-50">
+                                <TableCell className="px-8 py-6">
+                                   {editingBazar?.id === bazar.id ? (
+                                      <input 
+                                         type="text" 
+                                         value={editingBazar.name}
+                                         onChange={(e) => setEditingBazar({ ...editingBazar, name: e.target.value })}
+                                         className="h-9 px-3 rounded-lg border border-primary text-sm focus:outline-none bg-white w-full max-w-xs"
+                                         autoFocus
+                                         onKeyDown={(e) => {
+                                            if (e.key === "Enter") handleUpdateBazar();
+                                            if (e.key === "Escape") setEditingBazar(null);
+                                         }}
+                                      />
+                                   ) : (
+                                      <p className="font-black text-slate-900">{bazar.name}</p>
+                                   )}
+                                </TableCell>
+                                <TableCell className="px-8 py-6">
+                                   <div className="flex items-center gap-2">
+                                      <Users size={14} className="text-slate-400" />
+                                      <span className="font-bold text-slate-700">{bazar.driverCount || 0}</span>
+                                   </div>
+                                </TableCell>
+                                <TableCell className="px-8 py-6 text-right">
+                                   <div className="flex items-center justify-end gap-2">
+                                      {editingBazar?.id === bazar.id ? (
+                                         <>
+                                            <AppButton 
+                                               onClick={handleUpdateBazar}
+                                               variant="primary"
+                                               className="h-8 px-3 text-[9px] font-black uppercase rounded-lg"
+                                            >
+                                               {t("save_changes")}
+                                            </AppButton>
+                                            <AppButton 
+                                               onClick={() => setEditingBazar(null)}
+                                               variant="ghost"
+                                               className="h-8 px-3 text-[9px] font-black uppercase rounded-lg border border-slate-200"
+                                            >
+                                               {t("back")}
+                                            </AppButton>
+                                         </>
+                                      ) : (
+                                         <>
+                                            <AppButton 
+                                               onClick={() => setEditingBazar(bazar)}
+                                               variant="ghost"
+                                               className="h-9 w-9 p-0 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl"
+                                               leftIcon={<Edit2 size={16} />}
+                                            />
+                                            <AppButton 
+                                               onClick={() => handleDeleteBazar(bazar.id)}
+                                               variant="ghost"
+                                               className="h-9 w-9 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
+                                               leftIcon={<Trash2 size={16} />}
+                                            />
+                                         </>
+                                      )}
+                                   </div>
+                                </TableCell>
+                             </TableRow>
+                          ))}
+                           {bazars.length === 0 && (
+                              <TableRow>
+                                 <TableCell colSpan={3} className="py-20 text-center">
+                                    <div className="flex flex-col items-center justify-center gap-3 text-slate-400 italic">
+                                       <Store size={40} className="opacity-10" />
+                                       <p className="text-sm">{t("not_found")}</p>
+                                    </div>
+                                 </TableCell>
+                              </TableRow>
+                           )}
                        </TableBody>
                     </Table>
                  </CardContent>

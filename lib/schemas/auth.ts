@@ -16,11 +16,17 @@ export type DriverLoginInput = z.infer<typeof driverLoginSchema>;
 export const driverSignupSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   phone: z.string().min(11, "Phone number must be at least 11 characters").max(14, "Phone number too long"),
-  nidNumber: z.string().min(10, "NID must be at least 10 characters").optional().or(z.literal("")),
-  licenseNumber: z.string().optional().or(z.literal("")),
-  vehicleNumber: z.string().min(5, "Vehicle number is required"),
-  vehicleType: z.enum(["CNG", "Electric"]),
-  photoUrl: z.string().url("Valid photo is required").or(z.literal("")),
+  address: z.string().min(5, "Address must be at least 5 characters"),
+  nearbyBazar: z.string().min(2, "Nearby bazar name is required"),
+  nidNumber: z.string().min(10, "nid-number is required (min 10 characters)"),
+  licenseNumber: z.string().min(5, "License-No is required"),
+  vehicleNumber: z.string().min(5, "cng plate-no is required"),
+  vehicleType: z.literal("CNG"),
+  photoUrl: z.string().url("Valid photo is required"),
+  nidFrontUrl: z.string().url("NID Front image is required"),
+  nidBackUrl: z.string().url("NID Back image is required"),
+  licenseFrontUrl: z.string().url("License Front image is required"),
+  licenseBackUrl: z.string().url("License Back image is required"),
 });
 
 export type DriverSignupInput = z.infer<typeof driverSignupSchema>;

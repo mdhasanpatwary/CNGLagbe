@@ -57,7 +57,7 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Header showBack={true} theme="dark" role="admin" />
+      <Header theme="dark" role="admin" />
       <div className="flex-1 flex flex-col justify-center">
       <div className="max-w-md w-full mx-auto p-6">
         <div className="text-center mb-8">

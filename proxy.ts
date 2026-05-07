@@ -53,7 +53,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // 4. Auth Pages (Login/Signup) logic
-  const isAuthPage = path.startsWith("/login") || path.startsWith("/signup");
+  const isAuthPage = path.startsWith("/login") || path.startsWith("/signup") || path.startsWith("/driver/login") || path.startsWith("/driver/signup");
   
   // 5. Subdomain enforcement and role-based redirects
   if (appRole === "driver") {

@@ -258,8 +258,6 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
         role="user"
         theme="light"
         user={user}
-        showBack
-        onBack={() => router.push("/user/history")}
         rightContent={
           !showDriverCard && (
             <Badge className={`border-none px-3 py-1 text-[10px] font-black uppercase tracking-widest ${badge.tone}`}>

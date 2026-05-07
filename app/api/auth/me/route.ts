@@ -24,14 +24,14 @@ export async function GET() {
       return NextResponse.json({ authenticated: false }, { status: 401 });
     }
 
+    const safeUserData = { ...(userData as Record<string, unknown>) };
+    delete safeUserData.passwordHash;
+
     return NextResponse.json({
       authenticated: true,
       user: {
-        id: userData.id,
-        name: userData.name,
+        ...safeUserData,
         role: session.role,
-        photoUrl: userData.photoUrl,
-        birthday: userData.birthday,
       },
     });
   } catch (error) {

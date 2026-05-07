@@ -61,7 +61,7 @@ export default function UserLogin() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Header showBack={true} />
+      <Header />
       <div className="flex-1 flex flex-col justify-center">
       <div className="max-w-md w-full mx-auto p-6">
         <div className="text-center mb-8">

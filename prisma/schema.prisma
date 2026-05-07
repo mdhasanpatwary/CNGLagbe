@@ -22,25 +22,31 @@ model User {
 }
 
 model Driver {
-  id            String             @id @default(cuid())
-  name          String
-  phone         String             @unique
-  passwordHash  String
-  isOnline      Boolean            @default(false)
-  currentLat    Float?
-  currentLng    Float?
-  createdAt     DateTime           @default(now())
-  isApproved    Boolean            @default(false)
-  licenseNumber String?
-  nidNumber     String?
-  vehicleNumber String?
-  photoUrl      String?
-  vehicleType   String?
-  isSuspended   Boolean            @default(false)
-  updatedAt     DateTime           @updatedAt
-  birthday      DateTime?
-  bookings      Booking[]
-  rejections    BookingRejection[]
+  id              String             @id @default(cuid())
+  name            String
+  phone           String             @unique
+  passwordHash    String
+  isOnline        Boolean            @default(false)
+  currentLat      Float?
+  currentLng      Float?
+  createdAt       DateTime           @default(now())
+  isApproved      Boolean            @default(false)
+  licenseNumber   String
+  nidNumber       String
+  vehicleNumber   String
+  photoUrl        String
+  vehicleType     String?
+  isSuspended     Boolean            @default(false)
+  updatedAt       DateTime           @updatedAt
+  birthday        DateTime?
+  address         String?
+  nearbyBazar     String?
+  licenseBackUrl  String
+  licenseFrontUrl String
+  nidBackUrl      String
+  nidFrontUrl     String
+  bookings        Booking[]
+  rejections      BookingRejection[]
 }
 
 /// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
@@ -136,6 +142,13 @@ model RateLimit {
   expiresAt   DateTime
 
   @@index([key, expiresAt])
+}
+
+model Bazar {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.

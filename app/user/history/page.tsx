@@ -8,13 +8,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useLang } from "@/hooks/useLang";
 import { Header } from "@/components/layout/Header";
 import { apiFetch } from "@/utils/api";
-import { useRouter } from "next/navigation";
 
 import { Booking } from "@/lib/types/booking";
 import { User } from "@/lib/types/user";
 
 export default function BookingHistoryPage() {
-  const router = useRouter();
   const { t } = useLang();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,8 +60,6 @@ export default function BookingHistoryPage() {
         theme="light"
         title={t("booking_history")}
         user={user}
-        showBack
-        onBack={() => router.push("/")}
       />
 
       <main className="flex-1 p-4 max-w-md mx-auto w-full space-y-4">

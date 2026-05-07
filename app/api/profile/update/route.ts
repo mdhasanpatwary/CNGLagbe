@@ -9,7 +9,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { name, photoUrl, birthday } = await request.json();
+    const { name, photoUrl, birthday, address, nearbyBazar } = await request.json();
 
     const updateData: Record<string, string | Date> = {};
     if (name) updateData.name = name;
@@ -22,9 +22,19 @@ export async function PATCH(request: Request) {
         data: updateData,
       });
     } else if (session.role === "DRIVER") {
+      // Drivers can only update address and nearbyBazar
+      const driverUpdateData: Record<string, string | null> = {};
+      
+      if (address !== undefined) driverUpdateData.address = address;
+      if (nearbyBazar !== undefined) driverUpdateData.nearbyBazar = nearbyBazar;
+
+      if (Object.keys(driverUpdateData).length === 0) {
+        return NextResponse.json({ success: true, message: "No updates allowed for these fields" });
+      }
+
       await prisma.driver.update({
         where: { id: session.sub },
-        data: updateData,
+        data: driverUpdateData,
       });
     } else {
       return NextResponse.json({ error: "Invalid role" }, { status: 403 });

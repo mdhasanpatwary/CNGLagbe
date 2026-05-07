@@ -16,13 +16,19 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 ## 🧑‍✈️ Driver Dashboard
 - **Fullscreen Map Overlap:** In the driver panel, when the map is expanded to fullscreen from a ride request modal, it must sit correctly above the page header (ensuring proper z-index and layout management).
 - **Geolocation Error Handling:** Geolocation timeouts and transient errors are handled gracefully. Unnecessary or spammy error notifications are suppressed to keep the driver's UI clean.
+- **Profile Image in Header:** The driver's profile image is displayed in the header for a more personalized and premium experience, consistent with the user panel.
 
 ## 📱 UI/UX & Design Standards
 - **Premium Aesthetics:** The app uses modern web design principles (vibrant colors, smooth micro-animations, proper spacing). It should never look like a basic "minimum viable product".
+- **Visual Hierarchy (Font Sizes):** Strictly limit to **max 3 font sizes** per screen to maintain a clean, high-end mobile experience.
+- **Simple Language:** Use conversational tone and keep labels short (**max 2-3 words**). e.g., use "Cash" instead of "Payment Method".
+- **Ride Visibility:** Always display **Fare, Time, and Distance** for all rides. No essential ride or user data should ever be hidden.
 - **Localization (No Hardcoded Strings):** All UI text must strictly use the central `TEXT` dictionary (`constants/text.ts`) to support English and Bengali seamlessly.
 - **Clear Action Text:** All buttons and actionable elements must have explicit, action-oriented text.
 - **Icon Labels:** Icons must always be accompanied by text labels to assist low-literacy users.
+- **Consistent Spacing:** Always use design tokens for spacing; **no ad-hoc margins or paddings**.
 - **Design System Tokens:** Prioritize using design system tokens (e.g., `primary`, `secondary`, `primary-foreground`) over hardcoded Tailwind color classes (e.g., `emerald-500`). This ensures that if the brand color changes, it can be updated in a single place (`globals.css`) rather than across hundreds of files.
+- **UI Checklist:** Before implementing any UI, verify compliance with the checklist in [/docs/ui-rules.md](file:///Users/patwary/Projects/CNGLagbe/docs/ui-rules.md).
 
 ## ⚙️ Performance & Database
 - **Direct Database Connections:** Prisma is configured with a dedicated direct URL and proper connection pooling to eliminate database performance overhead.
@@ -74,3 +80,30 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **No Animation Blur:** Avoid using `filter: blur()` in reveal animations. Prefer sharp reveals using `opacity`, `y`, and `scale`.
 - **No Character-Level Split for Bengali:** Never split Bengali strings into characters for animation (e.g., `split("")`). This breaks ligatures (যুক্তবর্ণ) and positioning of vowel signs (কার). Animate the entire block or use word-level animation if necessary.
 
+## 🔒 Cross-Panel Stability
+- **Mandatory 3-Panel Verification:** Any change to a shared file (Header.tsx, proxy.ts, auth.ts, text.ts, globals.css, layout.tsx, subdomain.ts, schema.prisma, Providers.tsx) MUST be verified across ALL three panels (User, Driver, Admin) before finalizing.
+- **Safe Zones:** Files scoped to a single panel (e.g., `AdminDashboard.tsx`, `app/driver/dashboard/page.tsx`, `app/user/map/page.tsx`, panel-specific API routes under `app/api/driver/*`, `app/api/admin/*`, `app/api/user/*`) can be edited without cross-panel verification.
+- **Danger Zones:** `Header.tsx` serves all roles via the `role` prop — always test all 4 variants (`landing`, `user`, `driver`, `admin`). `proxy.ts` handles middleware routing for all panels — test auth redirects for all roles. `constants/text.ts` — never remove or rename a key without grepping for it across the entire codebase.
+- **Build Gates:** `npx tsc --noEmit` must pass with zero errors before any change is finalized. Console errors on any panel are a blocker.
+- **Prisma Schema Changes:** After any `schema.prisma` edit, always run `npx prisma generate` and restart the dev server before testing.
+
+## 🧑‍✈️ Driver Registration & Profile
+- **Address & Nearby Bazar Fields:** Driver registration and profile management include `address` and `nearbyBazar` fields to facilitate local coordination and trust.
+- **Removing Bluebook Requirement:** To streamline driver registration, the "Bluebook" (vehicle registration) document requirement has been removed from the database, API, and signup flow. The registration now requires only NID, Driving License, and the CNG Plate Number.
+- **Prisma Client Sync:** After schema changes, `npx prisma generate` must be run and the server restarted to ensure the Prisma Client picks up the new fields and avoids `Unknown argument` errors.
+- **Profile Header Dropdown:** The driver's name, ID, and profile link are tucked into a clean dropdown menu behind the profile image in the header, keeping the top navigation minimalist and focused.
+- **Back Button Consistency:** The driver profile page uses a `Header` with a `showBack` prop and `onBack` handler to ensure consistent navigation back to the dashboard.
+
+## 🛠️ Code Quality & Maintenance
+- **Strict Linting Compliance:** The codebase maintains zero linting errors and warnings. Key practices include:
+  - **Avoiding `any`:** Never use the `any` type in API routes or components. Always use specific types or `unknown` with type assertions (e.g., `error as Error`).
+  - **Dead Code Removal:** Unused variables (like `_` in destructuring) should be removed or handled by deleting keys from cloned objects to avoid compiler warnings.
+- **Design System Enforcement (AppButton):** Native `<button>` elements are strictly prohibited in favor of the `AppButton` component. This ensures consistent styling, loading states, and tactile feedback across all panels. Even highly custom buttons (like the user menu toggle) must be wrapped in `AppButton` with `variant="ghost"` and appropriate overrides.
+
+## 📝 Form Validation & State Management
+- **Schemas First:** Every form MUST have a Zod schema defined in `lib/schemas/`.
+- **Unified State (react-hook-form):** Use `react-hook-form` for all form state management. Avoid local `useState` for individual form fields.
+- **Zod Resolver:** Connect schemas to forms using `@hookform/resolvers/zod`.
+- **Standardized Fields:** Use the `FormField` component for all inputs to ensure consistent error styling and ref forwarding.
+- **Step-wise Validation:** In multi-step forms, use `trigger(['field1', 'field2'])` to validate the current step before proceeding.
+- **Type Safety:** Always export the input type using `z.infer<typeof schema>` for use in components and APIs.

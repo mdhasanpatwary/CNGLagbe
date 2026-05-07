@@ -1,7 +1,8 @@
 import React, { useState, forwardRef } from "react";
-import { LucideIcon, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { LucideIcon, Eye, EyeOff, AlertCircle, Lock } from "lucide-react";
 import { Input } from "./ui/input";
 import { AppButton } from "./ui/AppButton";
+import { cn } from "@/lib/utils";
 
 interface FormFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
@@ -9,6 +10,7 @@ interface FormFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string;
   onValueChange?: (val: string) => void;
   onChange?: React.ChangeEventHandler<HTMLInputElement> | ((event: { target: unknown; type?: unknown }) => Promise<void | boolean>);
+  required?: boolean;
 }
 
 export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(({
@@ -19,6 +21,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(({
   placeholder,
   className,
   onValueChange,
+  required,
   ...props
 }, ref) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -26,20 +29,28 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(({
   const currentType = isPassword ? (showPassword ? "text" : "password") : type;
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className={cn("flex flex-col gap-2", props.disabled && "opacity-80")}>
       <div className="flex justify-between items-center ml-1">
-        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">
+        <label className={cn(
+          "text-xs font-black tracking-widest flex items-center gap-1",
+          props.disabled ? "text-slate-400" : "text-slate-400"
+        )}>
           {label}
+          {required && <span className="text-red-500 font-black ml-0.5">*</span>}
+          {props.disabled && <Lock size={12} className="text-slate-400" />}
         </label>
         {error && (
-          <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider animate-in fade-in slide-in-from-right-1">
+          <span className="text-[10px] font-bold text-red-500 tracking-wider animate-in fade-in slide-in-from-right-1">
             {error}
           </span>
         )}
       </div>
       <div className="relative group">
         {Icon && (
-          <div className={`absolute left-5 top-1/2 -translate-y-1/2 transition-colors z-10 pointer-events-none ${error ? 'text-red-400' : 'text-slate-400 group-focus-within:text-primary'}`}>
+          <div className={cn(
+            "absolute left-5 top-1/2 -translate-y-1/2 transition-colors z-10 pointer-events-none",
+            error ? 'text-red-400' : (props.disabled ? 'text-slate-300' : 'text-slate-400 group-focus-within:text-primary')
+          )}>
             <Icon size={20} />
           </div>
         )}
@@ -56,11 +67,14 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(({
             paddingLeft: Icon ? "60px" : "16px", 
             paddingRight: (isPassword || error) ? "50px" : "16px" 
           }}
-          className={`h-14 transition-all rounded-2xl text-lg w-full font-medium ${
+          className={cn(
+            "h-14 transition-all rounded-2xl text-lg w-full font-medium border-slate-200",
             error 
               ? "bg-red-50/50 border-red-200 focus:border-red-500 text-red-900 placeholder:text-red-300" 
-              : "bg-slate-50 border-slate-200 focus:bg-white focus:border-primary"
-          } ${className}`}
+              : "bg-slate-50 focus:bg-white focus:border-primary",
+            props.disabled && "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed",
+            className
+          )}
         />
         
         {isPassword ? (

@@ -27,6 +27,15 @@ async function main() {
       isApproved: true,
       currentLat: 23.0361,
       currentLng: 91.5194,
+      licenseNumber: "DEMO-LICENSE-123",
+      nidNumber: "1234567890",
+      vehicleNumber: "DHAKA-TH-11-2222",
+      photoUrl: "https://via.placeholder.com/150",
+      nidFrontUrl: "https://via.placeholder.com/300x200",
+      nidBackUrl: "https://via.placeholder.com/300x200",
+      licenseFrontUrl: "https://via.placeholder.com/300x200",
+      licenseBackUrl: "https://via.placeholder.com/300x200",
+      vehicleType: "CNG",
     },
   })
 

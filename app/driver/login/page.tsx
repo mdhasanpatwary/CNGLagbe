@@ -44,7 +44,7 @@ export default function DriverLogin() {
       const resData = await res.json();
 
       if (res.ok) {
-        router.push("/driver/dashboard");
+        router.push("/dashboard");
       } else if (resData.signupRequired) {
         // Carry phone to signup
         router.push(`/driver/signup?phone=${data.phone}`);
@@ -60,7 +60,7 @@ export default function DriverLogin() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Header showBack={true} role="driver" />
+      <Header role="driver" />
       <div className="flex-1 flex flex-col justify-center">
       <div className="max-w-md w-full mx-auto p-6">
         <div className="text-center mb-8">
@@ -108,7 +108,7 @@ export default function DriverLogin() {
         </Card>
         
         <div className="mt-8 text-center text-slate-400 text-sm">
-           New driver? <AppButton 
+           {t("new_driver_question")} <AppButton 
             variant="ghost" 
             onClick={() => router.push("/driver/signup")}
             className="text-primary h-10 px-2 font-bold inline-flex"

@@ -18,5 +18,10 @@ export interface PendingDriver {
   nidNumber?: string | null;
   licenseNumber?: string | null;
   vehicleNumber?: string | null;
+  photoUrl?: string | null;
+  isApproved: boolean;
+  isSuspended?: boolean;
   createdAt: string;
+  updatedAt?: string;
 }
+

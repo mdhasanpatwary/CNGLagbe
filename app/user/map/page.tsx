@@ -58,7 +58,6 @@ export default function UserMapPage() {
   const [mapError, setMapError] = useState(false);
 
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
-  const [sessionRestored, setSessionRestored] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
   const [locFallbackVisible, setLocFallbackVisible] = useState(false);
   const [isRequesting, setIsRequesting] = useState(false);
@@ -111,12 +110,10 @@ export default function UserMapPage() {
 
   // ─── Toast auto-dismiss ───────────────────────────────────────────────────
   useEffect(() => {
-    if (!sessionRestored) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setToastVisible(true);
+    if (!toastVisible) return;
     const timer = setTimeout(() => setToastVisible(false), 3500);
     return () => clearTimeout(timer);
-  }, [sessionRestored]);
+  }, [toastVisible]);
 
   // ─── Reverse geocode a lat/lng to a human-readable address ───────────────
   const reverseGeocode = useCallback(
@@ -206,14 +203,17 @@ export default function UserMapPage() {
           clearBookingSession();
           restoredFromSession.current = false;
           setRouteInfo(null);
-          setSessionRestored(false);
           setFunc({ ...point, address });
+          if (type === 'pickup') setPickupSearchValue(address);
+          else setDestSearchValue(address);
         })();
       } else {
         // Debounced geocode while dragging
         dragTimeoutRef.current = setTimeout(async () => {
           const address = await reverseGeocode(point);
           setFunc({ ...point, address });
+          if (type === 'pickup') setPickupSearchValue(address);
+          else setDestSearchValue(address);
         }, 300);
       }
     },
@@ -263,9 +263,10 @@ export default function UserMapPage() {
 
     if (!apiKey) {
       console.warn("GOOGLE MAPS API KEY is missing.");
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setMapError(true);
-      setPickup({ lat: 23.0361, lng: 91.5194 });
+      setTimeout(() => {
+        setMapError(true);
+        setPickup({ lat: 23.0361, lng: 91.5194 });
+      }, 0);
       return;
     }
 
@@ -339,7 +340,9 @@ export default function UserMapPage() {
           });
           restoredFromSession.current = true;
           setStep("CONFIRM");
-          setSessionRestored(true);
+          setToastVisible(true);
+          setPickupSearchValue(restoredPickup.address || "");
+          setDestSearchValue(restoredDrop.address || "");
 
           const pinGreen = new PinElement({ background: COLORS.primary, borderColor: COLORS.pickupBorder, glyphColor: COLORS.glyph });
           const pickupM = new AdvancedMarkerElement({
@@ -480,9 +483,8 @@ export default function UserMapPage() {
       clearBookingSession();
       restoredFromSession.current = false;
       setRouteInfo(null);
-      setSessionRestored(false);
       setPickup(pos);
-      setPickupSearchValue(pos.address ?? "");
+      setPickupSearchValue(pos.address || "");
     });
   }, [map]);
 
@@ -518,13 +520,11 @@ export default function UserMapPage() {
       clearBookingSession();
       restoredFromSession.current = false;
       setRouteInfo(null);
-      setSessionRestored(false);
       setDestination(pos);
-      setDestSearchValue(pos.address ?? "");
+      setDestSearchValue(pos.address || "");
     });
   }, [map]);
 
-  // Re-init autocompletes when step changes (inputs mount/unmount)
   useEffect(() => {
     if (!map) return;
     const timer = setTimeout(() => {
@@ -533,19 +533,6 @@ export default function UserMapPage() {
     }, 100);
     return () => clearTimeout(timer);
   }, [step, map, initPickupAutocomplete, initDestAutocomplete]);
-
-  // Sync search display values when point changes externally (map click / drag)
-  const prevPickupAddressRef = useRef<string | undefined>(undefined);
-  if (pickup?.address !== prevPickupAddressRef.current) {
-    prevPickupAddressRef.current = pickup?.address;
-    if (pickup?.address) setPickupSearchValue(pickup.address);
-  }
-
-  const prevDestAddressRef = useRef<string | undefined>(undefined);
-  if (destination?.address !== prevDestAddressRef.current) {
-    prevDestAddressRef.current = destination?.address;
-    if (destination?.address) setDestSearchValue(destination.address);
-  }
 
   // ─── Step navigation ──────────────────────────────────────────────────────
   const handleNextStep = async () => {
@@ -640,8 +627,8 @@ export default function UserMapPage() {
         clearBookingSession();
         restoredFromSession.current = false;
         setRouteInfo(null);
-        setSessionRestored(false);
         setPickup(pos);
+        setPickupSearchValue(pos.address || "");
       },
       (err) => {
         console.error("Geo error:", err);
@@ -663,25 +650,7 @@ export default function UserMapPage() {
     );
   }, [map, reverseGeocode]);
 
-  const handleBack = () => {
-    if (step === "PICKUP") router.push("/");
-    if (step === "DESTINATION") {
-      setDestination(null);
-      setDestSearchValue("");
-      destAutocompleteRef.current = null; // allow reinit on next mount
-      if (destMarkerRef.current) {
-        destMarkerRef.current.map = null;
-        destMarkerRef.current = null;
-      }
-      clearRoute();
-      setStep("PICKUP");
-    }
-    if (step === "CONFIRM") {
-      clearRoute();
-      destAutocompleteRef.current = null; // allow reinit on next mount
-      setStep("DESTINATION");
-    }
-  };
+
 
   // ─── Map click listener ───────────────────────────────────────────────────
   useEffect(() => {
@@ -725,7 +694,6 @@ export default function UserMapPage() {
           clearBookingSession();
           restoredFromSession.current = false;
           setRouteInfo(null);
-          setSessionRestored(false);
           setPickup(pos);
         } else if (step === "DESTINATION") {
           if (!address) address = await reverseGeocode(pos);
@@ -733,7 +701,6 @@ export default function UserMapPage() {
           clearBookingSession();
           restoredFromSession.current = false;
           setRouteInfo(null);
-          setSessionRestored(false);
           setDestination(pos);
         }
       }
@@ -941,8 +908,6 @@ export default function UserMapPage() {
         variant="floating"
         className="md:left-[420px] left-4 right-4"
         user={syncData?.user}
-        showBack
-        onBack={handleBack}
         onRecenter={() => { const p = pickup ?? destination; if (p) { map?.panTo(p); map?.setZoom(15); } }}
       />
 

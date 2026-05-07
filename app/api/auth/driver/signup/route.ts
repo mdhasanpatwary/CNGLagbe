@@ -4,7 +4,10 @@ import { signToken, setAuthCookie } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
-    const { name, phone, nidNumber, licenseNumber, vehicleNumber, vehicleType, photoUrl } = await request.json();
+    const { 
+      name, phone, nidNumber, licenseNumber, vehicleNumber, vehicleType, photoUrl, 
+      address, nearbyBazar, nidFrontUrl, nidBackUrl, licenseFrontUrl, licenseBackUrl 
+    } = await request.json();
 
     if (!name || !phone) {
       return NextResponse.json(
@@ -35,6 +38,12 @@ export async function POST(request: Request) {
         vehicleNumber,
         vehicleType,
         photoUrl,
+        nidFrontUrl,
+        nidBackUrl,
+        licenseFrontUrl,
+        licenseBackUrl,
+        address,
+        nearbyBazar,
         isApproved: false,
       },
     });
@@ -56,7 +65,11 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    console.error("Signup Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    const err = error as Error;
+    console.error("Signup Error Details:", err);
+    return NextResponse.json(
+      { error: "Internal Server Error", details: err.message },
+      { status: 500 }
+    );
   }
 }
