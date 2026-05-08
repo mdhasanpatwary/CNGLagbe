@@ -19,23 +19,33 @@ export async function POST(request: Request) {
       } = body;
 
       // --- Cancellation Rate Limit Check ---
+      // Use count() instead of findMany to avoid fetching full booking records
       const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
-      const recentCancels = await prisma.booking.findMany({
+      const cancelCount = await prisma.booking.count({
         where: {
           userId: user.sub,
           status: "CANCELLED",
           cancelledBy: "USER",
           cancelledAt: { gte: hourAgo },
         },
-        orderBy: { cancelledAt: "desc" },
-        take: 3,
       });
 
-      if (recentCancels.length >= 3) {
-        const lastCancel = recentCancels[0].cancelledAt;
-        if (lastCancel) {
+      if (cancelCount >= 3) {
+        // Only fetch the timestamp when actually rate-limited
+        const lastCancel = await prisma.booking.findFirst({
+          where: {
+            userId: user.sub,
+            status: "CANCELLED",
+            cancelledBy: "USER",
+            cancelledAt: { gte: hourAgo },
+          },
+          orderBy: { cancelledAt: "desc" },
+          select: { cancelledAt: true },
+        });
+
+        if (lastCancel?.cancelledAt) {
           const cooldownMs = 30 * 1000 * 60;
-          const remainingMs = cooldownMs - (Date.now() - lastCancel.getTime());
+          const remainingMs = cooldownMs - (Date.now() - lastCancel.cancelledAt.getTime());
           if (remainingMs > 0) {
             return NextResponse.json(
               { 

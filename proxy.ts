@@ -4,6 +4,7 @@ import { verifyToken } from "@/lib/auth";
 import { getAppRole, getUserUrl, getDriverUrl, isConfiguredProductionHost } from "@/lib/subdomain";
 
 export async function proxy(request: NextRequest) {
+  console.log(`[Proxy] Request: ${request.nextUrl.pathname}`);
   const url = request.nextUrl.clone();
   const host = request.headers.get("host");
   const appRole = getAppRole(host);
@@ -37,7 +38,7 @@ export async function proxy(request: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
     } else if (path.startsWith("/api/user")) {
-      if (!user || user.role !== "USER") {
+      if (!user || (user.role !== "USER" && user.role !== "ADMIN")) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
     } else if (path.startsWith("/api/admin")) {

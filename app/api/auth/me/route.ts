@@ -11,12 +11,41 @@ export async function GET() {
 
     let userData = null;
     if (session.role === "USER" || session.role === "ADMIN") {
+      // Use select to avoid over-fetching — only return fields needed by the frontend
       userData = await prisma.user.findUnique({
         where: { id: session.sub },
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          role: true,
+          photoUrl: true,
+          birthday: true,
+          address: true,
+          createdAt: true,
+        },
       });
     } else if (session.role === "DRIVER") {
+      // Use select to exclude passwordHash and heavy document URLs
       userData = await prisma.driver.findUnique({
         where: { id: session.sub },
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          photoUrl: true,
+          isApproved: true,
+          isSuspended: true,
+          isOnline: true,
+          vehicleNumber: true,
+          vehicleType: true,
+          nearbyBazar: true,
+          address: true,
+          birthday: true,
+          nidNumber: true,
+          licenseNumber: true,
+          createdAt: true,
+        },
       });
     }
 
@@ -24,13 +53,10 @@ export async function GET() {
       return NextResponse.json({ authenticated: false }, { status: 401 });
     }
 
-    const safeUserData = { ...(userData as Record<string, unknown>) };
-    delete safeUserData.passwordHash;
-
     return NextResponse.json({
       authenticated: true,
       user: {
-        ...safeUserData,
+        ...userData,
         role: session.role,
       },
     });

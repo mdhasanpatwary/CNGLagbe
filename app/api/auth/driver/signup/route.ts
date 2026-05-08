@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { signToken, setAuthCookie } from "@/lib/auth";
+import { normalizePhone } from "@/lib/utils";
 
 export async function POST(request: Request) {
   try {
+    const body = await request.json();
     const { 
-      name, phone, nidNumber, licenseNumber, vehicleNumber, vehicleType, photoUrl, 
+      name, nidNumber, licenseNumber, vehicleNumber, vehicleType, photoUrl, 
       address, nearbyBazar, nidFrontUrl, nidBackUrl, licenseFrontUrl, licenseBackUrl 
-    } = await request.json();
+    } = body;
+    const phone = normalizePhone(body.phone);
 
     if (!name || !phone) {
       return NextResponse.json(

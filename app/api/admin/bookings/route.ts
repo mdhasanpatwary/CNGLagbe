@@ -15,23 +15,25 @@ export async function GET(request: Request) {
     const skip = (page - 1) * limit;
 
     const type = searchParams.get("type");
-    
+
     const whereClause: { status?: { in: string[] } } = {};
     if (type === "active") {
       whereClause.status = { in: ["PENDING", "ACCEPTED"] };
     }
 
-    const bookings = await prisma.booking.findMany({
-      where: whereClause,
-      orderBy: { createdAt: "desc" },
-      skip,
-      take: limit,
-      include: {
-        driver: { select: { name: true, phone: true } },
-      }
-    });
-
-    const total = await prisma.booking.count({ where: whereClause });
+    // Run findMany and count in parallel instead of sequentially
+    const [bookings, total] = await Promise.all([
+      prisma.booking.findMany({
+        where: whereClause,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+        include: {
+          driver: { select: { name: true, phone: true } },
+        },
+      }),
+      prisma.booking.count({ where: whereClause }),
+    ]);
 
     return NextResponse.json({
       bookings,
@@ -39,8 +41,8 @@ export async function GET(request: Request) {
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit)
-      }
+        totalPages: Math.ceil(total / limit),
+      },
     });
   } catch (error) {
     console.error("Admin Bookings Error:", error);

@@ -9,28 +9,36 @@ export async function PATCH(
   try {
     const { name } = await request.json();
     
-    // Get the old name first to update drivers
-    const oldBazar = await prisma.bazar.findUnique({
-      where: { id }
-    });
+    // Wrap in transaction for atomicity: if driver update fails, bazar rename is rolled back
+    const bazar = await prisma.$transaction(async (tx) => {
+      // Get the old name to update drivers
+      const oldBazar = await tx.bazar.findUnique({
+        where: { id }
+      });
 
-    if (!oldBazar) {
-      return NextResponse.json({ error: "Bazar not found" }, { status: 404 });
-    }
+      if (!oldBazar) {
+        throw new Error("BAZAR_NOT_FOUND");
+      }
 
-    const bazar = await prisma.bazar.update({
-      where: { id },
-      data: { name },
-    });
+      const updated = await tx.bazar.update({
+        where: { id },
+        data: { name },
+      });
 
-    // Update all drivers who have this bazar as their nearbyBazar
-    await prisma.driver.updateMany({
-      where: { nearbyBazar: oldBazar.name },
-      data: { nearbyBazar: name },
+      // Update all drivers who have this bazar as their nearbyBazar
+      await tx.driver.updateMany({
+        where: { nearbyBazar: oldBazar.name },
+        data: { nearbyBazar: name },
+      });
+
+      return updated;
     });
 
     return NextResponse.json(bazar);
   } catch (error) {
+    if (error instanceof Error && error.message === "BAZAR_NOT_FOUND") {
+      return NextResponse.json({ error: "Bazar not found" }, { status: 404 });
+    }
     console.error("Update bazar error:", error);
     return NextResponse.json({ 
       error: "Failed to update bazar",

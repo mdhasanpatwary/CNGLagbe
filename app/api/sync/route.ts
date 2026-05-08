@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { BoundedCache } from "@/lib/bounded-cache";
 import { getBookingRequestTimeoutThreshold } from "@/constants/booking";
 
-// Simple in-memory cache for sync responses to reduce DB load
-// TTL is very short (2s) to ensure data is relatively fresh but prevents redundant hits in same second
-const syncCache = new Map<string, { data: Record<string, unknown>; timestamp: number }>();
-const CACHE_TTL = 2000; 
+// BoundedCache prevents unbounded memory growth from accumulating unique user/driver IDs
+const syncCache = new BoundedCache<Record<string, unknown>>(2000); // 2s TTL
 
 export async function GET() {
   try {
@@ -17,10 +16,10 @@ export async function GET() {
 
     const userId = session.sub;
     
-    // Check cache
+    // Check cache (BoundedCache handles TTL internally)
     const cached = syncCache.get(userId);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      return NextResponse.json(cached.data);
+    if (cached) {
+      return NextResponse.json(cached);
     }
 
     const responseData: Record<string, unknown> = {
@@ -179,7 +178,7 @@ export async function GET() {
     }
 
     // Update cache
-    syncCache.set(userId, { data: responseData, timestamp: Date.now() });
+    syncCache.set(userId, responseData);
 
     return NextResponse.json(responseData);
   } catch (error) {

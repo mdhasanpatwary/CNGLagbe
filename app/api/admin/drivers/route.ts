@@ -14,13 +14,29 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const skip = (page - 1) * limit;
 
-    const drivers = await prisma.driver.findMany({
-      skip,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-    });
-
-    const total = await prisma.driver.count();
+    // Run findMany and count in parallel instead of sequentially.
+    // Use select to avoid returning sensitive fields (passwordHash, document URLs).
+    const [drivers, total] = await Promise.all([
+      prisma.driver.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          isOnline: true,
+          isApproved: true,
+          isSuspended: true,
+          vehicleNumber: true,
+          vehicleType: true,
+          nearbyBazar: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      prisma.driver.count(),
+    ]);
 
     return NextResponse.json({
       drivers,

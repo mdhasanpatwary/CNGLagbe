@@ -9,7 +9,7 @@ export async function POST(
 ) {
   try {
     const session = await getAuthUser();
-    if (!session || session.role !== "USER") {
+    if (!session || (session.role !== "USER" && session.role !== "ADMIN")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -22,6 +22,7 @@ export async function POST(
       const p = await params;
       const booking = await prisma.booking.findUnique({
         where: { id: p.id },
+        select: { userId: true },
       });
 
       if (!booking || booking.userId !== session.sub) {

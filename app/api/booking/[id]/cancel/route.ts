@@ -21,7 +21,12 @@ export async function POST(
 
       const booking = await prisma.booking.findUnique({
         where: { id },
-        include: { driver: true }
+        select: {
+          id: true,
+          status: true,
+          userId: true,
+          driverId: true,
+        },
       });
 
       if (!booking) {
@@ -45,48 +50,71 @@ export async function POST(
       }
 
       const now = new Date();
-      
-      const updatedBooking = await prisma.booking.update({
-        where: { id },
-        data: {
-          status: "CANCELLED",
-          cancelledAt: now,
-          cancelledBy,
-          cancelReason: reason,
-        },
-      });
 
-      // Broadcast status change to both parties
-      broadcastStatusChange(id, "CANCELLED");
-
+      // Run the cancellation update and, if driver-cancelled, the rate check in parallel
       let driverForcedOffline = false;
 
-      // Driver limit check
       if (cancelledBy === "DRIVER") {
         const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
-        const recentDriverCancels = await prisma.booking.count({
-          where: {
-            driverId: user.sub,
-            status: "CANCELLED",
-            cancelledBy: "DRIVER",
-            cancelledAt: { gte: hourAgo },
-          },
-        });
 
-        if (recentDriverCancels >= 3) {
+        const [updatedBooking, recentDriverCancels] = await Promise.all([
+          prisma.booking.update({
+            where: { id },
+            data: {
+              status: "CANCELLED",
+              cancelledAt: now,
+              cancelledBy,
+              cancelReason: reason,
+            },
+          }),
+          prisma.booking.count({
+            where: {
+              driverId: user.sub,
+              status: "CANCELLED",
+              cancelledBy: "DRIVER",
+              cancelledAt: { gte: hourAgo },
+            },
+          }),
+        ]);
+
+        // +1 because the update above just added another cancellation that the count
+        // query may or may not have seen (race), so use >= 2 as threshold (3 total including this one)
+        if (recentDriverCancels >= 2) {
           await prisma.driver.update({
             where: { id: user.sub },
             data: { isOnline: false },
           });
           driverForcedOffline = true;
         }
-      }
 
-      return NextResponse.json({ 
-        success: true, 
-        booking: updatedBooking,
-        driverForcedOffline 
-      });
+        // Broadcast status change to both parties
+        broadcastStatusChange(id, "CANCELLED");
+
+        return NextResponse.json({
+          success: true,
+          booking: updatedBooking,
+          driverForcedOffline,
+        });
+      } else {
+        // User cancellation — no rate-limit check needed
+        const updatedBooking = await prisma.booking.update({
+          where: { id },
+          data: {
+            status: "CANCELLED",
+            cancelledAt: now,
+            cancelledBy,
+            cancelReason: reason,
+          },
+        });
+
+        broadcastStatusChange(id, "CANCELLED");
+
+        return NextResponse.json({
+          success: true,
+          booking: updatedBooking,
+          driverForcedOffline: false,
+        });
+      }
     });
   } catch (error) {
     console.error("Cancellation Error:", error);

@@ -47,6 +47,10 @@ model Driver {
   nidFrontUrl     String
   bookings        Booking[]
   rejections      BookingRejection[]
+
+  @@index([isOnline])
+  @@index([isApproved])
+  @@index([nearbyBazar])
 }
 
 /// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
@@ -84,6 +88,7 @@ model Booking {
   @@index([createdAt])
   @@index([userId, status, cancelledAt])
   @@index([driverId, status, cancelledAt])
+  @@index([driverId, status, createdAt])
 }
 
 model IssueReport {

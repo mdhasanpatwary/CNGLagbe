@@ -26,13 +26,15 @@ export async function GET() {
       "Chhagalnaiya"
     ];
 
-    for (const name of defaultBazars) {
-      await prisma.bazar.upsert({
-        where: { name },
-        update: {},
-        create: { name }
-      });
-    }
+    await Promise.all(
+      defaultBazars.map((name) =>
+        prisma.bazar.upsert({
+          where: { name },
+          update: {},
+          create: { name },
+        })
+      )
+    );
 
     // Create/Update Default Driver
     const hashedPassword = bcrypt.hashSync("driver123", 10);
@@ -105,9 +107,7 @@ export async function GET() {
       }
     ];
 
-    for (const b of pendingBookings) {
-      await prisma.booking.create({ data: b });
-    }
+    await prisma.booking.createMany({ data: pendingBookings });
 
     // Create one Accepted/Ongoing Booking for current driver
     await prisma.booking.create({

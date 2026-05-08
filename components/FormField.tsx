@@ -32,7 +32,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(({
     <div className={cn("flex flex-col gap-2", props.disabled && "opacity-80")}>
       <div className="flex justify-between items-center ml-1">
         <label className={cn(
-          "text-xs font-black tracking-widest flex items-center gap-1",
+          "text-xs font-black tracking-widest uppercase flex items-center gap-1",
           props.disabled ? "text-slate-400" : "text-slate-400"
         )}>
           {label}

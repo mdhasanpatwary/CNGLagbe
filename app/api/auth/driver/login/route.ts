@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { setAuthCookie, signToken } from "@/lib/auth";
 import { checkRateLimit, resetRateLimit } from "@/lib/rate-limit";
+import { normalizePhone } from "@/lib/utils";
 
 export async function POST(request: Request) {
   try {
-    const { phone } = await request.json();
+    const body = await request.json();
+    const phone = normalizePhone(body.phone);
 
     if (!phone) {
       return NextResponse.json(

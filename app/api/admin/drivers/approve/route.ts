@@ -59,7 +59,23 @@ export async function GET() {
 
         const pendingDrivers = await prisma.driver.findMany({
             where: { isApproved: false },
-            orderBy: { createdAt: "desc" }
+            orderBy: { createdAt: "desc" },
+            select: {
+                id: true,
+                name: true,
+                phone: true,
+                nidNumber: true,
+                licenseNumber: true,
+                vehicleNumber: true,
+                vehicleType: true,
+                nearbyBazar: true,
+                photoUrl: true,
+                nidFrontUrl: true,
+                nidBackUrl: true,
+                licenseFrontUrl: true,
+                licenseBackUrl: true,
+                createdAt: true,
+            },
         });
         return NextResponse.json({ drivers: pendingDrivers });
     } catch {

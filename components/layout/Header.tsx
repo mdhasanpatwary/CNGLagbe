@@ -17,7 +17,6 @@ interface HeaderProps {
   variant?: "sticky" | "floating";
   theme?: "primary" | "light" | "dark" | "transparent";
   title?: string;
-  subtitle?: string;
   user?: UserType | null;
 
   onLogout?: () => void;
@@ -33,7 +32,6 @@ export function Header({
   variant = "sticky",
   theme,
   title,
-  subtitle,
   user,
 
   onLogout,
@@ -76,19 +74,7 @@ export function Header({
     ? "fixed top-4 left-4 right-4 z-50 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/50 shadow-xl"
     : "sticky top-0 z-20 w-full";
 
-  const textStyles = {
-    primary: "text-white",
-    light: "text-slate-800",
-    dark: "text-white",
-    transparent: "text-slate-800",
-  };
 
-  const subTextStyles = {
-    primary: "text-white/60",
-    light: "text-slate-400",
-    dark: "text-slate-400",
-    transparent: "text-slate-400",
-  };
 
   return (
     <header className={cn(
@@ -116,35 +102,9 @@ export function Header({
             </div>
           </Link>
 
-          {title && (
-            <div className="flex flex-col pl-3 border-l-2 border-slate-200/50">
-              <h1 className={cn(
-                "text-sm font-black tracking-tight uppercase",
-                isFloating ? "text-slate-800" : textStyles[effectiveTheme]
-              )}>
-                {title}
-              </h1>
-              {subtitle && (
-                <p className={cn(
-                  "text-[10px] font-bold uppercase tracking-widest mt-0.5 opacity-60",
-                  isFloating ? "text-slate-400" : subTextStyles[effectiveTheme]
-                )}>
-                  {subtitle}
-                </p>
-              )}
-            </div>
-          )}
 
-          {!title && isAdmin && (
-            <div className="flex flex-col pl-3 border-l-2 border-slate-200/50">
-              <h1 className={cn(
-                "text-sm font-black tracking-tight uppercase text-primary hidden sm:block",
-                isFloating ? "text-slate-800" : textStyles[effectiveTheme]
-              )}>
-                {t("admin_dashboard")}
-              </h1>
-            </div>
-          )}
+
+
         </div>
       </div>
 

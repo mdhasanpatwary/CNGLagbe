@@ -29,11 +29,15 @@ export default function BookingHistoryPage() {
         if (historyRes.ok) {
           const data = await historyRes.json();
           setBookings(data.bookings);
+        } else {
+          console.error("Failed to fetch bookings:", historyRes.status, await historyRes.text());
         }
 
         if (userRes.ok) {
           const data = await userRes.json();
           setUser(data.user);
+        } else {
+          console.error("Failed to fetch user:", userRes.status, await userRes.text());
         }
       } catch (error) {
         console.error(error);

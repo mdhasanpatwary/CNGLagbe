@@ -214,7 +214,7 @@ export default function DriverProfilePage() {
                 />
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-400 uppercase ml-1 flex items-center gap-1.5">
+                  <label className="text-xs font-black tracking-widest text-slate-400 uppercase ml-1 flex items-center gap-1.5">
                     <Calendar size={14} className="text-slate-400" />
                     {t("birthday")}
                     <Lock size={12} className="text-slate-400" />

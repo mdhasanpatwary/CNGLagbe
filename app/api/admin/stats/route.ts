@@ -9,55 +9,52 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const totalBookings = await prisma.booking.count();
-    
-    const completedBookingsResponse = await prisma.booking.aggregate({
-      where: { status: "COMPLETED" },
-      _count: true,
-      _sum: {
-        fare: true,
-      }
-    });
+    // Single raw SQL for all booking stats via conditional aggregation,
+    // plus a parallel driver count (separate table).
+    const [bookingStats, activeDrivers] = await Promise.all([
+      prisma.$queryRaw<
+        Array<{
+          totalBookings: bigint;
+          completedBookings: bigint;
+          totalRevenue: number | null;
+          voidedAmount: number | null;
+          pendingBookings: bigint;
+        }>
+      >`
+        SELECT
+          COUNT(*)::bigint AS "totalBookings",
+          COUNT(*) FILTER (WHERE status = 'COMPLETED')::bigint AS "completedBookings",
+          COALESCE(SUM(fare) FILTER (WHERE status = 'COMPLETED'), 0) AS "totalRevenue",
+          COALESCE(SUM(fare) FILTER (WHERE status IN ('CANCELLED', 'TIMED_OUT')), 0) AS "voidedAmount",
+          COUNT(*) FILTER (WHERE status IN ('PENDING', 'TIMED_OUT', 'ASSIGNED'))::bigint AS "pendingBookings"
+        FROM "Booking"
+      `,
+      prisma.driver.count({ where: { isOnline: true } }),
+    ]);
 
-    const voidedBookingsResponse = await prisma.booking.aggregate({
-      where: { status: { in: ["CANCELLED", "TIMED_OUT"] } },
-      _sum: {
-        fare: true,
-      }
-    });
-
-    const completedBookings = completedBookingsResponse._count;
-    const totalRevenue = completedBookingsResponse._sum.fare || 0;
-    const voidedAmount = voidedBookingsResponse._sum.fare || 0;
-    const adminCommission = totalRevenue * 0.20; // 20% commission
+    const row = bookingStats[0];
+    const totalRevenue = Number(row.totalRevenue) || 0;
+    const adminCommission = totalRevenue * 0.20;
     const driverPayout = totalRevenue - adminCommission;
-
-    const activeDrivers = await prisma.driver.count({
-      where: { isOnline: true }
-    });
-
-    const pendingBookings = await prisma.booking.count({
-      where: { status: { in: ["PENDING", "TIMED_OUT", "ASSIGNED"] } }
-    });
 
     return NextResponse.json({
       stats: {
-        totalBookings,
-        completedBookings,
+        totalBookings: Number(row.totalBookings),
+        completedBookings: Number(row.completedBookings),
         totalRevenue,
-        voidedAmount,
+        voidedAmount: Number(row.voidedAmount) || 0,
         adminCommission,
         activeDrivers,
         revenue: {
           total: totalRevenue,
-          voided: voidedAmount,
+          voided: Number(row.voidedAmount) || 0,
           commission: adminCommission,
-          driverPayout: driverPayout
+          driverPayout: driverPayout,
         },
         bookings: {
-          pending: pendingBookings
-        }
-      }
+          pending: Number(row.pendingBookings),
+        },
+      },
     });
   } catch (error) {
     console.error("Admin Stats Error:", error);

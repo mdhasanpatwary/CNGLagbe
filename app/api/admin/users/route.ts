@@ -14,18 +14,20 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const skip = (page - 1) * limit;
 
-    const users = await prisma.user.findMany({
-      skip,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-      include: {
-        _count: {
-          select: { bookings: true }
+    // Run findMany and count in parallel instead of sequentially
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        include: {
+          _count: {
+            select: { bookings: true }
+          }
         }
-      }
-    });
-
-    const total = await prisma.user.count();
+      }),
+      prisma.user.count(),
+    ]);
 
     return NextResponse.json({
       users: users.map(u => ({

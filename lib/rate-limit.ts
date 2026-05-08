@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { BoundedCache } from "./bounded-cache";
 
 export interface RateLimitResult {
   success: boolean;
@@ -7,9 +8,8 @@ export interface RateLimitResult {
   reset: Date;
 }
 
-// Simple in-memory cache for rate limits to reduce DB load
-const rlCache = new Map<string, { result: RateLimitResult; timestamp: number }>();
-const CACHE_TTL_MS = 2000; // 2 seconds
+// BoundedCache prevents unbounded memory growth from accumulating rate-limit keys
+const rlCache = new BoundedCache<RateLimitResult>(2000); // 2s TTL
 
 /**
  * Simple rate limiter using the database.
@@ -22,18 +22,15 @@ export async function rateLimit(
   limit: number,
   windowSeconds: number
 ): Promise<RateLimitResult> {
-  // 1. Check in-memory cache first
+  // 1. Check in-memory cache first (BoundedCache handles TTL)
   const cached = rlCache.get(key);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+  if (cached) {
     // If it was already failing, return cached failure
-    if (!cached.result.success) return cached.result;
+    if (!cached.success) return cached;
     
-    // If it was succeeding, we still hit the DB to increment, 
-    // but only if we haven't hit it in the last 2 seconds.
-    // However, for high-frequency polling, we can actually "soft-success"
-    // if the remaining count was high enough.
-    if (cached.result.remaining > 1) {
-      return cached.result;
+    // If it was succeeding and remaining count is high enough, skip DB
+    if (cached.remaining > 1) {
+      return cached;
     }
   }
 
@@ -103,7 +100,7 @@ export async function rateLimit(
     }
 
     // Update in-memory cache
-    rlCache.set(key, { result, timestamp: Date.now() });
+    rlCache.set(key, result);
     return result;
 
   } catch (error) {

@@ -34,7 +34,7 @@ const DocUploadField = ({ field, label, description, icon: Icon, value, uploadin
   <div className="space-y-2">
     <div className="flex justify-between items-end ml-1">
       <div className="flex flex-col">
-        <label className="text-xs font-bold text-slate-500">
+        <label className="text-xs font-black tracking-widest text-slate-400 uppercase">
           {label}
           {required && <span className="text-red-500 ml-0.5 font-black">*</span>}
         </label>

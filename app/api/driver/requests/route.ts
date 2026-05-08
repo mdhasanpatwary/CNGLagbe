@@ -16,9 +16,10 @@ interface RequestItem {
   createdAt: string;
 }
 
-// Simple in-memory cache for driver requests
-const requestsCache = new Map<string, { data: Record<string, unknown>; timestamp: number }>();
-const CACHE_TTL = 3000; // 3 seconds
+import { BoundedCache } from "@/lib/bounded-cache";
+
+// BoundedCache prevents unbounded memory growth from accumulating unique driver IDs
+const requestsCache = new BoundedCache<Record<string, unknown>>(3000); // 3s TTL
 
 export async function GET() {
   try {
@@ -28,10 +29,10 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // 1. Check Cache
+    // 1. Check Cache (BoundedCache handles TTL internally)
     const cached = requestsCache.get(driverId);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      return NextResponse.json(cached.data);
+    if (cached) {
+      return NextResponse.json(cached);
     }
 
     // Get driver location and check for active booking in single query
@@ -58,7 +59,7 @@ export async function GET() {
         requests: [],
         currentBooking: activeBookings[0],
       };
-      requestsCache.set(driverId, { data: responseData, timestamp: Date.now() });
+      requestsCache.set(driverId, responseData);
       return NextResponse.json(responseData);
     }
 
@@ -127,7 +128,7 @@ export async function GET() {
     }));
 
     const responseData = { requests, currentBooking: null };
-    requestsCache.set(driverId, { data: responseData, timestamp: Date.now() });
+    requestsCache.set(driverId, responseData);
 
     return NextResponse.json(responseData);
   } catch (error) {

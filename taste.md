@@ -12,6 +12,8 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 ## 🚖 Ride Request & Booking Flow
 - **Request Again Button:** If a ride search times out or fails to find a driver, a "Request Again" button must appear, allowing the user to seamlessly retry the request without re-entering their pickup and destination.
 - **Address-First Experience:** The booking flow emphasizes human-readable addresses for pickup and drop-off, rather than raw coordinates, across the user map, booking details, and driver dashboard.
+- **Admin Role Booking Access:** Users with the `ADMIN` role are permitted to use user-facing features like booking history and active ride tracking. API routes (e.g., `/api/user/bookings`, `/api/booking/active`) must allow both `USER` and `ADMIN` roles to ensure Admins can test and use the ride flow as regular users.
+
 
 ## 🧑‍✈️ Driver Dashboard
 - **Fullscreen Map Overlap:** In the driver panel, when the map is expanded to fullscreen from a ride request modal, it must sit correctly above the page header (ensuring proper z-index and layout management).
@@ -28,6 +30,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Icon Labels:** Icons must always be accompanied by text labels to assist low-literacy users.
 - **Consistent Spacing:** Always use design tokens for spacing; **no ad-hoc margins or paddings**.
 - **Design System Tokens:** Prioritize using design system tokens (e.g., `primary`, `secondary`, `primary-foreground`) over hardcoded Tailwind color classes (e.g., `emerald-500`). This ensures that if the brand color changes, it can be updated in a single place (`globals.css`) rather than across hundreds of files.
+- **Header Logo Purity:** The header logo should stand alone without additional identifying text (like "Admin Dashboard") next to it, maintaining a clean and minimalist brand presence across all panels.
 - **UI Checklist:** Before implementing any UI, verify compliance with the checklist in [/docs/ui-rules.md](file:///Users/patwary/Projects/CNGLagbe/docs/ui-rules.md).
 
 ## ⚙️ Performance & Database
@@ -107,3 +110,5 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Standardized Fields:** Use the `FormField` component for all inputs to ensure consistent error styling and ref forwarding.
 - **Step-wise Validation:** In multi-step forms, use `trigger(['field1', 'field2'])` to validate the current step before proceeding.
 - **Type Safety:** Always export the input type using `z.infer<typeof schema>` for use in components and APIs.
+
+- **Form Labels Consistency**: Ensured all input labels (FormField, SearchableSelect, and custom labels) use uppercase formatting with wide tracking for consistency (text-xs font-black tracking-widest text-slate-400 uppercase).

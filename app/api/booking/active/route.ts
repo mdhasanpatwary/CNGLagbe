@@ -2,16 +2,16 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
+import { BoundedCache } from "@/lib/bounded-cache";
 import { getBookingRequestTimeoutThreshold } from "@/constants/booking";
 
-// Simple in-memory cache
-const activeBookingCache = new Map<string, { data: Record<string, unknown>; timestamp: number }>();
-const CACHE_TTL = 5000; // 5 seconds
+// BoundedCache prevents unbounded memory growth from accumulating unique user IDs
+const activeBookingCache = new BoundedCache<Record<string, unknown>>(5000); // 5s TTL
 
 export async function GET() {
   try {
     const user = await getAuthUser();
-    if (!user || user.role !== "USER") {
+    if (!user || (user.role !== "USER" && user.role !== "ADMIN")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -19,10 +19,10 @@ export async function GET() {
     const rlKey = `active_booking:${user.sub}`;
     const rl = await rateLimit(rlKey, 1, 3);
     
-    // 2. Check Cache
+    // 2. Check Cache (BoundedCache handles TTL internally)
     const cached = activeBookingCache.get(user.sub);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      return NextResponse.json(cached.data);
+    if (cached) {
+      return NextResponse.json(cached);
     }
 
     if (!rl.success && !cached) {
@@ -62,7 +62,7 @@ export async function GET() {
         }).catch(console.error);
 
         const responseData = { booking: null };
-        activeBookingCache.set(user.sub, { data: responseData, timestamp: Date.now() });
+        activeBookingCache.set(user.sub, responseData);
         return NextResponse.json(responseData);
       }
     }
@@ -70,7 +70,7 @@ export async function GET() {
     const responseData = { booking: activeBooking };
     
     // Update cache
-    activeBookingCache.set(user.sub, { data: responseData, timestamp: Date.now() });
+    activeBookingCache.set(user.sub, responseData);
 
     return NextResponse.json(responseData);
   } catch (error) {
