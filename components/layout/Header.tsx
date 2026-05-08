@@ -97,6 +97,7 @@ export function Header({
                 width={140}
                 height={36}
                 className="h-full w-auto object-contain transition-all duration-300"
+                style={{ width: "auto" }}
                 priority
               />
             </div>
@@ -156,7 +157,7 @@ export function Header({
               <div className="w-8 h-8 rounded-full overflow-hidden bg-white/20 flex items-center justify-center border border-white/10 ring-2 ring-white/5">
                 {user.photoUrl
                   ? <Image src={user.photoUrl} alt={user.name} width={32} height={32} className="w-full h-full object-cover" />
-                  : <User size={16} className={isFloating ? "text-slate-400" : (effectiveTheme === "light" ? "text-slate-400" : "text-white/70")} />}
+                  : <User size={16} className="text-slate-400" />}
               </div>
               <ChevronLeft size={14} className={cn(
                 "transition-transform duration-300 opacity-40",
@@ -173,8 +174,8 @@ export function Header({
                   transition={{ duration: 0.2, ease: "easeOut" }}
                   className={cn(
                     "absolute right-0 top-full mt-2 w-56 rounded-2xl overflow-hidden shadow-2xl z-50 border",
-                    effectiveTheme === "primary" || effectiveTheme === "dark" 
-                      ? "bg-slate-900/90 backdrop-blur-xl border-white/10 text-white" 
+                    effectiveTheme === "primary" || effectiveTheme === "dark"
+                      ? "bg-slate-900/90 backdrop-blur-xl border-white/10 text-white"
                       : "bg-white/95 backdrop-blur-xl border-slate-200 text-slate-800"
                   )}
                 >
@@ -239,9 +240,18 @@ export function Header({
 
                     <AppButton
                       variant="ghost"
-                      onClick={() => {
+                      onClick={async () => {
                         setIsMenuOpen(false);
-                        onLogout?.();
+                        if (onLogout) {
+                          onLogout();
+                        } else {
+                          try {
+                            await fetch("/api/auth/logout", { method: "POST" });
+                            window.location.href = "/";
+                          } catch (e) {
+                            console.error("Logout failed", e);
+                          }
+                        }
                       }}
                       className={cn(
                         "flex w-full h-auto items-center justify-start gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors text-red-500 hover:text-red-600 border-none",
@@ -267,11 +277,6 @@ export function Header({
                 )}
               >
                 {t("user_login")}
-              </AppButton>
-            </Link>
-            <Link href="/driver/login">
-              <AppButton variant="secondary" className="rounded-full font-bold text-base uppercase h-9 px-3 shadow-sm">
-                {t("driver_login")}
               </AppButton>
             </Link>
           </div>

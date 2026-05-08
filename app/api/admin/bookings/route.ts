@@ -15,10 +15,13 @@ export async function GET(request: Request) {
     const skip = (page - 1) * limit;
 
     const type = searchParams.get("type");
+    const statusFilter = searchParams.get("status");
 
-    const whereClause: { status?: { in: string[] } } = {};
+    const whereClause: { status?: string | { in: string[] } } = {};
     if (type === "active") {
-      whereClause.status = { in: ["PENDING", "ACCEPTED"] };
+      whereClause.status = { in: ["PENDING", "ACCEPTED", "ASSIGNED"] };
+    } else if (statusFilter && statusFilter !== "ALL") {
+      whereClause.status = statusFilter;
     }
 
     // Run findMany and count in parallel instead of sequentially

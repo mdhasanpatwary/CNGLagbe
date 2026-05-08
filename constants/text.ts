@@ -3,6 +3,10 @@ export const TEXT = {
     en: "Booking Info",
     bn: "বুকিং খবর"
   },
+  booking_details: {
+    en: "Booking Details",
+    bn: "বুকিং বিস্তারিত"
+  },
   confirm_find_driver: {
     en: "Get Driver",
     bn: "ড্রাইভার ডাকুন"
@@ -50,6 +54,10 @@ export const TEXT = {
   admin_dashboard: {
     en: "Admin",
     bn: "অ্যাডমিন"
+  },
+  driver_dashboard: {
+    en: "Dashboard",
+    bn: "ড্যাশবোর্ড"
   },
   explore: {
     en: "Explore",
@@ -140,7 +148,10 @@ export const TEXT = {
   auto_rickshaw: { en: "CNG", bn: "সিএনজি" },
   app_name: { en: "CNGLagbe", bn: "সিএনজি লাগবে" },
   driver_portal: { en: "Driver Info", bn: "ড্রাইভার" },
+  user_portal: { en: "User Profile", bn: "ইউজার" },
+  admin_portal: { en: "Control Panel", bn: "অ্যাডমিন" },
   signin_desc: { en: "Login here", bn: "লগিন করুন" },
+  signup_desc: { en: "Create account", bn: "অ্যাকাউন্ট তৈরি করুন" },
   phone_number: { en: "Phone", bn: "ফোন" },
   password: { en: "Password", bn: "পাসওয়ার্ড" },
   login_btn: { en: "Login", bn: "লগিন" },
@@ -220,7 +231,7 @@ export const TEXT = {
   pay_cash: { en: "Pay Cash", bn: "নগদ দিন" },
   vehicle_no: { en: "CNG No", bn: "সিএনজি নাম্বার" },
   driver_arrived_desc: { en: "Driver is here", bn: "ড্রাইভার চলে এসেছে" },
-  booking_history: { en: "History", bn: "আগের রাইড" },
+  booking_history: { en: "Ride History", bn: "রাইড ইতিহাস" },
   report_issue: { en: "Report", bn: "সমস্যা জানান" },
   issue_reason: { en: "Issue", bn: "কী সমস্যা?" },
   reason_fare: { en: "Wrong Fare", bn: "বেশি ভাড়া" },
@@ -463,8 +474,19 @@ export const TEXT = {
     en: "Critical fields are locked for security. Contact admin to update them.", 
     bn: "নিরাপত্তার স্বার্থে গুরুত্বপূর্ণ তথ্যগুলো লক করা আছে। পরিবর্তনের জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।" 
   },
+  loc_req_title: { en: "Location Required", bn: "লোকেশন প্রয়োজন" },
+  loc_req_desc: { 
+    en: "You must allow location access to continue. Without location, you cannot receive rides. Please enable location access in your browser settings.", 
+    bn: "চালিয়ে যাওয়ার জন্য আপনাকে অবশ্যই লোকেশন পারমিশন দিতে হবে। লোকেশন ছাড়া আপনি কোনো রাইড পাবেন না। অনুগ্রহ করে ব্রাউজার সেটিংস থেকে লোকেশন চালু করুন।" 
+  },
+  i_understand: { en: "I Understand", bn: "আমি বুঝতে পেরেছি" },
+  total_rides: { en: "Total Rides", bn: "মোট রাইড" },
+  completed: { en: "Completed", bn: "সম্পন্ন" },
+  cancelled: { en: "Cancelled", bn: "বাতিলকৃত" },
+  timed_out: { en: "Timed Out", bn: "সময় শেষ" },
+  active: { en: "Active", bn: "চলমান" },
+  all: { en: "All", bn: "সব" },
 } as const;
-
 
 export type TextKey = keyof typeof TEXT;
 export type Language = "en" | "bn";

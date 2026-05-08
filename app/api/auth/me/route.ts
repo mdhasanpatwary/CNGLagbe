@@ -21,7 +21,6 @@ export async function GET() {
           role: true,
           photoUrl: true,
           birthday: true,
-          address: true,
           createdAt: true,
         },
       });

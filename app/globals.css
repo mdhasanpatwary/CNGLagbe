@@ -108,6 +108,7 @@ body {
   --popover: #FFFFFF;
   --popover-foreground: #09090b;
   --primary: #16A34A;
+  --primary-rgb: 22, 163, 74;
   --primary-foreground: #FFFFFF;
   --secondary: #f4f4f5;
   --secondary-foreground: #18181b;

@@ -16,17 +16,25 @@ export async function GET() {
         Array<{
           totalBookings: bigint;
           completedBookings: bigint;
+          cancelledBookings: bigint;
+          timedOutBookings: bigint;
+          pendingBookings: bigint;
+          acceptedBookings: bigint;
           totalRevenue: number | null;
           voidedAmount: number | null;
-          pendingBookings: bigint;
+          pendingActionBookings: bigint;
         }>
       >`
         SELECT
           COUNT(*)::bigint AS "totalBookings",
           COUNT(*) FILTER (WHERE status = 'COMPLETED')::bigint AS "completedBookings",
+          COUNT(*) FILTER (WHERE status = 'CANCELLED')::bigint AS "cancelledBookings",
+          COUNT(*) FILTER (WHERE status = 'TIMED_OUT')::bigint AS "timedOutBookings",
+          COUNT(*) FILTER (WHERE status = 'PENDING')::bigint AS "pendingBookings",
+          COUNT(*) FILTER (WHERE status = 'ACCEPTED')::bigint AS "acceptedBookings",
           COALESCE(SUM(fare) FILTER (WHERE status = 'COMPLETED'), 0) AS "totalRevenue",
           COALESCE(SUM(fare) FILTER (WHERE status IN ('CANCELLED', 'TIMED_OUT')), 0) AS "voidedAmount",
-          COUNT(*) FILTER (WHERE status IN ('PENDING', 'TIMED_OUT', 'ASSIGNED'))::bigint AS "pendingBookings"
+          COUNT(*) FILTER (WHERE status IN ('PENDING', 'TIMED_OUT', 'ASSIGNED'))::bigint AS "pendingActionBookings"
         FROM "Booking"
       `,
       prisma.driver.count({ where: { isOnline: true } }),
@@ -41,6 +49,10 @@ export async function GET() {
       stats: {
         totalBookings: Number(row.totalBookings),
         completedBookings: Number(row.completedBookings),
+        cancelledBookings: Number(row.cancelledBookings),
+        timedOutBookings: Number(row.timedOutBookings),
+        pendingBookings: Number(row.pendingBookings),
+        acceptedBookings: Number(row.acceptedBookings),
         totalRevenue,
         voidedAmount: Number(row.voidedAmount) || 0,
         adminCommission,
@@ -52,7 +64,7 @@ export async function GET() {
           driverPayout: driverPayout,
         },
         bookings: {
-          pending: Number(row.pendingBookings),
+          pending: Number(row.pendingActionBookings),
         },
       },
     });

@@ -13,12 +13,14 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Request Again Button:** If a ride search times out or fails to find a driver, a "Request Again" button must appear, allowing the user to seamlessly retry the request without re-entering their pickup and destination.
 - **Address-First Experience:** The booking flow emphasizes human-readable addresses for pickup and drop-off, rather than raw coordinates, across the user map, booking details, and driver dashboard.
 - **Admin Role Booking Access:** Users with the `ADMIN` role are permitted to use user-facing features like booking history and active ride tracking. API routes (e.g., `/api/user/bookings`, `/api/booking/active`) must allow both `USER` and `ADMIN` roles to ensure Admins can test and use the ride flow as regular users.
+- **Hide TIMED_OUT from User History:** Failed rides (`TIMED_OUT`) are retained in the database for analytics but must be explicitly filtered out (`{ status: { not: "TIMED_OUT" } }`) from the user's Ride History page to avoid UI clutter and maintain a premium UX.
 
 
 ## 🧑‍✈️ Driver Dashboard
 - **Fullscreen Map Overlap:** In the driver panel, when the map is expanded to fullscreen from a ride request modal, it must sit correctly above the page header (ensuring proper z-index and layout management).
-- **Geolocation Error Handling:** Geolocation timeouts and transient errors are handled gracefully. Unnecessary or spammy error notifications are suppressed to keep the driver's UI clean.
+- **Geolocation Error Handling:** Geolocation timeouts and transient errors are handled gracefully. Unnecessary or spammy error notifications are suppressed to keep the driver's UI clean. Always log benign geolocation errors using `console.warn` instead of `console.error` to prevent triggering the Next.js development error overlay, and ensure objects like `GeolocationPositionError` are logged as `err.message` since they otherwise stringify to `{}`.
 - **Profile Image in Header:** The driver's profile image is displayed in the header for a more personalized and premium experience, consistent with the user panel.
+- **No Auto-Open Map Tabs:** When a driver accepts a ride request, the app must **not** automatically open Google Maps in a new tab or window, as this disrupts the UX by pulling the driver away from the main app interface. Driver navigation is handled explicitly via "Navigate" buttons in the Ongoing Ride view.
 
 ## 📱 UI/UX & Design Standards
 - **Premium Aesthetics:** The app uses modern web design principles (vibrant colors, smooth micro-animations, proper spacing). It should never look like a basic "minimum viable product".
@@ -41,6 +43,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Full Landing Page Architecture:** The homepage (`app/page.tsx`) is now a full-length, conversion-optimized landing page — NOT a minimal centered card. It must contain all 11 sections: Hero, Local Trust, How It Works, Why Choose Us, Popular Routes, Features, Service Area, Testimonials, FAQ, Final CTA, and Footer.
 - **Sticky Bottom CTA (Mobile):** A persistent `fixed bottom-0` bar with a prominent "Book Now" button must always be present. This is critical for mobile conversion. The padding-bottom on the footer must account for this bar.
 - **No Call-to-Book:** The system strictly uses app-based booking to ensure proper ride tracking and safety. All "Call to Book" buttons have been removed.
+- **No Driver Login Button:** The driver login button has been removed from the main landing page header to keep the primary landing page strictly user-focused.
 - **Trust Badges in Hero:** The hero section must display badges: "১০০+ লোকাল ড্রাইভার", "নিরাপদ ও যাচাইকৃত", "দ্রুত পিকআপ", "ক্যাশে পেমেন্ট" to build immediate trust.
 - **Animated Driver Count:** An animated green pulsing dot with "১০০+ ড্রাইভার সক্রিয়" must appear at the top of the hero to signal live service.
 - **Popular Routes Section:** Quick-tap route cards (Bazar→Hospital, Home→School, etc.) directly call `handleBookNow`, giving users a fast path to booking.
@@ -112,3 +115,11 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Type Safety:** Always export the input type using `z.infer<typeof schema>` for use in components and APIs.
 
 - **Form Labels Consistency**: Ensured all input labels (FormField, SearchableSelect, and custom labels) use uppercase formatting with wide tracking for consistency (text-xs font-black tracking-widest text-slate-400 uppercase).
+
+## 🗺️ Map & Geolocation
+- **Map Initialization:** The Google Maps instance should be initialized only once per component lifecycle to prevent unwanted resets (e.g., losing the user's selected pickup/drop locations when the language is changed). Track the map instance in state or a ref, and use an early return (`if (map) return;`) inside the initialization `useEffect`. Marker labels and translations should be updated in a separate, dedicated `useEffect`.
+- **Step Navigation:** Allow users to easily navigate backward in multi-step map flows. For example, include a "Back" button (with an `ArrowLeft` icon) in the destination selection step to let users modify their previously set pickup location without losing their session context.
+
+## 🤖 AI Agent Workflow
+- **Skip Verification:** Always skip verification/checking steps unless explicitly asked for verification. Proceed directly to executing actions or providing code.
+- **Booking Timeout State:** Ensure that when a booking times out (`TIMED_OUT` state), the UI explicitly handles this state alongside the `CANCELLED` state to show the "No Driver Found" message and retry options to the user.

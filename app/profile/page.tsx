@@ -11,6 +11,7 @@ import { FormField } from "@/components/FormField";
 import { supabase } from "@/lib/supabase";
 import { apiFetch } from "@/utils/api";
 import { Header } from "@/components/layout/Header";
+import { PageHeading } from "@/components/ui/PageHeading";
 import { User as UserType } from "@/lib/types/user";
 import { cn } from "@/lib/utils";
 import { useForm, useWatch } from "react-hook-form";
@@ -146,6 +147,10 @@ export default function ProfilePage() {
       />
 
       <main className="p-6 w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <PageHeading 
+          title={t("profile")} 
+          subtitle={t("app_name")}
+        />
         <Card className="shadow-2xl shadow-slate-200/50 border-none rounded-3xl overflow-hidden mb-8">
           <div className="bg-primary h-2 w-full" />
           <CardContent className="p-8">

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, Navigation, Pin, Banknote, Clock, Route, CheckCircle2, Search, X, LocateFixed } from "lucide-react";
+import { MapPin, Navigation, Pin, Banknote, Clock, Route, CheckCircle2, Search, X, LocateFixed, ArrowLeft } from "lucide-react";
 import { AppButton } from "@/components/ui/AppButton";
 import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/layout/Header";
@@ -64,6 +64,7 @@ export default function UserMapPage() {
   const [isSearching, setIsSearching] = useState(false);
   const restoredFromSession = useRef(false);
   const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isDraggingRef = useRef(false);
 
   // ─── Search input refs (for Places Autocomplete) ──────────────────────────
   const pickupSearchRef = useRef<HTMLInputElement>(null);
@@ -76,6 +77,7 @@ export default function UserMapPage() {
 
   // ─── Step based camera movement ──────────────────────────────────────────
   useEffect(() => {
+    if (isDraggingRef.current) return;
     if (step === "DESTINATION" && !destination && map) {
       // Zoom out or stay centered to let user pick
       map.setZoom(14);
@@ -183,8 +185,12 @@ export default function UserMapPage() {
 
   const handleMarkerDrag = useCallback(
     (marker: google.maps.marker.AdvancedMarkerElement, type: 'pickup' | 'drop', isEnd: boolean) => {
+      isDraggingRef.current = true;
       const p = marker.position;
-      if (!p) return;
+      if (!p) {
+        if (isEnd) setTimeout(() => { isDraggingRef.current = false; }, 100);
+        return;
+      }
       const latVal = typeof p.lat === "function" ? p.lat() : (p.lat as number);
       const lngVal = typeof p.lng === "function" ? p.lng() : (p.lng as number);
       const point: Point = { lat: latVal, lng: lngVal };
@@ -199,13 +205,17 @@ export default function UserMapPage() {
       if (isEnd) {
         // Immediate geocode on drop
         (async () => {
-          const address = await reverseGeocode(point);
-          clearBookingSession();
-          restoredFromSession.current = false;
-          setRouteInfo(null);
-          setFunc({ ...point, address });
-          if (type === 'pickup') setPickupSearchValue(address);
-          else setDestSearchValue(address);
+          try {
+            const address = await reverseGeocode(point);
+            clearBookingSession();
+            restoredFromSession.current = false;
+            setRouteInfo(null);
+            setFunc({ ...point, address });
+            if (type === 'pickup') setPickupSearchValue(address);
+            else setDestSearchValue(address);
+          } finally {
+            setTimeout(() => { isDraggingRef.current = false; }, 100);
+          }
         })();
       } else {
         // Debounced geocode while dragging
@@ -259,6 +269,8 @@ export default function UserMapPage() {
 
   // ─── Initialize Map ───────────────────────────────────────────────────────
   useEffect(() => {
+    if (map) return; // Prevent re-initialization on language change or other dependency updates
+
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
     if (!apiKey) {
@@ -448,7 +460,7 @@ export default function UserMapPage() {
     };
 
     initMapWrapper();
-  }, [reverseGeocode, createLabeledMarker, t, handleMarkerDrag]); // Include t for proper dependency tracking
+  }, [reverseGeocode, createLabeledMarker, t, handleMarkerDrag, map]); // Include t for proper dependency tracking
 
   // ─── Initialize Places Autocomplete for search inputs ────────────────────
   const initPickupAutocomplete = useCallback(() => {
@@ -630,8 +642,8 @@ export default function UserMapPage() {
         setPickup(pos);
         setPickupSearchValue(pos.address || "");
       },
-      (err) => {
-        console.error("Geo error:", err);
+      (err: GeolocationPositionError) => {
+        console.warn("Geo error:", err.message || err);
         setLocFallbackVisible(true);
         setTimeout(() => setLocFallbackVisible(false), 3500);
         // Fallback to updating address for the current position anyway
@@ -742,6 +754,11 @@ export default function UserMapPage() {
         if (!isSame) {
           pickupMarkerRef.current.position = pickup;
         }
+        
+        // Always update content to reflect language changes
+        const pinGreen = new PinElement({ background: COLORS.primary, borderColor: COLORS.pickupBorder, glyphColor: COLORS.glyph });
+        pickupMarkerRef.current.title = t("pickup");
+        pickupMarkerRef.current.content = createLabeledMarker(pinGreen, t("pickup"), COLORS.primary, 'pickup');
       }
 
       if (destination && !destMarkerRef.current) {
@@ -767,6 +784,11 @@ export default function UserMapPage() {
         if (!isSame) {
           destMarkerRef.current.position = destination;
         }
+
+        // Always update content to reflect language changes
+        const pinRed = new PinElement({ background: COLORS.drop, borderColor: COLORS.dropBorder, glyphColor: COLORS.glyph });
+        destMarkerRef.current.title = t("drop");
+        destMarkerRef.current.content = createLabeledMarker(pinRed, t("drop"), COLORS.drop, 'drop');
       }
     };
     update();
@@ -1042,6 +1064,18 @@ export default function UserMapPage() {
           {/* ── DESTINATION STEP ─────────────────────────────────────────── */}
           {step === "DESTINATION" && (
             <div className="animate-in fade-in slide-in-from-bottom-3 duration-300">
+              {/* Back Button */}
+              <div className="mb-4">
+                <AppButton
+                  onClick={() => setStep("PICKUP")}
+                  className="text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-full transition-colors h-auto border-none inline-flex items-center -ml-1"
+                  variant="ghost"
+                  leftIcon={<ArrowLeft size={14} />}
+                >
+                  {t("back")}
+                </AppButton>
+              </div>
+
               {/* Mini pickup summary */}
               <div className="flex items-center gap-2 mb-4 px-0.5">
                 <div className="flex flex-col items-center gap-0.5">

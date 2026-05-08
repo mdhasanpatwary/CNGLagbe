@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Phone, LogIn, ChevronRight } from "lucide-react";
+import { Phone, ChevronRight } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
 import { FormField } from "@/components/FormField";
 import { Header } from "@/components/layout/Header";
+import { PageHeading } from "@/components/ui/PageHeading";
 import { driverLoginSchema, type DriverLoginInput } from "@/lib/schemas/auth";
 
 
@@ -44,7 +45,7 @@ export default function DriverLogin() {
       const resData = await res.json();
 
       if (res.ok) {
-        router.push("/dashboard");
+        router.push("/driver/dashboard");
       } else if (resData.signupRequired) {
         // Carry phone to signup
         router.push(`/driver/signup?phone=${data.phone}`);
@@ -63,14 +64,12 @@ export default function DriverLogin() {
       <Header role="driver" />
       <div className="flex-1 flex flex-col justify-center">
       <div className="max-w-md w-full mx-auto p-6">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-slate-800 flex items-center justify-center gap-2">
-            <LogIn className="text-primary" /> {t("driver_portal")}
-          </h1>
-          <p className="text-slate-500 mt-2 flex items-center justify-center gap-1.5">
-             {t("signin_desc")}
-          </p>
-        </div>
+        <PageHeading 
+          title={t("driver_portal") as string} 
+          subtitle={t("signin_desc") as string}
+          centered
+          className="mb-8"
+        />
 
         <Card className="shadow-2xl shadow-slate-200/50 border-none rounded-3xl overflow-hidden">
           <div className="bg-primary h-2 w-full" />

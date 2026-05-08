@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLang } from "@/hooks/useLang";
 import { Header } from "@/components/layout/Header";
+import { PageHeading } from "@/components/ui/PageHeading";
 import { apiFetch } from "@/utils/api";
 
 import { Booking } from "@/lib/types/booking";
@@ -62,11 +63,14 @@ export default function BookingHistoryPage() {
       <Header 
         role="user"
         theme="light"
-        title={t("booking_history")}
         user={user}
       />
 
-      <main className="flex-1 p-4 max-w-md mx-auto w-full space-y-4">
+      <main className="flex-1 p-6 max-w-md mx-auto w-full space-y-6">
+        <PageHeading 
+          title={t("booking_history")} 
+          subtitle={t("user_portal")}
+        />
         {bookings.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center text-slate-400">
             <Navigation size={48} className="mb-4 opacity-10" />

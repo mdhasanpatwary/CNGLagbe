@@ -15,6 +15,7 @@ import { Header } from "@/components/layout/Header";
 import { type TextKey } from "@/constants/text";
 import { driverSignupSchema, type DriverSignupInput } from "@/lib/schemas/auth";
 import { SearchableSelect } from "@/components/SearchableSelect";
+import { PageHeading } from "@/components/ui/PageHeading";
 import { Controller } from "react-hook-form";
 
 interface DocUploadFieldProps {
@@ -228,9 +229,11 @@ function SignupForm() {
       <div className="flex-1 flex flex-col justify-center">
       <div className="max-w-md w-full mx-auto p-6">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-slate-800 flex items-center justify-center gap-2">
-             {t("driver_signup")}
-          </h1>
+          <PageHeading 
+            title={t("driver_signup")} 
+            subtitle={t("signup_desc")} 
+            centered
+          />
           <div className="flex items-center justify-center gap-3 mt-4">
              {[1, 2, 3, 4].map(s => (
                 <div 

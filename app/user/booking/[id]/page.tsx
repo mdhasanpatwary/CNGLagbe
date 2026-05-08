@@ -25,6 +25,7 @@ import { CancelModal } from "@/components/CancelModal";
 import { Badge } from "@/components/ui/badge";
 import { AppButton } from "@/components/ui/AppButton";
 import { Header } from "@/components/layout/Header";
+import { PageHeading } from "@/components/ui/PageHeading";
 import { apiFetch } from "@/utils/api";
 import { useLang } from "@/hooks/useLang";
 import { supabase } from "@/lib/supabase";
@@ -259,7 +260,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
         theme="light"
         user={user}
         rightContent={
-          !showDriverCard && (
+          !showDriverCard && uiState !== "TIMED_OUT" && uiState !== "CANCELLED" && (
             <Badge className={`border-none px-3 py-1 text-[10px] font-black uppercase tracking-widest ${badge.tone}`}>
               {t(badge.label)}
             </Badge>
@@ -268,6 +269,11 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
       />
 
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 p-4">
+        <PageHeading 
+          title={t("booking_details") as string} 
+          subtitle={t("user_portal") as string}
+          className="mb-2"
+        />
 
         {/* ── FINDING DRIVER STATE ──────────────────────────────────────── */}
         {uiState === "FINDING_DRIVER" && (
@@ -521,21 +527,21 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
           </div>
         )}
 
-        {/* ── CANCELLED STATE ───────────────────────────────────────────── */}
-        {uiState === "CANCELLED" && (
+        {/* ── CANCELLED OR TIMED_OUT STATE ───────────────────────────────────────────── */}
+        {(uiState === "CANCELLED" || uiState === "TIMED_OUT") && (
           <div className="bg-white rounded-3xl shadow-sm">
             <div className="flex flex-col items-center py-10 px-6">
               <div className="w-24 h-24 rounded-full bg-red-50 flex items-center justify-center mb-4">
                 <XCircle size={44} className="text-red-400" />
               </div>
               <h2 className="text-xl font-black text-slate-900 mb-1">
-                {t(booking.status === "TIMED_OUT" ? "no_driver" : "ride_cancelled")}
+                {t(booking.status === "TIMED_OUT" || uiState === "TIMED_OUT" ? "no_driver" : "ride_cancelled")}
               </h2>
               <p className="text-sm font-medium text-slate-500 text-center">
-                {t(booking.status === "TIMED_OUT" ? "no_driver_desc" : "ride_cancelled_desc")}
+                {t(booking.status === "TIMED_OUT" || uiState === "TIMED_OUT" ? "no_driver_desc" : "ride_cancelled_desc")}
               </p>
 
-              {booking.status === "TIMED_OUT" && (
+              {(booking.status === "TIMED_OUT" || uiState === "TIMED_OUT") && (
                 <div className="mt-8 w-full">
                   <AppButton
                     fullWidth

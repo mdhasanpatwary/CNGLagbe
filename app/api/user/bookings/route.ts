@@ -19,7 +19,10 @@ export async function GET(request: Request) {
     // Run findMany and count in parallel with pagination
     const [bookings, total] = await Promise.all([
       prisma.booking.findMany({
-        where: { userId: session.sub },
+        where: { 
+          userId: session.sub,
+          status: { not: "TIMED_OUT" }
+        },
         select: {
           id: true,
           status: true,
@@ -41,7 +44,12 @@ export async function GET(request: Request) {
         skip,
         take: limit,
       }),
-      prisma.booking.count({ where: { userId: session.sub } }),
+      prisma.booking.count({ 
+        where: { 
+          userId: session.sub,
+          status: { not: "TIMED_OUT" }
+        } 
+      }),
     ]);
 
     return NextResponse.json({

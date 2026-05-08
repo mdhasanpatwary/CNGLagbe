@@ -1,4 +1,10 @@
 export interface AdminStats {
+  totalBookings?: number;
+  completedBookings?: number;
+  cancelledBookings?: number;
+  timedOutBookings?: number;
+  pendingBookings?: number;
+  acceptedBookings?: number;
   revenue?: {
     total: number;
     voided: number;

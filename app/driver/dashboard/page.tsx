@@ -16,6 +16,7 @@ import { GoogleMapPreview } from "@/components/GoogleMapPreview";
 import { simplifyAddress } from "@/utils/address";
 import { Booking } from "@/lib/types/booking";
 import { DriverSyncData } from "@/lib/types/driver";
+import { PageHeading } from "@/components/ui/PageHeading";
 
 // Internal types for location tracking
 interface DriverLocationPoint {
@@ -64,6 +65,7 @@ export default function DriverDashboard() {
   const [showCancel, setShowCancel] = useState(false);
   const [arrivedBooking, setArrivedBooking] = useState<{ fare: number; distance: number } | null>(null);
   const [locationIssue, setLocationIssue] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
   const consecutiveFailures = useRef(0);
 
   const queryClient = useQueryClient();
@@ -120,8 +122,6 @@ export default function DriverDashboard() {
   }, []);
 
   const handleAccept = useCallback(async (req: Booking) => {
-    // Open map window synchronously to prevent popup blocker
-    const mapWindow = window.open('about:blank', '_blank');
     try {
       const res = await apiFetch("/api/driver/accept", {
         method: "POST",
@@ -132,18 +132,10 @@ export default function DriverDashboard() {
       });
       if (res.ok) {
          setRejectedIds(new Set());
-         const url = `https://www.google.com/maps/dir/?api=1&destination=${req.pickupLat},${req.pickupLng}`;
-         if (mapWindow) {
-           mapWindow.location.href = url;
-         } else {
-           window.open(url, "_blank");
-         }
       } else {
-         if (mapWindow) mapWindow.close();
          alert(t("error") as string);
       }
     } catch (e) {
-      if (mapWindow) mapWindow.close();
       console.error(e);
     }
   }, [t]);
@@ -363,11 +355,16 @@ export default function DriverDashboard() {
     }
     console.error("Geolocation Error:", { code: err.code, message: err.message });
 
-    if (err.code === err.PERMISSION_DENIED && !permissionDeniedShown.current) {
-      permissionDeniedShown.current = true;
-      alert(t("location_denied") as string);
+    if (err.code === err.PERMISSION_DENIED) {
+      setShowLocationModal(true);
+      setIsOnlineOverride(false);
+      apiFetch("/api/driver/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isOnline: false })
+      }).catch(console.error);
     }
-  }, [t]);
+  }, []);
 
   const requestCurrentLocation = useCallback((reason: PendingLocationUpdate["reason"]) => {
     if (!navigator.geolocation || document.visibilityState === "hidden") return;
@@ -515,6 +512,11 @@ export default function DriverDashboard() {
 
 
       <main className="relative p-6 w-full max-w-md flex flex-col gap-6 flex-1">
+        <PageHeading 
+          title={t("driver_dashboard") as string} 
+          subtitle={t("driver_portal") as string}
+          className="mb-6"
+        />
         {!isApproved ? (
           <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in-95 duration-700">
              <div className="w-24 h-24 bg-amber-100 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl shadow-amber-200/50">
@@ -721,6 +723,30 @@ export default function DriverDashboard() {
               queryClient.invalidateQueries({ queryKey: ["driverSync"] });
             }} 
           />
+        )}
+
+        {/* Location Permission Modal */}
+        {showLocationModal && (
+          <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-300">
+            <Card className="w-full max-w-sm border-none shadow-2xl rounded-[2rem] bg-white overflow-hidden animate-in zoom-in-95 duration-500">
+              <CardContent className="p-8 flex flex-col items-center text-center">
+                <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-6 shadow-inner shadow-red-200">
+                  <MapPin className="w-10 h-10 text-red-600" />
+                </div>
+                <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-2">{t("loc_req_title")}</h2>
+                <p className="text-sm font-medium text-slate-500 mb-8">
+                  {t("loc_req_desc")}
+                </p>
+                
+                <AppButton 
+                  onClick={() => setShowLocationModal(false)} 
+                  className="w-full h-14 text-sm font-black rounded-2xl bg-slate-800 hover:bg-slate-900 text-white uppercase tracking-widest"
+                >
+                  {t("i_understand")}
+                </AppButton>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
         {/* Arrived Booking Modal - Fare to Collect */}

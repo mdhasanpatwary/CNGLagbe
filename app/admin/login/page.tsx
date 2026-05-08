@@ -10,6 +10,7 @@ import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
 import { FormField } from "@/components/FormField";
 import { Header } from "@/components/layout/Header";
+import { PageHeading } from "@/components/ui/PageHeading";
 import { adminLoginSchema, type AdminLoginInput } from "@/lib/schemas/auth";
 
 export default function AdminLogin() {
@@ -64,12 +65,11 @@ export default function AdminLogin() {
           <div className="inline-flex bg-primary/10 p-3 rounded-2xl mb-4 border border-primary/20">
             <Shield className="text-primary w-8 h-8" />
           </div>
-          <h1 className="text-3xl font-black text-slate-800 flex items-center justify-center gap-2 tracking-tight">
-            {t("admin_login")}
-          </h1>
-          <p className="text-slate-500 mt-2 text-xs font-black uppercase tracking-wider">
-             {t("signin_desc")}
-          </p>
+          <PageHeading 
+            title={t("admin_login")} 
+            subtitle={t("signin_desc")} 
+            centered
+          />
         </div>
 
         <Card className="shadow-2xl shadow-slate-200/50 border-none rounded-[2rem] overflow-hidden bg-white border border-slate-100">
