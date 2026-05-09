@@ -9,6 +9,8 @@ export const driverProfileSchema = z.object({
   nidNumber: z.string().min(10, "NID must be at least 10 characters").optional().or(z.literal("")),
   licenseNumber: z.string().min(5, "License must be at least 5 characters").optional().or(z.literal("")),
   vehicleNumber: z.string().min(4, "Vehicle number is required").optional().or(z.literal("")),
+  password: z.string().min(6, "Password must be at least 6 characters").optional().or(z.literal("")),
 });
+
 
 export type DriverProfileInput = z.infer<typeof driverProfileSchema>;

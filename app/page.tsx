@@ -405,7 +405,7 @@ export default function LandingPage() {
     } else if (user.role === "DRIVER") {
       router.push("/dashboard");
     } else {
-      router.push("/user/map");
+      router.push("/user");
     }
   }, [user, router]);
 
@@ -854,7 +854,7 @@ export default function LandingPage() {
               <motion.div variants={itemVariants} className="col-span-1 md:col-span-2">
                 <div className="flex items-center mb-6">
                   <Image
-                    src="/logo.png"
+                    src="/logo_white.png"
                     alt="CNGLagbe"
                     width={200}
                     height={50}

@@ -89,10 +89,10 @@ export function Header({
 
 
         <div className="flex items-center gap-3">
-          <Link href={isDriver ? "/driver/dashboard" : isAdmin ? "/admin" : "/"} className="flex items-center gap-2 group">
+          <Link href={isDriver ? "/driver/dashboard" : isAdmin ? "/admin" : user ? "/user" : "/"} className="flex items-center gap-2 group">
             <div className={cn("flex items-center group-hover:opacity-80 transition-opacity", title ? "h-7" : "h-9")}>
               <Image
-                src="/logo.png"
+                src={effectiveTheme === "dark" || effectiveTheme === "primary" ? "/logo_white.png" : "/logo_dark_text.png"}
                 alt="CNGLagbe Logo"
                 width={140}
                 height={36}
@@ -149,14 +149,14 @@ export function Header({
               variant="ghost"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className={cn(
-                "flex h-auto items-center gap-2 px-2 py-1.5 rounded-full transition-all active:scale-95 outline-none border-none hover:bg-transparent",
+                "group flex h-auto items-center gap-2 px-2 py-1.5 rounded-full transition-all active:scale-95 outline-none border-none hover:bg-transparent",
                 effectiveTheme === "primary" || effectiveTheme === "dark" ? "bg-white/10 hover:bg-white/20 text-white" : "bg-slate-100 hover:bg-slate-200 text-slate-700",
                 isMenuOpen && (effectiveTheme === "primary" || effectiveTheme === "dark" ? "bg-white/30" : "bg-slate-200")
               )}
             >
               <div className="w-8 h-8 rounded-full overflow-hidden bg-white/20 flex items-center justify-center border border-white/10 ring-2 ring-white/5">
                 {user.photoUrl
-                  ? <Image src={user.photoUrl} alt={user.name} width={32} height={32} className="w-full h-full object-cover" />
+                  ? <Image src={user.photoUrl} alt={user.name} width={32} height={32} className="w-full h-full object-cover object-top transition-all duration-500" />
                   : <User size={16} className="text-slate-400" />}
               </div>
               <ChevronLeft size={14} className={cn(
@@ -195,6 +195,20 @@ export function Header({
 
                   {/* Menu Items */}
                   <div className="p-1.5">
+                    {!isDriver && !isAdmin && (
+                      <Link
+                        href="/user"
+                        onClick={() => setIsMenuOpen(false)}
+                        className={cn(
+                          "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors group text-primary",
+                          effectiveTheme === "primary" || effectiveTheme === "dark" ? "hover:bg-white/10" : "hover:bg-primary/5"
+                        )}
+                      >
+                        <User size={18} className="opacity-100" />
+                        <span>{t("dashboard")}</span>
+                      </Link>
+                    )}
+
                     <Link
                       href={isDriver ? "/driver/profile" : "/profile"}
                       onClick={() => setIsMenuOpen(false)}

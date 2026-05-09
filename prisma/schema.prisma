@@ -11,14 +11,15 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  name      String
-  phone     String    @unique
-  createdAt DateTime  @default(now())
-  role      String    @default("USER")
-  birthday  DateTime?
-  photoUrl  String?
-  bookings  Booking[]
+  id           String    @id @default(cuid())
+  name         String
+  phone        String    @unique
+  passwordHash String?
+  createdAt    DateTime  @default(now())
+  role         String    @default("USER")
+  birthday     DateTime?
+  photoUrl     String?
+  bookings     Booking[]
 }
 
 model Driver {

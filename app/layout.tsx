@@ -66,6 +66,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 import { Providers } from "@/components/Providers";
+import { Toaster } from "sonner";
 
 export default function RootLayout({
   children,
@@ -78,6 +79,7 @@ export default function RootLayout({
         <Providers>
           {children}
         </Providers>
+        <Toaster richColors position="top-right" />
       </body>
     </html>
   );

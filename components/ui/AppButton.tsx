@@ -26,6 +26,7 @@ export function AppButton({
   rightIcon,
   children,
   disabled,
+  type = "button",
   ...props
 }: AppButtonProps) {
   const { t } = useLang();
@@ -41,7 +42,7 @@ export function AppButton({
   return (
     // eslint-disable-next-line no-restricted-syntax
     <button
-      type="button"
+      type={type}
       className={cn(
         baseStyles,
         variants[variant],

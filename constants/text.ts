@@ -59,6 +59,10 @@ export const TEXT = {
     en: "Dashboard",
     bn: "ড্যাশবোর্ড"
   },
+  dashboard: {
+    en: "Dashboard",
+    bn: "ড্যাশবোর্ড"
+  },
   explore: {
     en: "Explore",
     bn: "ঘুরে দেখুন"
@@ -154,6 +158,7 @@ export const TEXT = {
   signup_desc: { en: "Create account", bn: "অ্যাকাউন্ট তৈরি করুন" },
   phone_number: { en: "Phone", bn: "ফোন" },
   password: { en: "Password", bn: "পাসওয়ার্ড" },
+  continue: { en: "Continue", bn: "চালিয়ে যান" },
   login_btn: { en: "Login", bn: "লগিন" },
   already_have_account: { en: "Already have an account?", bn: "আপনার কি অ্যাকাউন্ট আছে?" },
   login_here_question: { en: "Already registered?", bn: "আগে রেজিস্ট্রেশন করেছেন?" },
@@ -486,7 +491,9 @@ export const TEXT = {
   timed_out: { en: "Timed Out", bn: "সময় শেষ" },
   active: { en: "Active", bn: "চলমান" },
   all: { en: "All", bn: "সব" },
+  set_password: { en: "Set Password", bn: "পাসওয়ার্ড দিন" },
 } as const;
+
 
 export type TextKey = keyof typeof TEXT;
 export type Language = "en" | "bn";

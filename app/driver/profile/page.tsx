@@ -133,7 +133,7 @@ export default function DriverProfilePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center">
-      <Header 
+      <Header
         role="driver"
         theme="light"
         user={user}
@@ -141,8 +141,8 @@ export default function DriverProfilePage() {
       />
 
       <main className="p-6 w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
-        <PageHeading 
-          title={t("profile")} 
+        <PageHeading
+          title={t("profile")}
           subtitle={t("driver_portal")}
         />
         <Card className="shadow-2xl shadow-slate-200/50 border-none rounded-3xl overflow-visible mb-8">
@@ -162,11 +162,11 @@ export default function DriverProfilePage() {
                 <div className="relative group">
                   <div className="w-32 h-32 rounded-[2.5rem] bg-slate-100 overflow-hidden border-4 border-white shadow-xl relative">
                     {photoUrl ? (
-                      <Image 
-                        src={photoUrl} 
-                        alt="Profile" 
-                        fill 
-                        className="object-cover"
+                      <Image
+                        src={photoUrl}
+                        alt="Profile"
+                        fill
+                        className="object-cover object-top transition-all duration-500"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-300">
@@ -175,7 +175,7 @@ export default function DriverProfilePage() {
                     )}
 
                   </div>
-                  
+
 
                   <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-slate-200 text-slate-500 rounded-xl shadow-lg flex items-center justify-center cursor-not-allowed">
                     <Lock size={18} />
@@ -290,11 +290,26 @@ export default function DriverProfilePage() {
                   error={errors.vehicleNumber?.message}
                   disabled
                 />
+
+                <div className="pt-4 border-t border-slate-100">
+                  <FormField
+                    label={t("set_password")}
+                    icon={Lock}
+                    type="password"
+                    placeholder="••••••"
+                    {...register("password")}
+                    error={errors.password?.message}
+                  />
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider ml-1 mt-1">
+                    Leave blank to keep current password
+                  </p>
+                </div>
               </div>
 
-              <AppButton 
-                type="submit" 
-                loading={saving} 
+
+              <AppButton
+                type="submit"
+                loading={saving}
                 className="w-full h-16 text-lg font-black rounded-2xl shadow-xl shadow-primary/20 bg-primary hover:bg-primary-dark text-white"
                 leftIcon={!saving && <Save size={20} />}
               >

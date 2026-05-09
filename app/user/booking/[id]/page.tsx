@@ -255,7 +255,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
-      <Header 
+      <Header
         role="user"
         theme="light"
         user={user}
@@ -269,8 +269,8 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
       />
 
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 p-4">
-        <PageHeading 
-          title={t("booking_details") as string} 
+        <PageHeading
+          title={t("booking_details") as string}
           subtitle={t("user_portal") as string}
           className="mb-2"
         />
@@ -361,12 +361,12 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                     <div className="w-full relative bg-primary/5 rounded-2xl overflow-hidden mb-6 p-4 border border-primary/10">
                       <div className="flex justify-between items-center mb-6">
                         <div className="flex flex-col">
-                           <span className="text-[10px] font-black text-primary uppercase tracking-tight">{t("driver_on_the_way")}</span>
-                           <span className="text-[10px] font-bold text-slate-500 uppercase">{t("arriving_soon")}</span>
+                          <span className="text-[10px] font-black text-primary uppercase tracking-tight">{t("driver_on_the_way")}</span>
+                          <span className="text-[10px] font-bold text-slate-500 uppercase">{t("arriving_soon")}</span>
                         </div>
                         <div className="px-3 py-1 bg-white shadow-sm border border-primary/10 rounded-full text-primary text-[10px] font-black animate-pulse flex items-center gap-1.5">
-                           <Clock3 size={12} />
-                           {t("wait_minutes")}
+                          <Clock3 size={12} />
+                          {t("wait_minutes")}
                         </div>
                       </div>
 
@@ -374,28 +374,28 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                         <div className="absolute top-1/2 left-4 right-4 -translate-y-1/2 flex items-center">
                           {/* Road line */}
                           <div className="w-full border-b-2 border-dashed border-slate-200 relative">
-                             {/* Highlighted path */}
-                             <div className="absolute top-[-2px] left-0 h-[2px] bg-primary animate-path-fill"></div>
+                            {/* Highlighted path */}
+                            <div className="absolute top-[-2px] left-0 h-[2px] bg-primary animate-path-fill"></div>
                           </div>
                         </div>
                         {/* Moving CNG */}
                         <div className="absolute top-1/2 -translate-y-1/2 animate-drive-approach z-10">
                           <div className="w-10 h-10 bg-white shadow-xl border-2 border-primary/20 rounded-full flex items-center justify-center">
-                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary-dark">
-                               <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
-                               <circle cx="7" cy="17" r="2"/>
-                               <path d="M9 17h6"/>
-                               <circle cx="17" cy="17" r="2"/>
-                             </svg>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary-dark">
+                              <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
+                              <circle cx="7" cy="17" r="2" />
+                              <path d="M9 17h6" />
+                              <circle cx="17" cy="17" r="2" />
+                            </svg>
                           </div>
                         </div>
                         {/* User Location pin */}
                         <div className="absolute top-1/2 -translate-y-1/2 right-4 z-0">
                           <div className="relative flex items-center justify-center w-8 h-8">
-                             <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
-                             <div className="w-8 h-8 bg-white shadow-sm border border-slate-100 flex items-center justify-center rounded-full z-10 relative">
-                                 <MapPin size={18} className="text-primary" />
-                             </div>
+                            <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
+                            <div className="w-8 h-8 bg-white shadow-sm border border-slate-100 flex items-center justify-center rounded-full z-10 relative">
+                              <MapPin size={18} className="text-primary" />
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -403,19 +403,19 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                   )}
 
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="w-20 h-20 rounded-3xl bg-slate-100 flex items-center justify-center overflow-hidden shrink-0 border-2 border-white shadow-xl ring-4 ring-slate-50">
+                    <div className="w-20 h-20 rounded-3xl bg-slate-100 flex items-center justify-center overflow-hidden shrink-0 border-2 border-white shadow-xl ring-4 ring-slate-50 group">
                       {booking.driver.photoUrl && !imgError ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img 
-                          src={booking.driver.photoUrl} 
-                          alt={booking.driver.name} 
-                          className="h-full w-full object-cover" 
+                        <img
+                          src={booking.driver.photoUrl}
+                          alt={booking.driver.name}
+                          className="h-full w-full object-cover object-top transition-all duration-500"
                           onError={() => setImgError(true)}
                         />
                       ) : (
                         <div className="flex flex-col items-center justify-center bg-slate-50 w-full h-full">
                           <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center mb-1">
-                             <UserIcon className="h-6 w-6 text-slate-400" />
+                            <UserIcon className="h-6 w-6 text-slate-400" />
                           </div>
                           <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">{t("no_photo")}</span>
                         </div>
@@ -442,12 +442,12 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
 
                   <div className="grid grid-cols-2 gap-3 mb-6">
                     <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100">
-                       <p className="text-[9px] font-black text-slate-400 uppercase mb-1">{t("vehicle_no")}</p>
-                       <p className="text-sm font-black text-slate-900">{booking.driver.vehicleNumber || "---"}</p>
+                      <p className="text-[9px] font-black text-slate-400 uppercase mb-1">{t("vehicle_no")}</p>
+                      <p className="text-sm font-black text-slate-900">{booking.driver.vehicleNumber || "---"}</p>
                     </div>
                     <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100">
-                       <p className="text-[9px] font-black text-slate-400 uppercase mb-1">{t("payment")}</p>
-                       <p className="text-sm font-black text-slate-900">{t("currency")}{booking.fare}</p>
+                      <p className="text-[9px] font-black text-slate-400 uppercase mb-1">{t("payment")}</p>
+                      <p className="text-sm font-black text-slate-900">{t("currency")}{booking.fare}</p>
                     </div>
                   </div>
 
@@ -493,13 +493,13 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
             {showDriverCard && booking.driver && (
               <div className="border-t border-slate-100 px-5 pb-5 pt-4 bg-slate-50/50">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center overflow-hidden shrink-0 border border-slate-200 shadow-sm">
+                  <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center overflow-hidden shrink-0 border border-slate-200 shadow-sm group">
                     {booking.driver.photoUrl && !imgError ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img 
-                        src={booking.driver.photoUrl} 
-                        alt={booking.driver.name} 
-                        className="h-full w-full object-cover" 
+                      <img
+                        src={booking.driver.photoUrl}
+                        alt={booking.driver.name}
+                        className="h-full w-full object-cover group-hover:object-top transition-all duration-500"
                         onError={() => setImgError(true)}
                       />
                     ) : (

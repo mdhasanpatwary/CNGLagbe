@@ -66,7 +66,7 @@ const DocUploadField = ({ field, label, description, icon: Icon, value, uploadin
                src={value} 
                alt="Preview" 
                fill
-               className="object-cover transition-transform duration-500 group-hover/preview:scale-110"
+               className="object-cover transition-all duration-500 group-hover/preview:scale-110 group-hover/preview:object-top"
              />
              <div className="absolute top-2 right-2 bg-primary text-white px-2 py-1 rounded-lg shadow-lg flex items-center gap-1.5 z-10 animate-in zoom-in-50 duration-300">
                <CheckCircle2 size={12} />

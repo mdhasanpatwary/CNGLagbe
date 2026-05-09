@@ -72,7 +72,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
   - **Trust Badges:** Always use high-contrast combinations (e.g., `bg-white text-slate-700` with a border) when rendering badges over light sections.
   - **Footer Layout:** Footer must always match the `max-w-[1200px]` width of other sections for visual alignment.
 
-- **Unified Branding (Logo):** The app uses a single, unified 4:1 aspect ratio logo file (`/logo.png`) with a transparent background across all panels (Admin, Driver, User) and landing pages (Header and Footer). This ensures consistent branding and fits perfectly within the modern header design.
+- **Adaptive Branding (Logo):** To ensure WCAG-compliant contrast across themes, the app uses multiple logo variants: `/logo_white.png` for dark and primary backgrounds (Admin/Landing Footer), and `/logo_dark_text.png` for light backgrounds (Driver/General). The `Header` component dynamically selects the correct variant based on `effectiveTheme`. All variants maintain a consistent 4:1 aspect ratio and transparent backgrounds.
 - **Standardized Spelling (Chhagalnaiya):** The Bengali spelling for Chhagalnaiya is standardized as "ছাগলনাইয়া" (using 'ছ' and 'য়'). Avoid variations like "চাঁগলনাইয়া" or "ছাগলনাইয়া". This must be consistent across `constants/text.ts` and `app/layout.tsx` metadata.
 
 ## ✨ Premium Animations (Framer Motion)
@@ -119,6 +119,17 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 ## 🗺️ Map & Geolocation
 - **Map Initialization:** The Google Maps instance should be initialized only once per component lifecycle to prevent unwanted resets (e.g., losing the user's selected pickup/drop locations when the language is changed). Track the map instance in state or a ref, and use an early return (`if (map) return;`) inside the initialization `useEffect`. Marker labels and translations should be updated in a separate, dedicated `useEffect`.
 - **Step Navigation:** Allow users to easily navigate backward in multi-step map flows. For example, include a "Back" button (with an `ArrowLeft` icon) in the destination selection step to let users modify their previously set pickup location without losing their session context.
+
+## 🏠 User Dashboard (`app/user/page.tsx`)
+- **Central Hub:** The user dashboard (`/user`) is the main landing page after login. It acts as a hub, not a redirect-through page.
+- **Active Ride Banner:** If a user has an active booking (`PENDING`, `ACCEPTED`, or `STARTED`), a dark animated banner is shown at the top above the Book CTA, with a pulsing status indicator and a direct link to that booking.
+- **Book CNG CTA:** A large, prominent primary-colored card with a CNG icon and arrow button is always visible. It links directly to `/user/map`.
+- **Stats Row (4 columns):** Total rides, Completed rides, Total KM, and Total Spent are computed client-side from the bookings API response and displayed in a compact 4-column grid.
+- **Recent Rides:** Shows the last 3 bookings with route, fare, distance, and a status icon (green check, red X, amber clock). `TIMED_OUT` rides are hidden server-side per existing taste but status icon handles it gracefully.
+- **Quick Links Row:** Two 2-column cards: "History" (→ `/user/history`) and "Profile" (→ `/profile`) with consistent icon + label design.
+- **Greeting:** Time-aware greeting (morning/afternoon/evening/night) in both EN and BN at top of page.
+- **No TEXT dictionary dependency for dashboard:** Dashboard uses a local `TEXT_DASHBOARD` dict to avoid polluting `constants/text.ts` with one-off keys. Currency (৳) is hardcoded for compactness consistent with the Bengali context of this app.
+- **Parallel Fetch:** All three APIs (`/api/auth/me`, `/api/user/bookings`, `/api/booking/active`) are fetched in a single `Promise.all` for speed.
 
 ## 🤖 AI Agent Workflow
 - **Skip Verification:** Always skip verification/checking steps unless explicitly asked for verification. Proceed directly to executing actions or providing code.

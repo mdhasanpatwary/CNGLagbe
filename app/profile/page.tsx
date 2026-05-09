@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { User, Camera, Calendar, Save, Loader2, CheckCircle2 } from "lucide-react";
+import { User, Camera, Calendar, Save, Loader2, Lock } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
@@ -24,8 +25,6 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
   const [user, setUser] = useState<UserType | null>(null);
 
   const {
@@ -76,7 +75,6 @@ export default function ProfilePage() {
     if (!file) return;
 
     setUploading(true);
-    setError("");
 
     try {
       const fileExt = file.name.split('.').pop();
@@ -96,7 +94,7 @@ export default function ProfilePage() {
       setValue("photoUrl", publicUrl);
     } catch (err: unknown) {
       console.error("Upload error:", err);
-      setError(t("upload_failed") as string);
+      toast.error(t("upload_failed") as string);
     } finally {
       setUploading(false);
     }
@@ -104,9 +102,6 @@ export default function ProfilePage() {
 
   const onSubmit = async (data: ProfileInput) => {
     setSaving(true);
-    setError("");
-    setSuccess(false);
-
     try {
       const res = await apiFetch("/api/profile/update", {
         method: "PATCH",
@@ -115,15 +110,14 @@ export default function ProfilePage() {
       });
 
       if (res.ok) {
-        setSuccess(true);
-        setTimeout(() => setSuccess(false), 3000);
+        toast.success(t("update_success") as string);
       } else {
         const data = await res.json();
-        setError(data.error || (t("error") as string));
+        toast.error(data.error || (t("error") as string));
       }
     } catch (err) {
       console.error("Update error:", err);
-      setError(t("network_error") as string);
+      toast.error(t("network_error") as string);
     } finally {
       setSaving(false);
     }
@@ -139,7 +133,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center">
-      <Header 
+      <Header
         role="user"
         theme="light"
         user={user}
@@ -147,8 +141,8 @@ export default function ProfilePage() {
       />
 
       <main className="p-6 w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <PageHeading 
-          title={t("profile")} 
+        <PageHeading
+          title={t("profile")}
           subtitle={t("app_name")}
         />
         <Card className="shadow-2xl shadow-slate-200/50 border-none rounded-3xl overflow-hidden mb-8">
@@ -160,11 +154,11 @@ export default function ProfilePage() {
                 <div className="relative group">
                   <div className="w-32 h-32 rounded-[2.5rem] bg-slate-100 overflow-hidden border-4 border-white shadow-xl relative">
                     {photoUrl ? (
-                      <Image 
-                        src={photoUrl} 
-                        alt="Profile" 
-                        fill 
-                        className="object-cover"
+                      <Image
+                        src={photoUrl}
+                        alt="Profile"
+                        fill
+                        className="object-cover object-top transition-all duration-500"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-300">
@@ -177,7 +171,7 @@ export default function ProfilePage() {
                       </div>
                     )}
                   </div>
-                  
+
                   <input
                     type="file"
                     accept="image/*"
@@ -197,19 +191,6 @@ export default function ProfilePage() {
                 </p>
               </div>
 
-              {error && (
-                <div className="bg-red-50 text-red-500 p-4 rounded-xl text-sm border border-red-100 flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
-                  {error}
-                </div>
-              )}
-
-              {success && (
-                <div className="bg-primary/10 text-primary p-4 rounded-xl text-sm border border-primary/20 flex items-center gap-3 animate-in zoom-in-95">
-                  <CheckCircle2 size={18} />
-                  {t("update_success")}
-                </div>
-              )}
 
               <div className="space-y-6">
                 <FormField
@@ -239,11 +220,26 @@ export default function ProfilePage() {
                     </span>
                   )}
                 </div>
+
+                <div className="space-y-2">
+                  <FormField
+                    label={t("set_password")}
+                    icon={Lock}
+                    type="password"
+                    placeholder="••••••"
+                    {...register("password")}
+                    error={errors.password?.message}
+                  />
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider ml-1">
+                    Leave blank to keep current password
+                  </p>
+                </div>
               </div>
 
-              <AppButton 
-                type="submit" 
-                loading={saving} 
+
+              <AppButton
+                type="submit"
+                loading={saving}
                 className="w-full h-16 text-lg font-black rounded-2xl shadow-xl shadow-primary/20 bg-primary hover:bg-primary-dark text-white"
                 leftIcon={!saving && <Save size={20} />}
               >

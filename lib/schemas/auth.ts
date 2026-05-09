@@ -2,8 +2,11 @@ import { z } from "zod";
 
 export const loginSchema = z.object({
   phone: z.string().min(11, "Phone number must be at least 11 characters").max(14, "Phone number too long"),
-  otp: z.string().min(4, "OTP must be 4 digits").max(6, "OTP too long").optional(),
+  otp: z.string().nullish(),
+  password: z.string().nullish(),
+  newPassword: z.string().nullish(),
 });
+
 
 export type LoginInput = z.infer<typeof loginSchema>;
 
