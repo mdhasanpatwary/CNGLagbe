@@ -9,24 +9,24 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **POI Clicks on Map:** When a user clicks on a Point of Interest (POI) (like a school or mosque), the app must intercept the click (`e.stop()`) to prevent the default Google Maps info window. It should then fetch the actual place name via the Places API and display it in the search input, rather than just showing coordinates.
 - **Reverse Geocoding (No Plus Codes):** The app must filter out `plus_code` types from Google Geocoding API results. We always prioritize human-readable street or area addresses over Plus Codes (e.g., avoiding strings like `4F6Q+MM8, Bangladesh`).
 
-## 🚖 Ride Request & Booking Flow
-- **Request Again Button:** If a ride search times out or fails to find a driver, a "Request Again" button must appear, allowing the user to seamlessly retry the request without re-entering their pickup and destination.
+## 🚖 Booking Request & Booking Flow
+- **Request Again Button:** If a booking search times out or fails to find a driver, a "Request Again" button must appear, allowing the user to seamlessly retry the request without re-entering their pickup and destination.
 - **Address-First Experience:** The booking flow emphasizes human-readable addresses for pickup and drop-off, rather than raw coordinates, across the user map, booking details, and driver dashboard.
-- **Admin Role Booking Access:** Users with the `ADMIN` role are permitted to use user-facing features like booking history and active ride tracking. API routes (e.g., `/api/user/bookings`, `/api/booking/active`) must allow both `USER` and `ADMIN` roles to ensure Admins can test and use the ride flow as regular users.
-- **Hide TIMED_OUT from User History:** Failed rides (`TIMED_OUT`) are retained in the database for analytics but must be explicitly filtered out (`{ status: { not: "TIMED_OUT" } }`) from the user's Ride History page to avoid UI clutter and maintain a premium UX.
+- **Admin Role Booking Access:** Users with the `ADMIN` role are permitted to use user-facing features like booking history and active booking tracking. API routes (e.g., `/api/user/bookings`, `/api/booking/active`) must allow both `USER` and `ADMIN` roles to ensure Admins can test and use the booking flow as regular users.
+- **Hide TIMED_OUT from User History:** Failed bookings (`TIMED_OUT`) are retained in the database for analytics but must be explicitly filtered out (`{ status: { not: "TIMED_OUT" } }`) from the user's Booking History page to avoid UI clutter and maintain a premium UX.
 
 
 ## 🧑‍✈️ Driver Dashboard
 - **Fullscreen Map Overlap:** In the driver panel, when the map is expanded to fullscreen from a ride request modal, it must sit correctly above the page header (ensuring proper z-index and layout management).
 - **Geolocation Error Handling:** Geolocation timeouts and transient errors are handled gracefully. Unnecessary or spammy error notifications are suppressed to keep the driver's UI clean. Always log benign geolocation errors using `console.warn` instead of `console.error` to prevent triggering the Next.js development error overlay, and ensure objects like `GeolocationPositionError` are logged as `err.message` since they otherwise stringify to `{}`.
 - **Profile Image in Header:** The driver's profile image is displayed in the header for a more personalized and premium experience, consistent with the user panel.
-- **No Auto-Open Map Tabs:** When a driver accepts a ride request, the app must **not** automatically open Google Maps in a new tab or window, as this disrupts the UX by pulling the driver away from the main app interface. Driver navigation is handled explicitly via "Navigate" buttons in the Ongoing Ride view.
+- **No Auto-Open Map Tabs:** When a driver accepts a booking request, the app must **not** automatically open Google Maps in a new tab or window, as this disrupts the UX by pulling the driver away from the main app interface. Driver navigation is handled explicitly via "Navigate" buttons in the Ongoing Booking view.
 
 ## 📱 UI/UX & Design Standards
 - **Premium Aesthetics:** The app uses modern web design principles (vibrant colors, smooth micro-animations, proper spacing). It should never look like a basic "minimum viable product".
 - **Visual Hierarchy (Font Sizes):** Strictly limit to **max 3 font sizes** per screen to maintain a clean, high-end mobile experience.
 - **Simple Language:** Use conversational tone and keep labels short (**max 2-3 words**). e.g., use "Cash" instead of "Payment Method".
-- **Ride Visibility:** Always display **Fare, Time, and Distance** for all rides. No essential ride or user data should ever be hidden.
+- **Booking Visibility:** Always display **Fare, Time, and Distance** for all bookings. No essential booking or user data should ever be hidden.
 - **Localization (No Hardcoded Strings):** All UI text must strictly use the central `TEXT` dictionary (`constants/text.ts`) to support English and Bengali seamlessly.
 - **Clear Action Text:** All buttons and actionable elements must have explicit, action-oriented text.
 - **Icon Labels:** Icons must always be accompanied by text labels to assist low-literacy users.
@@ -42,7 +42,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 ## 🏠 Landing Page (Homepage)
 - **Full Landing Page Architecture:** The homepage (`app/page.tsx`) is now a full-length, conversion-optimized landing page — NOT a minimal centered card. It must contain all 11 sections: Hero, Local Trust, How It Works, Why Choose Us, Popular Routes, Features, Service Area, Testimonials, FAQ, Final CTA, and Footer.
 - **Sticky Bottom CTA (Mobile):** A persistent `fixed bottom-0` bar with a prominent "Book Now" button must always be present. This is critical for mobile conversion. The padding-bottom on the footer must account for this bar.
-- **No Call-to-Book:** The system strictly uses app-based booking to ensure proper ride tracking and safety. All "Call to Book" buttons have been removed.
+- **No Call-to-Book:** The system strictly uses app-based booking to ensure proper booking tracking and safety. All "Call to Book" buttons have been removed.
 - **No Driver Login Button:** The driver login button has been removed from the main landing page header to keep the primary landing page strictly user-focused.
 - **Trust Badges in Hero:** The hero section must display badges: "১০০+ লোকাল ড্রাইভার", "নিরাপদ ও যাচাইকৃত", "দ্রুত পিকআপ", "ক্যাশে পেমেন্ট" to build immediate trust.
 - **Animated Driver Count:** An animated green pulsing dot with "১০০+ ড্রাইভার সক্রিয়" must appear at the top of the hero to signal live service.
@@ -122,10 +122,10 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 
 ## 🏠 User Dashboard (`app/user/page.tsx`)
 - **Central Hub:** The user dashboard (`/user`) is the main landing page after login. It acts as a hub, not a redirect-through page.
-- **Active Ride Banner:** If a user has an active booking (`PENDING`, `ACCEPTED`, or `STARTED`), a dark animated banner is shown at the top above the Book CTA, with a pulsing status indicator and a direct link to that booking.
+- **Active Booking Banner:** If a user has an active booking (`PENDING`, `ACCEPTED`, or `STARTED`), a dark animated banner is shown at the top above the Book CTA, with a pulsing status indicator and a direct link to that booking.
 - **Book CNG CTA:** A large, prominent primary-colored card with a CNG icon and arrow button is always visible. It links directly to `/user/map`.
-- **Stats Row (4 columns):** Total rides, Completed rides, Total KM, and Total Spent are computed client-side from the bookings API response and displayed in a compact 4-column grid.
-- **Recent Rides:** Shows the last 3 bookings with route, fare, distance, and a status icon (green check, red X, amber clock). `TIMED_OUT` rides are hidden server-side per existing taste but status icon handles it gracefully.
+- **Stats Row (4 columns):** Total bookings, Completed bookings, Total KM, and Total Spent are computed client-side from the bookings API response and displayed in a compact 4-column grid.
+- **Recent Bookings:** Shows the last 3 bookings with route, fare, distance, and a status icon (green check, red X, amber clock). `TIMED_OUT` bookings are hidden server-side per existing taste but status icon handles it gracefully.
 - **Quick Links Row:** Two 2-column cards: "History" (→ `/user/history`) and "Profile" (→ `/profile`) with consistent icon + label design.
 - **Greeting:** Time-aware greeting (morning/afternoon/evening/night) in both EN and BN at top of page.
 - **No TEXT dictionary dependency for dashboard:** Dashboard uses a local `TEXT_DASHBOARD` dict to avoid polluting `constants/text.ts` with one-off keys. Currency (৳) is hardcoded for compactness consistent with the Bengali context of this app.
@@ -134,3 +134,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 ## 🤖 AI Agent Workflow
 - **Skip Verification:** Always skip verification/checking steps unless explicitly asked for verification. Proceed directly to executing actions or providing code.
 - **Booking Timeout State:** Ensure that when a booking times out (`TIMED_OUT` state), the UI explicitly handles this state alongside the `CANCELLED` state to show the "No Driver Found" message and retry options to the user.
+- **Landing Page UI Polish (2026-05-10):**
+  - **Section backgrounds:** Enhanced with a mix of `mesh-gradient`, `noise-bg`, and `premium-bg-surface` to create a high-end, dynamic flow between sections. Added a subtle `dot-grid-texture` overlay to all sections for visual unity.
+  - **Header Login Button:** Transitioned from a ghost button to a high-contrast outlined variant (`variant="outline"`) for better visibility on all landing page backgrounds.
+  - **Section Spacing:** Increased vertical padding to `py-16 md:py-24` for a more breathable and premium layout.

@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
       // Use transaction to ensure no race conditions where 2 drivers accept the same booking
       const result = await prisma.$transaction(async (tx) => {
-        // 1. Lock the Driver row to prevent this driver from parallel accepting multiple rides
+        // 1. Lock the Driver row to prevent this driver from parallel accepting multiple bookings
         await tx.$queryRaw`SELECT id FROM "Driver" WHERE id = ${driverId} FOR UPDATE`;
 
         const activeBooking = await tx.booking.findFirst({

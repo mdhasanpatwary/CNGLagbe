@@ -132,7 +132,10 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center">
+    <div className="min-h-screen premium-bg-surface flex flex-col items-center relative overflow-hidden">
+      {/* Texture Overlay */}
+      <div className="absolute inset-0 dot-grid-texture opacity-50 pointer-events-none" />
+      
       <Header
         role="user"
         theme="light"

@@ -67,7 +67,7 @@ export function Header({
     primary: "bg-primary text-primary-foreground shadow-md",
     light: "bg-white/70 backdrop-blur-xl border-b border-slate-200/50 text-slate-800 shadow-sm",
     dark: "bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl backdrop-blur-lg bg-opacity-90",
-    transparent: "bg-transparent text-slate-800",
+    transparent: "bg-transparent text-white",
   };
 
   const floatingStyles = isFloating
@@ -89,10 +89,10 @@ export function Header({
 
 
         <div className="flex items-center gap-3">
-          <Link href={isDriver ? "/driver/dashboard" : isAdmin ? "/admin" : user ? "/user" : "/"} className="flex items-center gap-2 group">
+          <Link href={isDriver ? "/driver" : isAdmin ? "/admin" : user ? "/user" : "/"} className="flex items-center gap-2 group">
             <div className={cn("flex items-center group-hover:opacity-80 transition-opacity", title ? "h-7" : "h-9")}>
               <Image
-                src={effectiveTheme === "dark" || effectiveTheme === "primary" ? "/logo_white.png" : "/logo_dark_text.png"}
+                src={effectiveTheme === "dark" || effectiveTheme === "primary" || effectiveTheme === "transparent" ? "/logo_white.png" : "/logo_dark_text.png"}
                 alt="CNGLagbe Logo"
                 width={140}
                 height={36}
@@ -117,11 +117,11 @@ export function Header({
             disabled={isRefreshing}
             className={cn(
               "rounded-xl h-9 px-3 gap-2 font-bold text-base",
-              isAdmin ? "bg-white/5 text-white hover:bg-white/10 border border-white/10" : "text-slate-600"
+               isAdmin || effectiveTheme === "transparent" ? "bg-white/5 text-white hover:bg-white/10 border border-white/10" : "text-slate-600"
             )}
           >
             <RefreshCcw size={16} className={isRefreshing ? "animate-spin" : ""} />
-            <span className="hidden xs:inline">{t("refresh_status")}</span>
+            <span className="inline">{t("refresh_status")}</span>
           </AppButton>
         )}
 
@@ -131,11 +131,11 @@ export function Header({
             onClick={onRecenter}
             className={cn(
               "h-9 px-3 gap-2 font-bold text-base",
-              effectiveTheme === "primary" || effectiveTheme === "dark" ? "text-white hover:bg-white/10" : "text-slate-600 hover:bg-slate-100"
+               effectiveTheme === "primary" || effectiveTheme === "dark" || effectiveTheme === "transparent" ? "text-white hover:bg-white/10" : "text-slate-600 hover:bg-slate-100"
             )}
           >
             <Navigation size={18} />
-            <span className="hidden xs:inline">{t("recenter")}</span>
+            <span className="inline">{t("recenter")}</span>
           </AppButton>
         )}
 
@@ -281,19 +281,19 @@ export function Header({
             </AnimatePresence>
           </div>
         ) : role === "landing" && (
-          <div className="flex gap-2 ml-1">
             <Link href="/login">
-              <AppButton
-                variant="ghost"
+            <AppButton
+                variant="outline"
                 className={cn(
-                  "rounded-full font-bold text-base uppercase h-9 px-3 transition-colors",
-                  effectiveTheme === "primary" || effectiveTheme === "dark" ? "text-white hover:bg-white/10" : "text-slate-800 hover:bg-slate-100"
+                  "rounded-full font-black text-[11px] uppercase h-9 px-6 transition-all duration-300 tracking-wider",
+                  effectiveTheme === "transparent" || effectiveTheme === "primary" || effectiveTheme === "dark"
+                    ? "border-white/40 text-white hover:bg-white hover:text-primary hover:border-white shadow-lg shadow-black/10" 
+                    : "border-primary/30 text-primary hover:bg-primary hover:text-white shadow-sm"
                 )}
               >
                 {t("user_login")}
               </AppButton>
             </Link>
-          </div>
         )}
       </div>
     </header>

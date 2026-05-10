@@ -1,4 +1,4 @@
-import { Booking, RideUiState } from "./types/booking";
+import { Booking, BookingUiState } from "./types/booking";
 import { BOOKING_REQUEST_TIMEOUT_SECONDS } from "@/constants/booking";
 
 /**
@@ -13,7 +13,7 @@ export function getRemainingSeconds(createdAt: string, now: number): number {
 /**
  * Derives the UI state from the booking status and countdown.
  */
-export function getRideUiState(booking: Booking | null, remainingSeconds: number): RideUiState {
+export function getBookingUiState(booking: Booking | null, remainingSeconds: number): BookingUiState {
   if (!booking) return "FINDING_DRIVER";
 
   switch (booking.status) {
@@ -21,8 +21,6 @@ export function getRideUiState(booking: Booking | null, remainingSeconds: number
       return remainingSeconds > 0 ? "FINDING_DRIVER" : "TIMED_OUT";
     case "ACCEPTED":
       return "DRIVER_ASSIGNED";
-    case "STARTED":
-      return "RIDE_STARTED";
     case "COMPLETED":
       return "COMPLETED";
     case "CANCELLED":

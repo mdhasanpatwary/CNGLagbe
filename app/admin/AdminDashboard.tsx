@@ -423,7 +423,7 @@ export default function AdminDashboard() {
                                        <Activity size={24} className="text-slate-200" />
                                     </div>
                                     <div className="text-center">
-                                       <p className="text-xs font-black uppercase tracking-widest text-slate-500 mb-1">{t("no_active_rides_online")}</p>
+                                       <p className="text-xs font-black uppercase tracking-widest text-slate-500 mb-1">{t("no_active_bookings_online")}</p>
                                        <p className="text-[10px] font-bold text-slate-400 uppercase">{onlineDrivers.length} {t("online_drivers")} {t("waiting")}</p>
                                     </div>
                                  </div>
@@ -823,7 +823,7 @@ export default function AdminDashboard() {
                   {stats && (
                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                         <Card className="border-none shadow-sm bg-white p-4 flex flex-col justify-center items-center text-center">
-                           <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">{t("total_rides") || "TOTAL RIDES"}</p>
+                           <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">{t("total_bookings") || "TOTAL BOOKINGS"}</p>
                            <p className="text-2xl font-black text-slate-800 mt-1">{stats.totalBookings || 0}</p>
                         </Card>
                         <Card className="border-none shadow-sm bg-primary/10 p-4 flex flex-col justify-center items-center text-center border-b-2 border-primary">
@@ -874,7 +874,7 @@ export default function AdminDashboard() {
                                        fetchBookings(e.target.value);
                                     }}
                                  >
-                                    <option value="ALL">{t("all") || "ALL RIDES"}</option>
+                                    <option value="ALL">{t("all") || "ALL BOOKINGS"}</option>
                                     <option value="COMPLETED">COMPLETED</option>
                                     <option value="CANCELLED">CANCELLED</option>
                                     <option value="TIMED_OUT">TIMED_OUT</option>

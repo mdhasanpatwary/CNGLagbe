@@ -60,9 +60,12 @@ export default function DriverLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen premium-bg-surface flex flex-col relative overflow-hidden">
+      {/* Texture Overlay */}
+      <div className="absolute inset-0 dot-grid-texture opacity-50 pointer-events-none" />
+      
       <Header role="driver" />
-      <div className="flex-1 flex flex-col justify-center">
+      <div className="flex-1 flex flex-col justify-center relative z-10">
       <div className="max-w-md w-full mx-auto p-6">
         <PageHeading 
           title={t("driver_portal") as string} 

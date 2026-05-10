@@ -1,15 +1,13 @@
 export type BookingStatus = 
   | "PENDING" 
   | "ACCEPTED" 
-  | "STARTED" 
   | "COMPLETED" 
   | "CANCELLED" 
   | "TIMED_OUT";
 
-export type RideUiState = 
+export type BookingUiState = 
   | "FINDING_DRIVER" 
   | "DRIVER_ASSIGNED" 
-  | "RIDE_STARTED" 
   | "COMPLETED" 
   | "CANCELLED"
   | "TIMED_OUT";

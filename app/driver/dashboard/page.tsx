@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Power, MapPin, Navigation, Info, ExternalLink, CheckCircle2, XCircle, Banknote, Clock, AlertTriangle } from "lucide-react";
 import { AppButton } from "@/components/ui/AppButton";
 import { Card, CardContent } from "@/components/ui/card";
@@ -56,7 +57,7 @@ const geoOptions: PositionOptions = {
   maximumAge: 5000,
 };
 
-export default function DriverDashboard() {
+export default function DriverHomePage() {
   const router = useRouter();
   const { t } = useLang();
   const [isOnlineOverride, setIsOnlineOverride] = useState<boolean | null>(null);
@@ -116,10 +117,12 @@ export default function DriverDashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookingId: id })
       });
+      toast.info(t("booking_cancelled") as string);
     } catch (e) {
       console.error(e);
+      toast.error(t("error") as string);
     }
-  }, []);
+  }, [t]);
 
   const handleAccept = useCallback(async (req: Booking) => {
     try {
@@ -132,11 +135,13 @@ export default function DriverDashboard() {
       });
       if (res.ok) {
          setRejectedIds(new Set());
+         toast.success(t("driver_assigned") as string);
       } else {
-         alert(t("error") as string);
+         toast.error(t("error") as string);
       }
     } catch (e) {
       console.error(e);
+      toast.error(t("error") as string);
     }
   }, [t]);
 
@@ -162,20 +167,20 @@ export default function DriverDashboard() {
 
   const driver = syncData?.driver;
   const isApproved = driver?.isApproved ?? true;
-  const stats = syncData?.stats || { todayEarnings: 0, todayRides: 0 };
+  const stats = syncData?.stats || { todayEarnings: 0, todayBookings: 0 };
   const currentBooking = syncData?.currentBooking || null;
 
   useEffect(() => {
     isOnlineRef.current = isOnline;
   }, [isOnline]);
 
-  const handleComplete = useCallback(async (id: string) => {
+  const handleArrived = useCallback(async (id: string) => {
     try {
       // Capture current fare and distance to show in the "Arrived" modal
       const fare = currentBooking?.fare || 0;
       const distance = currentBooking?.distance || 0;
 
-      const res = await apiFetch("/api/driver/complete", {
+      const res = await apiFetch("/api/driver/arrived", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -202,7 +207,9 @@ export default function DriverDashboard() {
     // Listen for forced offline event from CancelModal
     const handleForcedOffline = () => {
       setIsOnlineOverride(false);
-      alert(t("cancel_driver_warning"));
+      toast.warning(t("cancel_driver_warning") as string, {
+        duration: 5000,
+      });
     };
     window.addEventListener("FORCED_OFFLINE", handleForcedOffline);
 
@@ -551,7 +558,7 @@ export default function DriverDashboard() {
               <Card className="border-none bg-white/90 backdrop-blur-xl shadow-xl shadow-slate-200/40 rounded-[2rem] overflow-hidden">
                 <CardContent className="p-5 flex flex-col items-center text-center">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t("today_trips")}</p>
-                  <p className="text-3xl font-black text-primary">{stats.todayRides}</p>
+                  <p className="text-3xl font-black text-primary">{stats.todayBookings}</p>
                 </CardContent>
               </Card>
               <Card className="border-none bg-white/90 backdrop-blur-xl shadow-xl shadow-slate-200/40 rounded-[2rem] overflow-hidden">
@@ -601,7 +608,7 @@ export default function DriverDashboard() {
         </>
         )}
 
-        {/* Ongoing Ride - Prominent & Distinct */}
+        {/* Ongoing Booking - Prominent & Distinct */}
         {currentBooking && (
           <div className="space-y-4 animate-in fade-in zoom-in-95 duration-500">
             <div className="flex items-center justify-between px-2">
@@ -692,7 +699,7 @@ export default function DriverDashboard() {
                   </div>
 
                   <AppButton 
-                    onClick={() => handleComplete(currentBooking.id)} 
+                    onClick={() => handleArrived(currentBooking.id)} 
                     className="w-full h-16 text-lg font-black rounded-2xl shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 text-white"
                     leftIcon={<CheckCircle2 size={24} />}
                   >

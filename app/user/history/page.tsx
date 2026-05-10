@@ -51,22 +51,24 @@ export default function BookingHistoryPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen">
-        <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
-        <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">{t("loading")}</p>
+      <div className="flex flex-col items-center justify-center h-screen premium-bg-surface relative overflow-hidden">
+        <div className="absolute inset-0 dot-grid-texture opacity-50 pointer-events-none" />
+        <Loader2 className="w-10 h-10 animate-spin text-primary mb-4 relative z-10" />
+        <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] relative z-10">{t("loading")}</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50">
+    <div className="flex flex-col min-h-screen premium-bg-surface relative overflow-hidden">
+      <div className="absolute inset-0 dot-grid-texture opacity-50 pointer-events-none" />
       <Header 
         role="user"
         theme="light"
         user={user}
       />
 
-      <main className="flex-1 p-6 max-w-md mx-auto w-full space-y-6">
+      <main className="flex-1 p-6 max-w-md mx-auto w-full space-y-6 relative z-10">
         <PageHeading 
           title={t("booking_history")} 
           subtitle={t("user_portal")}

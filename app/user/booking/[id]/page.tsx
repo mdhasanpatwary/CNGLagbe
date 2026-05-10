@@ -29,9 +29,9 @@ import { PageHeading } from "@/components/ui/PageHeading";
 import { apiFetch } from "@/utils/api";
 import { useLang } from "@/hooks/useLang";
 import { supabase } from "@/lib/supabase";
-import { Booking, RideUiState } from "@/lib/types/booking";
+import { Booking, BookingUiState } from "@/lib/types/booking";
 import { User } from "@/lib/types/user";
-import { getRemainingSeconds, getRideUiState, formatDuration } from "@/lib/booking-utils";
+import { getRemainingSeconds, getBookingUiState, formatDuration } from "@/lib/booking-utils";
 
 export default function UserBookingPage({ params }: { params: Promise<{ id: string }> }) {
   const { t } = useLang();
@@ -106,7 +106,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
     const channel = supabase
       .channel(`booking-${id}`)
       .on("broadcast", { event: "location" }, ({ payload }) => {
-        if (booking.status === "ACCEPTED" || booking.status === "STARTED") {
+        if (booking.status === "ACCEPTED") {
           setDriverLocation(payload);
           if (driverMarker.current) driverMarker.current.position = payload;
         }
@@ -116,11 +116,11 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
     return () => { supabase.removeChannel(channel); };
   }, [booking, fetchBooking, id]);
 
-  // Map init for DRIVER_ASSIGNED / RIDE_STARTED
+  // Map init for DRIVER_ASSIGNED
   useEffect(() => {
     if (!booking || !mapRef.current) return;
-    const uiState = getRideUiState(booking, countdown);
-    if (uiState !== "DRIVER_ASSIGNED" && uiState !== "RIDE_STARTED") return;
+    const uiState = getBookingUiState(booking, countdown);
+    if (uiState !== "DRIVER_ASSIGNED") return;
 
     let cancelled = false;
     const initMap = async () => {
@@ -176,24 +176,25 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
 
   if (!booking) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center bg-slate-50">
-        <div className="relative flex items-center justify-center mb-6">
+      <div className="flex h-screen flex-col items-center justify-center premium-bg-surface relative overflow-hidden">
+        <div className="absolute inset-0 dot-grid-texture opacity-50 pointer-events-none" />
+        <div className="relative flex items-center justify-center mb-6 z-10">
           <div className="absolute w-24 h-24 rounded-full bg-primary/30 pulse-ring" />
           <div className="absolute w-24 h-24 rounded-full bg-primary/20 pulse-ring pulse-ring-delay-1" />
           <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center shadow-lg">
             <Navigation size={24} className="text-white" />
           </div>
         </div>
-        <p className="font-bold text-slate-500">{t("loading")}</p>
+        <p className="font-bold text-slate-500 relative z-10">{t("loading")}</p>
       </div>
     );
   }
 
-  const uiState = getRideUiState(booking, countdown);
+  const uiState = getBookingUiState(booking, countdown);
   const cancelLabelKey: TextKey = uiState === "FINDING_DRIVER" ? "cancel_request" : "cancel_booking";
-  const showCancelAction = uiState === "FINDING_DRIVER" || uiState === "DRIVER_ASSIGNED" || uiState === "RIDE_STARTED";
-  const showMap = false; // Map removed upon ride acceptance as per requirement
-  const showDriverCard = (uiState === "DRIVER_ASSIGNED" || uiState === "RIDE_STARTED" || uiState === "COMPLETED") && Boolean(booking.driver);
+  const showCancelAction = uiState === "FINDING_DRIVER" || uiState === "DRIVER_ASSIGNED";
+  const showMap = false; // Map removed upon booking acceptance as per requirement
+  const showDriverCard = (uiState === "DRIVER_ASSIGNED" || uiState === "COMPLETED") && Boolean(booking.driver);
   const showNewBookingAction = uiState === "COMPLETED" || uiState === "CANCELLED";
 
   const progressPct = uiState === "FINDING_DRIVER"
@@ -209,14 +210,13 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
   })();
 
   // Status config
-  const badgeConfig: Record<RideUiState, { tone: string; label: TextKey }> = {
+  const badgeConfig: Record<BookingUiState, { tone: string; label: TextKey }> = {
     FINDING_DRIVER: { tone: "bg-amber-100 text-amber-700", label: "finding_driver" },
     DRIVER_ASSIGNED: { tone: "bg-blue-100 text-blue-700", label: "driver_assigned" },
-    RIDE_STARTED: { tone: "bg-blue-100 text-blue-700", label: "ride_started" },
     COMPLETED: { tone: "bg-primary/10 text-primary-dark", label: "booking_done" },
     CANCELLED: {
       tone: "bg-red-100 text-red-700",
-      label: booking.status === "TIMED_OUT" ? "no_driver" : "ride_cancelled",
+      label: booking.status === "TIMED_OUT" ? "no_driver" : "booking_cancelled",
     },
     TIMED_OUT: {
       tone: "bg-red-100 text-red-700",
@@ -254,7 +254,8 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
+    <div className="flex min-h-screen flex-col premium-bg-surface relative overflow-hidden">
+      <div className="absolute inset-0 dot-grid-texture opacity-50 pointer-events-none" />
       <Header
         role="user"
         theme="light"
@@ -268,7 +269,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
         }
       />
 
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 p-4">
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 p-4 relative z-10">
         <PageHeading
           title={t("booking_details") as string}
           subtitle={t("user_portal") as string}
@@ -321,8 +322,8 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
           </div>
         )}
 
-        {/* ── DRIVER ASSIGNED / RIDE STARTED STATE ─────────────────────── */}
-        {(uiState === "DRIVER_ASSIGNED" || uiState === "RIDE_STARTED") && (
+        {/* ── DRIVER ASSIGNED STATE ─────────────────────── */}
+        {uiState === "DRIVER_ASSIGNED" && (
           <>
             {/* Map */}
             {showMap && (
@@ -338,10 +339,10 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                 <div className="bg-slate-900 px-5 py-4 flex justify-between items-center border-b border-white/5">
                   <div className="flex flex-col">
                     <p className="text-[10px] font-black uppercase text-primary tracking-widest">
-                      {uiState === "DRIVER_ASSIGNED" ? t("driver_assigned") : t("ride_started")}
+                      {t("driver_assigned")}
                     </p>
                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">
-                      {uiState === "DRIVER_ASSIGNED" ? t("wait_driver") : t("ride_started_desc")}
+                      {t("wait_driver")}
                     </p>
                   </div>
                   {booking.driver.vehicleNumber && (
@@ -356,7 +357,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                 </div>
 
                 <div className="p-5">
-                  {/* Driver Arriving Animation (Only when assigned) */}
+                  {/* Driver Arriving Animation */}
                   {uiState === "DRIVER_ASSIGNED" && (
                     <div className="w-full relative bg-primary/5 rounded-2xl overflow-hidden mb-6 p-4 border border-primary/10">
                       <div className="flex justify-between items-center mb-6">
@@ -535,10 +536,10 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                 <XCircle size={44} className="text-red-400" />
               </div>
               <h2 className="text-xl font-black text-slate-900 mb-1">
-                {t(booking.status === "TIMED_OUT" || uiState === "TIMED_OUT" ? "no_driver" : "ride_cancelled")}
+                {t(booking.status === "TIMED_OUT" || uiState === "TIMED_OUT" ? "no_driver" : "booking_cancelled")}
               </h2>
               <p className="text-sm font-medium text-slate-500 text-center">
-                {t(booking.status === "TIMED_OUT" || uiState === "TIMED_OUT" ? "no_driver_desc" : "ride_cancelled_desc")}
+                {t(booking.status === "TIMED_OUT" || uiState === "TIMED_OUT" ? "no_driver_desc" : "booking_cancelled_desc")}
               </p>
 
               {(booking.status === "TIMED_OUT" || uiState === "TIMED_OUT") && (

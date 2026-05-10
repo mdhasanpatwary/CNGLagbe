@@ -240,7 +240,7 @@ body {
 .animate-gradient-x {
   animation: gradient-x 6s ease infinite;
 }
-/* ─── Premium Textures ────────────────────────────────────────────── */
+/* ─── Premium Textures & Surfaces ────────────────────────────────────────── */
 .noise-bg {
   position: relative;
   isolation: isolate;
@@ -252,7 +252,7 @@ body {
   inset: 0;
   width: 100%;
   height: 100%;
-  opacity: 0.04;
+  opacity: 0.05;
   z-index: -1;
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
@@ -261,9 +261,71 @@ body {
 .mesh-gradient {
   background-color: #ffffff;
   background-image: 
-    radial-gradient(at 0% 0%, rgba(22, 163, 74, 0.05) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(22, 163, 74, 0.05) 0px, transparent 50%),
-    radial-gradient(at 50% 100%, rgba(22, 163, 74, 0.03) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(22, 163, 74, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(34, 197, 94, 0.05) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(21, 128, 61, 0.04) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(187, 247, 208, 0.1) 0px, transparent 50%);
+}
+
+.premium-bg-surface {
+  background-color: #f8fafc; /* slate-50 */
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(5, 150, 105, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(22, 163, 74, 0.02) 0%, transparent 60%);
+}
+
+.dot-grid-texture {
+  background-image: radial-gradient(circle, rgba(22, 163, 74, 0.12) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.hero-mesh-gradient {
+  background-color: #020617; /* slate-950 */
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(22, 163, 74, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(34, 197, 94, 0.1) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(21, 128, 61, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(22, 163, 74, 0.05) 0px, transparent 50%);
+}
+
+.faint-grain {
+  position: relative;
+}
+
+.faint-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+.glass-morphism {
+  @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-xl;
+}
+
+.glass-morphism-dark {
+  @apply bg-slate-900/70 backdrop-blur-xl border border-white/10 shadow-2xl;
+}
+
+.premium-card-shadow {
+  box-shadow: 
+    0 10px 25px -5px rgba(0, 0, 0, 0.05),
+    0 8px 10px -6px rgba(0, 0, 0, 0.05),
+    0 0 0 1px rgba(0, 0, 0, 0.01);
+}
+
+.premium-card-shadow-hover {
+  @apply transition-shadow duration-300;
+}
+
+.premium-card-shadow-hover:hover {
+  box-shadow: 
+    0 20px 25px -5px rgba(22, 163, 74, 0.1),
+    0 10px 10px -6px rgba(22, 163, 74, 0.05),
+    0 0 0 1px rgba(22, 163, 74, 0.05);
 }
 
 /* ─── Driving Animation ─────────────────────────────────────────────────── */

@@ -8,6 +8,18 @@ Focus heavily on modern frontend visuals, responsive UI/UX, clean layouts, spaci
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 
+## Core Identity & Agent Rules (MANDATORY)
+Refer to [IDENTITY.md](file:///Users/patwary/Projects/CNGLagbe/IDENTITY.md) for the full CNGLagbe identity, operational logic, and agent behavioral rules. 
+
+### Agent Behavioral Rules
+1. **Evaluate Features**: Before implementing any feature, ask: "Does this feature shift CNGLagbe toward becoming a full ride-sharing platform?"
+2. **Warn User**: If the answer is YES, you MUST warn the user and explain the conflict.
+3. **Mandatory Reminder**: If a request falls outside the approved identity, respond with the following reminder:
+   > **Reminder:**
+   > According to the CNGLagbe core ruleset, the platform is positioned as an ‘On-time CNG Booking Service’ operating as a lightweight dispatch and availability network.
+   > Platform responsibility ends once the driver successfully reaches the pickup location.
+   > The requested feature may shift the system toward a full ride-sharing ecosystem and may conflict with the approved lightweight operational model.
+
 ## UI/UX Rules (MANDATORY)
 Refer to [/docs/ui-rules.md](file:///Users/patwary/Projects/CNGLagbe/docs/ui-rules.md) for full compliance. Key rules:
 1. **Max 3 font sizes** per screen.
@@ -19,6 +31,7 @@ Refer to [/docs/ui-rules.md](file:///Users/patwary/Projects/CNGLagbe/docs/ui-rul
 7. **Consistent Spacing**: Use design tokens; no ad-hoc margins.
 10. **Icon Labels**: All icons must have accompanying text labels for low literacy users.
 11. **Enforce Checklist**: Before adding any UI, verify against the checklist in `/docs/ui-rules.md`.
+12. **On-time Identity**: Ensure all UI reinforces the "On-time CNG Booking Service" identity.
 
 ## Form Validation & State Management
 1. **Schemas First**: All forms MUST have a Zod schema defined in `lib/schemas/`.

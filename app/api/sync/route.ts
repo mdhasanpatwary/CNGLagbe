@@ -171,7 +171,7 @@ export async function GET() {
       responseData.driver = driver;
       responseData.stats = {
         todayEarnings: stats._sum.fare || 0,
-        todayRides: stats._count.id || 0,
+        todayBookings: stats._count.id || 0,
       };
       responseData.currentBooking = currentBooking;
       responseData.requests = requests;

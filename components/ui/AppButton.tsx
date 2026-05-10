@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { useLang } from "@/hooks/useLang";
 
 interface AppButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost";
+  variant?: "primary" | "secondary" | "ghost" | "outline";
   fullWidth?: boolean;
   loading?: boolean;
   loadingTextKey?: TextKey;
@@ -37,6 +37,7 @@ export function AppButton({
     primary: "bg-primary text-white hover:bg-primary/90",
     secondary: "bg-gray-100 text-gray-800 hover:bg-gray-200",
     ghost: "bg-transparent text-primary hover:bg-primary/10",
+    outline: "bg-transparent border-2 border-primary text-primary hover:bg-primary/5",
   };
 
   return (

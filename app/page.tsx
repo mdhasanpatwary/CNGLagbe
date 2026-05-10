@@ -12,21 +12,78 @@ import {
 import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence, useScroll, useSpring, useTransform, useMotionValue } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useSpring, useTransform, useMotionValue, useMotionTemplate } from "framer-motion";
 import { Header } from "@/components/layout/Header";
 import { User } from "@/lib/types/user";
 
 
 // ─── Section wrapper ──────────────────────────────────────────────────────────
-function Section({ id, className, children, noPadding, style }: { id?: string; className?: string; children: React.ReactNode; noPadding?: boolean; style?: React.CSSProperties }) {
+function Section({ id, className, children, noPadding, style, variant = "default" }: { 
+  id?: string; 
+  className?: string; 
+  children: React.ReactNode; 
+  noPadding?: boolean; 
+  style?: React.CSSProperties;
+  variant?: "default" | "mesh" | "premium" | "white" | "slate" | "glass" | "dark" | "primary" | "subtle";
+}) {
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const handleMouseMove = ({ clientX, clientY, currentTarget }: React.MouseEvent) => {
+    const { left, top } = currentTarget.getBoundingClientRect();
+    mouseX.set(clientX - left);
+    mouseY.set(clientY - top);
+  };
+
+  const variantClasses = {
+    default: "bg-slate-50",
+    mesh: "mesh-gradient noise-bg",
+    premium: "premium-bg-surface noise-bg",
+    white: "bg-white",
+    slate: "bg-slate-50 dot-grid-texture",
+    glass: "glass-morphism",
+    dark: "bg-slate-950 text-white noise-bg",
+    primary: "bg-gradient-to-br from-primary to-primary-dark text-white noise-bg",
+    subtle: "bg-slate-50/50 backdrop-blur-sm",
+  };
+
   return (
-    <section id={id} className={cn("px-4 py-16 md:py-20 noise-bg", className)} style={style}>
+    <section 
+      id={id} 
+      onMouseMove={handleMouseMove}
+      className={cn("px-4 py-16 md:py-24 relative overflow-hidden group/section", variantClasses[variant], className)} 
+      style={style}
+    >
+      {/* Spotlight Effect */}
+      <motion.div
+        className="pointer-events-none absolute -inset-px opacity-0 transition duration-300 group-hover/section:opacity-100 z-0"
+        style={{
+          background: useMotionTemplate`
+            radial-gradient(
+              650px circle at ${mouseX}px ${mouseY}px,
+              rgba(22, 163, 74, ${variant === "dark" || variant === "primary" ? "0.1" : "0.05"}),
+              transparent 80%
+            )
+          `,
+        }}
+      />
+
+      {/* Universal texture overlay */}
+      <div className={cn(
+        "absolute inset-0 pointer-events-none opacity-[0.03] dot-grid-texture",
+        variant === "dark" || variant === "primary" ? "opacity-[0.05] invert" : ""
+      )} />
+      
+      {/* Subtle top divider for certain variants */}
+      {(variant === "white" || variant === "slate") && (
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent opacity-50" />
+      )}
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.1 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className={cn("max-w-[1200px] mx-auto w-[92%] md:w-full", noPadding && "px-0")}
+        viewport={{ once: true, amount: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className={cn("max-w-[1200px] mx-auto w-[92%] md:w-full relative z-10", noPadding && "px-0")}
       >
         {children}
       </motion.div>
@@ -101,13 +158,13 @@ function Magnetic({ children }: { children: React.ReactNode }) {
 function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-      whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      viewport={{ once: true }}
+      initial={{ opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0 }}
       transition={{ 
-        duration: 0.8, 
+        duration: 0.5, 
         delay, 
-        ease: [0.2, 0.65, 0.3, 0.9] 
+        ease: "easeOut" 
       }}
     >
       {children}
@@ -159,7 +216,7 @@ function ReviewCard({ name, location, text }: { name: string; location: string; 
   return (
     <Tilt className="h-full">
       <motion.div 
-        className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center gap-4 hover:shadow-md transition-all duration-200 min-h-[260px] h-full"
+        className="bg-white rounded-3xl p-6 premium-card-shadow-hover border border-slate-100 flex flex-col items-center text-center gap-4 min-h-[260px] h-full"
       >
         <div className="flex gap-1">
           {[...Array(5)].map((_, i) => (
@@ -173,7 +230,7 @@ function ReviewCard({ name, location, text }: { name: string; location: string; 
           </div>
           <div>
             <p className="text-sm font-semibold text-slate-900">{name}</p>
-            <p className="text-xs text-slate-500 font-normal tracking-wide uppercase">{location}</p>
+            <p className="text-xs text-slate-600 font-medium tracking-wide uppercase">{location}</p>
           </div>
         </div>
       </motion.div>
@@ -228,9 +285,14 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
 }
 
 // ─── Trust badge ──────────────────────────────────────────────────────────────
-function TrustBadge({ icon, label }: { icon: React.ReactNode; label: string }) {
+function TrustBadge({ icon, label, variant = "default" }: { icon: React.ReactNode; label: string; variant?: "default" | "glass" }) {
+  const variantClasses = {
+    default: "bg-white text-slate-700 border-slate-200 shadow-sm hover:border-primary/30",
+    glass: "bg-white/10 backdrop-blur-md text-white border-white/20 shadow-xl hover:bg-white/20"
+  };
+
   return (
-    <div className="flex items-center gap-1.5 bg-white text-slate-700 px-4 py-2 rounded-full text-sm font-semibold border border-slate-200 shadow-sm transition-all duration-200 hover:border-primary/30">
+    <div className={cn("flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold border transition-all duration-200", variantClasses[variant])}>
       {icon}
       <span>{label}</span>
     </div>
@@ -263,7 +325,7 @@ function FeatureCard({ icon, title, sub }: { icon: React.ReactNode; title: strin
   return (
     <Tilt>
       <motion.div 
-        className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm flex flex-col items-center text-center gap-4 hover:shadow-md transition-all duration-200 focus-within:ring-2 focus-within:ring-primary/30 h-full"
+        className="bg-white border border-gray-100 rounded-xl p-6 premium-card-shadow-hover flex flex-col items-center text-center gap-4 focus-within:ring-2 focus-within:ring-primary/30 h-full"
       >
         <motion.div 
           initial={{ scale: 0.8, opacity: 0 }}
@@ -276,7 +338,7 @@ function FeatureCard({ icon, title, sub }: { icon: React.ReactNode; title: strin
         </motion.div>
         <div>
           <h3 className="font-bold text-slate-900 text-base mb-2">{title}</h3>
-          <p className="text-sm text-slate-500 leading-relaxed font-bn font-normal">{sub}</p>
+          <p className="text-sm text-slate-600 leading-relaxed font-bn font-normal">{sub}</p>
         </div>
       </motion.div>
     </Tilt>
@@ -308,7 +370,7 @@ function AppDownloadCard({ title, type, comingSoon }: { title: string; type: "us
 
       <div>
         <h3 className="text-xl font-bold text-white mb-2 font-bn tracking-tight">{title}</h3>
-        <p className="text-white/60 text-sm font-bn font-normal">{type === "user" ? "For daily riders" : "For our partners"}</p>
+        <p className="text-white/60 text-sm font-bn font-normal">{type === "user" ? t("for_daily_bookings") : t("for_partners")}</p>
       </div>
 
       <div className="flex flex-col gap-3 w-full">
@@ -350,16 +412,6 @@ export default function LandingPage() {
       }
     });
   }, [scrollYProgress]);
-
-  // Mouse Spotlight Effect
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  const handleMouseMove = ({ clientX, clientY, currentTarget }: React.MouseEvent) => {
-    const { left, top } = currentTarget.getBoundingClientRect();
-    mouseX.set(clientX - left);
-    mouseY.set(clientY - top);
-  };
 
   // Parallax for Hero
   const y1 = useTransform(scrollYProgress, [0, 1], [0, -200]);
@@ -448,70 +500,50 @@ export default function LandingPage() {
         />
 
         {/* ── 1. HERO ──────────────────────────────────────────────────────── */}
-        <section
+        <Section
           id="hero"
-          onMouseMove={handleMouseMove}
-          className="relative overflow-hidden pt-20 pb-24 md:pt-32 md:pb-40 group/hero"
-          style={{
-            background: "radial-gradient(at 0% 0%, rgba(22,163,74,0.1) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(22,163,74,0.07) 0px, transparent 50%), radial-gradient(at 50% 100%, rgba(22,163,74,0.04) 0px, transparent 50%), #F9FAFB",
-          }}
+          variant="dark"
+          className="hero-mesh-gradient pt-24 pb-32 md:pt-40 md:pb-52"
+          noPadding
         >
-          {/* Dot grid texture overlay */}
-          <div className="pointer-events-none absolute inset-0 z-0" style={{ backgroundImage: "radial-gradient(circle, rgba(22,163,74,0.12) 1px, transparent 1px)", backgroundSize: "28px 28px", opacity: 0.45 }} />
-          {/* Spotlight Glow */}
-          <motion.div
-            className="pointer-events-none absolute -inset-px opacity-0 group-hover/hero:opacity-100 transition duration-300 z-0"
-            style={{
-              background: useTransform(
-                [mouseX, mouseY],
-                ([x, y]) => `radial-gradient(600px circle at ${x}px ${y}px, rgba(16, 185, 129, 0.06), transparent 80%)`
-              ),
-            }}
-          />
-
-          {/* Background decorative elements with Parallax */}
+          {/* Parallax decorative elements */}
           <motion.div 
             style={{ y: y1 }}
             className="absolute top-0 right-0 w-1/3 h-full bg-primary/5 -skew-x-12 transform translate-x-1/2 pointer-events-none z-0" 
           />
           <motion.div 
             style={{ y: y2, rotate }}
-            className="absolute -bottom-24 left-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none opacity-50 z-0" 
+            className="absolute -bottom-24 left-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none opacity-20 z-0" 
           />
 
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="max-w-[1200px] mx-auto px-4 relative z-10 flex flex-col items-center text-center"
-          >
-            {/* Driver count badge - ABOVE headline */}
+          <div className="flex flex-col items-center text-center relative z-10">
+            {/* Driver count badge */}
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="inline-flex items-center gap-2 bg-white shadow-sm border border-slate-100 rounded-full px-4 py-2 mb-8"
+              className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/10 rounded-full px-4 py-2 mb-8 shadow-xl"
             >
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
               </span>
-              <span className="text-sm font-semibold text-slate-600 uppercase tracking-widest">{t("trust_drivers_active")}</span>
+              <span className="text-[10px] md:text-xs font-bold text-white uppercase tracking-[0.2em]">{t("trust_drivers_active")}</span>
             </motion.div>
 
             <motion.h1 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
-              className="text-4xl md:text-6xl font-extrabold text-slate-900 leading-[1.1] mb-6 font-bn max-w-4xl tracking-tight"
+              className="text-4xl md:text-7xl font-extrabold text-white leading-[1.1] mb-6 font-bn max-w-4xl tracking-tight"
             >
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-primary/80 to-slate-900 bg-[length:200%_auto] animate-gradient-x">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-primary to-white bg-[length:200%_auto] animate-gradient-x">
                 {t("hero_headline")}
               </span>
             </motion.h1>
             
             <Reveal delay={0.8}>
-              <p className="text-slate-600 text-base font-normal mb-10 font-bn max-w-2xl leading-relaxed">
+              <p className="text-white/70 text-base md:text-lg font-normal mb-10 font-bn max-w-2xl leading-relaxed">
                 {t("hero_sub")}
               </p>
             </Reveal>
@@ -525,7 +557,7 @@ export default function LandingPage() {
               <Magnetic>
                 <AppButton
                   onClick={handleBookNow}
-                  className="w-full h-16 px-8 py-4 text-base rounded-2xl bg-primary text-white font-bold shadow-xl shadow-primary/20 hover:shadow-2xl transition-all duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none"
+                  className="w-full h-16 px-8 py-4 text-lg rounded-2xl bg-primary text-white font-black shadow-2xl shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none"
                   leftIcon={<MapPin className="w-6 h-6" />}
                 >
                   {t("hero_book_now")}
@@ -538,18 +570,18 @@ export default function LandingPage() {
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              className="flex flex-wrap justify-center gap-3 mt-10"
+              className="flex flex-wrap justify-center gap-3 mt-12"
             >
-              <motion.div variants={itemVariants}><TrustBadge icon={<Star className="w-4 h-4 fill-amber-400 text-amber-400" />} label={t("hero_badge_drivers")} /></motion.div>
-              <motion.div variants={itemVariants}><TrustBadge icon={<BadgeCheck className="w-4 h-4 text-primary" />} label={t("hero_badge_safe")} /></motion.div>
-              <motion.div variants={itemVariants}><TrustBadge icon={<BadgeCheck className="w-4 h-4 text-primary" />} label={t("hero_badge_fast")} /></motion.div>
-              <motion.div variants={itemVariants}><TrustBadge icon={<Banknote className="w-4 h-4 text-primary" />} label={t("hero_cash_note")} /></motion.div>
+              <motion.div variants={itemVariants}><TrustBadge variant="glass" icon={<Star className="w-4 h-4 fill-amber-400 text-amber-400" />} label={t("hero_badge_drivers")} /></motion.div>
+              <motion.div variants={itemVariants}><TrustBadge variant="glass" icon={<BadgeCheck className="w-4 h-4 text-primary" />} label={t("hero_badge_safe")} /></motion.div>
+              <motion.div variants={itemVariants}><TrustBadge variant="glass" icon={<BadgeCheck className="w-4 h-4 text-primary" />} label={t("hero_badge_fast")} /></motion.div>
+              <motion.div variants={itemVariants}><TrustBadge variant="glass" icon={<Banknote className="w-4 h-4 text-primary" />} label={t("hero_cash_note")} /></motion.div>
             </motion.div>
-          </motion.div>
-        </section>
+          </div>
+        </Section>
 
         {/* ── 2. LOCAL TRUST ───────────────────────────────────────────────── */}
-        <Section id="trust" className="bg-gradient-to-b from-white via-emerald-50/20 to-slate-50">
+        <Section id="trust" variant="white" className="bg-gradient-to-b from-white via-primary/[0.02] to-slate-50/50">
           <SectionHeading title={t("trust_title")} />
           <motion.div 
             variants={containerVariants}
@@ -563,7 +595,7 @@ export default function LandingPage() {
               { icon: <Route className="w-6 h-6" />, text: t("trust_familiar_roads") },
               { icon: <ShieldCheck className="w-6 h-6" />, text: t("trust_reliable") },
             ].map((item, i) => (
-              <motion.div key={i} variants={itemVariants} className="flex flex-col items-center text-center gap-5 bg-white rounded-3xl p-8 border border-gray-100 hover:shadow-md hover:border-primary/20 transition-all duration-200">
+              <motion.div key={i} variants={itemVariants} className="flex flex-col items-center text-center gap-5 bg-white rounded-3xl p-8 border border-gray-100 premium-card-shadow-hover hover:border-primary/20 transition-all duration-200">
                 <div className="bg-primary text-white p-4 rounded-2xl shadow-lg shadow-primary/20 shrink-0 w-14 h-14 flex items-center justify-center">
                   {item.icon}
                 </div>
@@ -579,7 +611,7 @@ export default function LandingPage() {
         </Section>
 
         {/* ── 3. HOW IT WORKS ──────────────────────────────────────────────── */}
-        <Section id="how-it-works" className="relative mesh-gradient">
+        <Section id="how-it-works" variant="mesh" className="border-y border-slate-100/50">
           <SectionHeading title={t("how_title")} />
           <motion.div 
             variants={containerVariants}
@@ -612,9 +644,9 @@ export default function LandingPage() {
             </div>
 
             {[
-              { icon: <MapPin className="w-6 h-6" />, step: "১", title: t("how_step1"), sub: t("how_step1_sub") },
-              { icon: <Banknote className="w-6 h-6" />, step: "২", title: t("how_step2"), sub: t("how_step2_sub") },
-              { icon: <Navigation className="w-6 h-6" />, step: "৩", title: t("how_step3"), sub: t("how_step3_sub") },
+              { icon: <MapPin className="w-6 h-6" />, step: t("step_1"), title: t("how_step1"), sub: t("how_step1_sub") },
+              { icon: <Banknote className="w-6 h-6" />, step: t("step_2"), title: t("how_step2"), sub: t("how_step2_sub") },
+              { icon: <Navigation className="w-6 h-6" />, step: t("step_3"), title: t("how_step3"), sub: t("how_step3_sub") },
             ].map((item, i) => (
               <motion.div 
                 key={i} 
@@ -632,14 +664,14 @@ export default function LandingPage() {
                   {item.icon}
                 </div>
                 <h3 className="font-bold text-slate-900 text-xl mb-2 font-bn">{item.title}</h3>
-                <p className="text-sm text-slate-500 mt-1 font-bn leading-relaxed max-w-[200px] font-normal">{item.sub}</p>
+                <p className="text-sm text-slate-600 mt-1 font-bn leading-relaxed max-w-[200px] font-normal">{item.sub}</p>
               </motion.div>
             ))}
           </motion.div>
         </Section>
 
         {/* ── 4. WHY CHOOSE US ──────────────────────────────────────────────── */}
-        <Section id="why-us" className="bg-gradient-to-br from-slate-50 via-white to-emerald-50/30">
+        <Section id="why-us" variant="slate" className="bg-gradient-to-b from-slate-50 to-white/80">
           <SectionHeading title={t("why_title")} />
           <motion.div 
             variants={containerVariants}
@@ -654,7 +686,7 @@ export default function LandingPage() {
               { icon: <Users className="w-8 h-8" />, text: t("why_drivers") },
               { icon: <Star className="w-8 h-8" />, text: t("why_simple") },
             ].map((item, i) => (
-              <motion.div key={i} variants={itemVariants} className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center gap-4 hover:shadow-md transition-all duration-200 focus-within:ring-2 focus-within:ring-primary/20">
+              <motion.div key={i} variants={itemVariants} className="bg-white rounded-xl p-6 premium-card-shadow-hover border border-slate-100 flex flex-col items-center text-center gap-4 focus-within:ring-2 focus-within:ring-primary/20">
                 <div className="bg-primary/10 p-4 rounded-2xl text-primary shadow-sm">
                   {item.icon}
                 </div>
@@ -665,7 +697,7 @@ export default function LandingPage() {
         </Section>
 
         {/* ── 5. POPULAR ROUTES ────────────────────────────────────────────── */}
-        <Section id="popular-routes" className="bg-gradient-to-b from-white via-green-50/25 to-slate-50">
+        <Section id="popular-routes" variant="white" className="bg-gradient-to-b from-white via-primary/[0.02] to-slate-50/50">
           <SectionHeading title={t("routes_title")} />
           <motion.div 
             variants={containerVariants}
@@ -682,7 +714,7 @@ export default function LandingPage() {
         </Section>
 
         {/* ── 6. FEATURES ──────────────────────────────────────────────────── */}
-        <Section id="features" className="bg-gradient-to-br from-slate-50 via-white to-emerald-50/20">
+        <Section id="features" variant="mesh">
           <SectionHeading title={t("feat_title")} />
           <motion.div 
             variants={containerVariants}
@@ -699,7 +731,7 @@ export default function LandingPage() {
         </Section>
 
         {/* ── 7. SERVICE AREA ──────────────────────────────────────────────── */}
-        <Section id="service-area" className="bg-slate-900 rounded-none overflow-hidden relative">
+        <Section id="service-area" variant="dark" className="border-y border-white/5">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/5 blur-[100px] pointer-events-none" />
 
@@ -726,7 +758,7 @@ export default function LandingPage() {
             </motion.div>
             {/* SEO keywords — visible but subtle */}
             <motion.div variants={itemVariants} className="mt-12 flex flex-wrap justify-center gap-x-4 gap-y-2 opacity-60">
-              {["CNG booking", "Chhagalnaiya", "local transport", "fixed fare", "auto rickshaw"].map((tag, i) => (
+              {[t("tag_cng_booking"), t("tag_chhagalnaiya"), t("tag_local_transport"), t("tag_fixed_fare"), t("tag_auto_rickshaw")].map((tag, i) => (
                 <span key={i} className="text-sm text-white uppercase tracking-[0.2em]">{tag}</span>
               ))}
             </motion.div>
@@ -734,7 +766,7 @@ export default function LandingPage() {
         </Section>
 
         {/* ── 8. TESTIMONIALS ──────────────────────────────────────────────── */}
-        <Section id="reviews" className="bg-gradient-to-b from-slate-50 via-white to-green-50/30">
+        <Section id="reviews" variant="premium">
           <SectionHeading title={t("reviews_title")} />
           <motion.div 
             variants={containerVariants}
@@ -752,12 +784,10 @@ export default function LandingPage() {
         </Section>
 
         {/* ── 9. DOWNLOAD APP ──────────────────────────────────────────────── */}
-        <section id="download" className="relative py-24 md:py-32 overflow-hidden bg-slate-950">
-          {/* Layered gradient background */}
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(22,163,74,0.18),transparent_55%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(99,102,241,0.12),transparent_55%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(22,163,74,0.05),transparent_70%)]" />
+        <Section id="download" variant="dark" className="border-y border-white/5">
+          <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(22,163,74,0.15),transparent_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(99,102,241,0.1),transparent_60%)]" />
           </div>
 
           <motion.div 
@@ -765,7 +795,7 @@ export default function LandingPage() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.1 }}
-            className="max-w-[1200px] mx-auto px-4 relative z-10"
+            className="relative z-10"
           >
             {/* Header */}
             <div className="text-center mb-16 md:mb-20">
@@ -788,14 +818,14 @@ export default function LandingPage() {
             </div>
 
             {/* Decorative bottom glow */}
-            <div className="mt-16 flex justify-center pointer-events-none" aria-hidden>
-              <div className="w-64 h-1 rounded-full bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+            <div className="mt-16 flex justify-center pointer-events-none" aria-hidden="true">
+              <div className="w-64 h-1 rounded-full bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
             </div>
           </motion.div>
-        </section>
+        </Section>
 
         {/* ── 10. FAQ ───────────────────────────────────────────────────────── */}
-        <Section id="faq" className="bg-gradient-to-b from-white via-slate-50/80 to-emerald-50/20">
+        <Section id="faq" variant="premium" className="border-t border-slate-100">
           <SectionHeading title={t("faq_title")} />
           <motion.div 
             variants={containerVariants}
@@ -813,17 +843,12 @@ export default function LandingPage() {
         </Section>
 
         {/* ── 10. FINAL CTA ────────────────────────────────────────────────── */}
-        <section id="final-cta" className="relative bg-primary py-20 md:py-28 overflow-hidden text-center text-white">
+        <Section id="final-cta" variant="primary" className="text-center">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent)] pointer-events-none" />
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.5 }}
-            className="max-w-[1200px] mx-auto px-4 relative z-10"
-          >
+          <div className="relative z-10">
             <motion.div variants={itemVariants} className="bg-white/20 w-14 h-14 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl backdrop-blur-md border border-white/30 rotate-12">
               <Navigation className="w-8 h-8 text-white -rotate-12" />
+              <span className="sr-only">{t("app_name")} {t("hero_book_now")}</span>
             </motion.div>
             <motion.h2 variants={itemVariants} className="text-4xl font-extrabold font-bn mb-6 tracking-tight leading-tight">{t("final_cta_title")}</motion.h2>
             <motion.p variants={itemVariants} className="text-white/80 text-base font-normal mb-12 font-bn max-w-xl mx-auto leading-relaxed">{t("final_cta_sub")}</motion.p>
@@ -838,8 +863,8 @@ export default function LandingPage() {
                 </AppButton>
               </Magnetic>
             </motion.div>
-          </motion.div>
-        </section>
+          </div>
+        </Section>
 
         {/* ── 11. FOOTER ───────────────────────────────────────────────────── */}
         <footer id="footer" className="bg-slate-900 text-slate-300 px-4 pt-12 pb-28 border-t border-slate-800">

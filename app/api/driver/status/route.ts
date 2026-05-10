@@ -38,7 +38,7 @@ export async function GET() {
       driver,
       stats: {
         todayEarnings: stats._sum.fare || 0,
-        todayRides: stats._count.id || 0,
+        todayBookings: stats._count.id || 0,
       },
     });
   } catch {

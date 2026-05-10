@@ -3,7 +3,7 @@ import { Booking } from "./booking";
 
 export interface DriverStats {
   todayEarnings: number;
-  todayRides: number;
+  todayBookings: number;
 }
 
 export interface DriverSyncData {

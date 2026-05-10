@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { MapPin, Navigation, Pin, Banknote, Clock, Route, CheckCircle2, Search, X, LocateFixed, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 import { AppButton } from "@/components/ui/AppButton";
 import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/layout/Header";
@@ -601,7 +602,7 @@ export default function UserMapPage() {
         console.error(e);
         const err = e as { message?: string; status?: number };
         if (err.message?.includes("CANCEL_COOLDOWN") || err.status === 429) {
-          alert(t("cancel_user_limit"));
+          toast.error(t("cancel_user_limit"));
         }
         setIsRequesting(false);
         setIsSearching(false);
@@ -974,7 +975,7 @@ export default function UserMapPage() {
           </div>
           <div className="text-center">
             <p className="text-white text-xl font-black mb-2">{t("finding_nearby")}</p>
-            <p className="text-white/70 text-sm font-medium">{t("requesting_ride")}</p>
+            <p className="text-white/70 text-sm font-medium">{t("requesting_booking")}</p>
           </div>
         </div>
       )}

@@ -38,14 +38,14 @@ export async function generateMetadata(): Promise<Metadata> {
   
   return {
     title: isDriver
-      ? "CNGLagbe Driver | Manage Your Rides"
+      ? "CNGLagbe Driver | Manage Your Bookings"
       : "CNG Booking in Chhagalnaiya | Fast, Fixed Fare, Local Service",
     description: isDriver
-      ? "Manage your CNG rides — accept requests, navigate, and track your earnings."
+      ? "Manage your CNG bookings — accept requests, navigate, and track your earnings."
       : "Book CNG instantly in Chhagalnaiya. 100+ local drivers, fixed fare, fast pickup. Cash payment available. CNG near me.",
     manifest: "/manifest.json",
     keywords: isDriver
-      ? ["CNG driver", "CNGLagbe", "ride sharing Bangladesh"]
+      ? ["CNG driver", "CNGLagbe", "booking service Bangladesh"]
       : ["CNG booking Chhagalnaiya", "local auto rickshaw", "CNG near me", "fixed fare CNG", "ছাগলনাইয়া CNG", "সিএনজি বুকিং"],
     appleWebApp: {
       capable: true,
@@ -57,7 +57,7 @@ export async function generateMetadata(): Promise<Metadata> {
         ? "CNGLagbe Driver"
         : "CNG Booking in Chhagalnaiya | Fast, Fixed Fare, Local Service",
       description: isDriver
-        ? "Manage your CNG rides."
+        ? "Manage your CNG bookings."
         : "Book CNG instantly in Chhagalnaiya. 100+ local drivers, fixed fare, fast pickup.",
       locale: "bn_BD",
       type: "website",
