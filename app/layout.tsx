@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Hind_Siliguri } from "next/font/google";
+import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -9,9 +10,8 @@ const inter = Inter({
   display: "swap",
 });
 
-const hindSiliguri = Hind_Siliguri({
-  weight: ["300", "400", "500", "600", "700"],
-  subsets: ["bengali"],
+const solaimanLipi = localFont({
+  src: "../public/fonts/SolaimanLipi.woff",
   variable: "--font-bangla",
   display: "swap",
 });
@@ -74,7 +74,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("antialiased", inter.variable, hindSiliguri.variable)}>
+    <html lang="en" className={cn("antialiased", inter.variable, solaimanLipi.variable)}>
       <body className="min-h-screen bg-slate-50 pb-safe font-sans relative">
         <Providers>
           {children}

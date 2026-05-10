@@ -378,12 +378,12 @@ export const TEXT = {
 
   /* ── Landing Page: Hero ─────────────────────────────────────────────── */
   hero_headline: { en: "Book CNG Fast Across Chhagalnaiya", bn: "ছাগলনাইয়া জুড়ে দ্রুত CNG বুক করুন" },
-  hero_sub: { en: "Fixed Fare • Verified Driver • Instant Booking", bn: "ফিক্সড ভাড়া • ভেরিফাইড ড্রাইভার • সাথে সাথে বুকিং" },
+  hero_sub: { en: "Fixed Fare • Verified Driver • On-time Service", bn: "ফিক্সড ভাড়া • ভেরিফাইড ড্রাইভার • অন-টাইম সার্ভিস" },
   hero_book_now: { en: "Book Now", bn: "এখনই বুক করুন" },
   hero_pickup_ph: { en: "Your pickup location", bn: "কোথায় আছেন?" },
   hero_dest_ph: { en: "Your destination", bn: "কোথায় যাবেন?" },
   hero_badge_drivers: { en: "100+ Local Drivers", bn: "১০০+ লোকাল ড্রাইভার" },
-  hero_badge_safe: { en: "Verified & Safe", bn: "নিরাপদ ও যাচাইকৃত" },
+  hero_badge_safe: { en: "On-time & Safe", bn: "নিরাপদ ও অন-টাইম" },
   hero_badge_fast: { en: "Fast Pickup", bn: "দ্রুত পিকআপ" },
   hero_cash_note: { en: "Cash payment", bn: "ক্যাশে পেমেন্ট" },
 

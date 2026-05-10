@@ -72,8 +72,9 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
   - **Trust Badges:** Always use high-contrast combinations (e.g., `bg-white text-slate-700` with a border) when rendering badges over light sections.
   - **Footer Layout:** Footer must always match the `max-w-[1200px]` width of other sections for visual alignment.
 
-- **Adaptive Branding (Logo):** To ensure WCAG-compliant contrast across themes, the app uses multiple logo variants: `/logo_white.png` for dark and primary backgrounds (Admin/Landing Footer), and `/logo_dark_text.png` for light backgrounds (Driver/General). The `Header` component dynamically selects the correct variant based on `effectiveTheme`. All variants maintain a consistent 4:1 aspect ratio and transparent backgrounds.
-- **Standardized Spelling (Chhagalnaiya):** The Bengali spelling for Chhagalnaiya is standardized as "ছাগলনাইয়া" (using 'ছ' and 'য়'). Avoid variations like "চাঁগলনাইয়া" or "ছাগলনাইয়া". This must be consistent across `constants/text.ts` and `app/layout.tsx` metadata.
+- **Adaptive Branding (Logo):** To ensure WCAG-compliant contrast across themes, the app uses multiple logo variants: `/logo_white.png` for dark and primary backgrounds (Admin/Landing Footer), and `/logo_dark_text.png` for light backgrounds (Driver/General). All variants maintain a consistent 4:1 aspect ratio and transparent backgrounds.
+- **SolaimanLipi Font for Bengali:** The platform explicitly uses the **SolaimanLipi** font for all Bengali text (`--font-bangla`). This font provides superior readability and aesthetics for Bengali ligatures compared to standard Google Fonts like Hind Siliguri. It is self-hosted in `public/fonts/SolaimanLipi.woff`.
+- **Standardized Spelling (Chhagalnaiya):** The Bengali spelling for Chhagalnaiya is standardized as "ছাগলনাইয়া".
 
 ## ✨ Premium Animations (Framer Motion)
 - **Scroll Progress Bar:** A fixed primary-colored bar (`bg-primary`) at the very top (`top-0`) tracks the user's scroll progress through the landing page.

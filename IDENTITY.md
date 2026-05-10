@@ -178,6 +178,22 @@ The agent may continue ONLY after explicit confirmation or business approval.
 
 ---
 
+---
+
+# Agent Performance & Efficiency Rules
+
+1. **Never run unnecessary background tasks**: Avoid long-running or resource-intensive background processes unless essential for the task.
+2. **Never auto-open browser or perform visual verification**: Only use browser tools when explicitly requested or absolutely necessary for debugging a specific UI issue.
+3. **Avoid full project scans**: Focus on files directly related to the current task. Use targeted searches rather than broad directory listings.
+4. **No repeated build/lint/test commands**: Do not run these commands after every small change. Run them only once after a logical block of changes or when requested.
+5. **Targeted analysis only**: Analyze and view only the files necessary to complete the current request.
+6. **Minimize CPU and RAM usage**: Prefer lightweight tool calls and avoid parallel execution of heavy tasks.
+7. **Lightweight execution**: Favor fast, targeted edits over excessive verification or comprehensive auditing.
+8. **No heavy parallel tasks**: Run one heavy task at a time to prevent resource exhaustion.
+9. **Process Cleanup**: Stop any unused processes or servers immediately after the task is complete.
+
+---
+
 # Rural Bangladesh Optimization Principle
 
 All system decisions should prioritize:

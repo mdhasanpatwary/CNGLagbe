@@ -18,11 +18,11 @@ import { User } from "@/lib/types/user";
 
 
 // ─── Section wrapper ──────────────────────────────────────────────────────────
-function Section({ id, className, children, noPadding, style, variant = "default" }: { 
-  id?: string; 
-  className?: string; 
-  children: React.ReactNode; 
-  noPadding?: boolean; 
+function Section({ id, className, children, noPadding, style, variant = "default" }: {
+  id?: string;
+  className?: string;
+  children: React.ReactNode;
+  noPadding?: boolean;
   style?: React.CSSProperties;
   variant?: "default" | "mesh" | "premium" | "white" | "slate" | "glass" | "dark" | "primary" | "subtle";
 }) {
@@ -48,10 +48,10 @@ function Section({ id, className, children, noPadding, style, variant = "default
   };
 
   return (
-    <section 
-      id={id} 
+    <section
+      id={id}
       onMouseMove={handleMouseMove}
-      className={cn("px-4 py-16 md:py-24 relative overflow-hidden group/section", variantClasses[variant], className)} 
+      className={cn("px-4 py-16 md:py-24 relative overflow-hidden group/section", variantClasses[variant], className)}
       style={style}
     >
       {/* Spotlight Effect */}
@@ -61,7 +61,7 @@ function Section({ id, className, children, noPadding, style, variant = "default
           background: useMotionTemplate`
             radial-gradient(
               650px circle at ${mouseX}px ${mouseY}px,
-              rgba(22, 163, 74, ${variant === "dark" || variant === "primary" ? "0.1" : "0.05"}),
+              rgba(11, 122, 60, ${variant === "dark" || variant === "primary" ? "0.1" : "0.05"}),
               transparent 80%
             )
           `,
@@ -73,12 +73,12 @@ function Section({ id, className, children, noPadding, style, variant = "default
         "absolute inset-0 pointer-events-none opacity-[0.03] dot-grid-texture",
         variant === "dark" || variant === "primary" ? "opacity-[0.05] invert" : ""
       )} />
-      
+
       {/* Subtle top divider for certain variants */}
       {(variant === "white" || variant === "slate") && (
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent opacity-50" />
       )}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0 }}
@@ -94,7 +94,7 @@ function Section({ id, className, children, noPadding, style, variant = "default
 // ─── Section heading ─────────────────────────────────────────────────────────
 function SectionHeading({ title, sub, light }: { title: string; sub?: string; light?: boolean }) {
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 15 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -161,10 +161,10 @@ function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
       initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0 }}
-      transition={{ 
-        duration: 0.5, 
-        delay, 
-        ease: "easeOut" 
+      transition={{
+        duration: 0.5,
+        delay,
+        ease: "easeOut"
       }}
     >
       {children}
@@ -215,7 +215,7 @@ function Tilt({ children, className }: { children: React.ReactNode; className?: 
 function ReviewCard({ name, location, text }: { name: string; location: string; text: string }) {
   return (
     <Tilt className="h-full">
-      <motion.div 
+      <motion.div
         className="bg-white rounded-3xl p-6 premium-card-shadow-hover border border-slate-100 flex flex-col items-center text-center gap-4 min-h-[260px] h-full"
       >
         <div className="flex gap-1">
@@ -254,7 +254,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
         aria-expanded={open}
       >
         <span className="font-bn flex-1">{question}</span>
-        <motion.div 
+        <motion.div
           animate={{ rotate: open ? 180 : 0 }}
           className={cn(
             "w-6 h-6 flex items-center justify-center transition-colors duration-200 shrink-0",
@@ -324,10 +324,10 @@ function RouteCard({ from, to, onClick }: { from: string; to: string; onClick: (
 function FeatureCard({ icon, title, sub }: { icon: React.ReactNode; title: string; sub: string }) {
   return (
     <Tilt>
-      <motion.div 
+      <motion.div
         className="bg-white border border-gray-100 rounded-xl p-6 premium-card-shadow-hover flex flex-col items-center text-center gap-4 focus-within:ring-2 focus-within:ring-primary/30 h-full"
       >
-        <motion.div 
+        <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           whileInView={{ scale: 1, opacity: 1 }}
           viewport={{ once: true }}
@@ -349,41 +349,43 @@ function FeatureCard({ icon, title, sub }: { icon: React.ReactNode; title: strin
 function AppDownloadCard({ title, type, comingSoon }: { title: string; type: "user" | "driver"; comingSoon?: boolean }) {
   const { t } = useLang();
   return (
-    <motion.div 
-      whileHover={{ y: -10, backgroundColor: "rgba(255, 255, 255, 0.15)" }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}
-      className="backdrop-blur-md border border-white/20 rounded-[2.5rem] p-8 flex flex-col items-center text-center gap-6 group shadow-2xl relative overflow-hidden cursor-pointer"
-    >
-      {comingSoon && (
-        <div className="absolute top-4 right-[-35px] bg-amber-400 text-slate-900 text-[10px] font-bold px-10 py-1 rotate-45 shadow-sm uppercase tracking-wider z-20">
-          {t("coming_soon")}
-        </div>
-      )}
+    <Tilt className="h-full">
+      <motion.div
+        whileHover={{ y: -10, backgroundColor: "rgba(255, 255, 255, 0.12)" }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        style={{ backgroundColor: "rgba(255, 255, 255, 0.08)" }}
+        className="backdrop-blur-md border border-white/10 rounded-[2.5rem] p-8 flex flex-col items-center text-center gap-6 group shadow-2xl relative overflow-hidden cursor-pointer h-full"
+      >
+        {comingSoon && (
+          <div className="absolute top-4 right-[-35px] bg-amber-400 text-slate-900 text-[10px] font-bold px-10 py-1 rotate-45 shadow-sm uppercase tracking-wider z-20">
+            {t("coming_soon")}
+          </div>
+        )}
 
-      <div className={cn(
-        "w-20 h-20 rounded-3xl flex items-center justify-center shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3",
-        type === "user" ? "bg-gradient-to-br from-primary to-indigo-600 text-white" : "bg-gradient-to-br from-slate-800 to-slate-950 text-white"
-      )}>
-        <Smartphone className="w-10 h-10" />
-      </div>
-
-      <div>
-        <h3 className="text-xl font-bold text-white mb-2 font-bn tracking-tight">{title}</h3>
-        <p className="text-white/60 text-sm font-bn font-normal">{type === "user" ? t("for_daily_bookings") : t("for_partners")}</p>
-      </div>
-
-      <div className="flex flex-col gap-3 w-full">
-        <div className="flex items-center justify-center gap-3 bg-white/5 border border-white/10 rounded-2xl py-3 px-4 opacity-50 cursor-not-allowed">
-          <Download className="w-4 h-4 text-white/40" />
-          <span className="text-xs font-bold text-white/40 uppercase tracking-widest">{t("google_play")}</span>
+        <div className={cn(
+          "w-20 h-20 rounded-3xl flex items-center justify-center shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3",
+          type === "user" ? "bg-gradient-to-br from-primary to-emerald-600 text-white" : "bg-gradient-to-br from-slate-700 to-slate-900 text-white"
+        )}>
+          <Smartphone className="w-10 h-10" />
         </div>
-        <div className="flex items-center justify-center gap-3 bg-white/5 border border-white/10 rounded-2xl py-3 px-4 opacity-50 cursor-not-allowed">
-          <Download className="w-4 h-4 text-white/40" />
-          <span className="text-xs font-bold text-white/40 uppercase tracking-widest">{t("app_store")}</span>
+
+        <div>
+          <h3 className="text-xl font-bold text-white mb-2 font-bn tracking-tight">{title}</h3>
+          <p className="text-white/60 text-sm font-bn font-normal leading-relaxed">{type === "user" ? t("for_daily_bookings") : t("for_partners")}</p>
         </div>
-      </div>
-    </motion.div>
+
+        <div className="flex flex-col gap-3 w-full mt-auto">
+          <div className="flex items-center justify-center gap-3 bg-white/5 border border-white/10 rounded-2xl py-3 px-4 opacity-50 cursor-not-allowed group-hover:bg-white/10 transition-colors">
+            <Download className="w-4 h-4 text-white/40" />
+            <span className="text-xs font-bold text-white/40 uppercase tracking-widest">{t("google_play")}</span>
+          </div>
+          <div className="flex items-center justify-center gap-3 bg-white/5 border border-white/10 rounded-2xl py-3 px-4 opacity-50 cursor-not-allowed group-hover:bg-white/10 transition-colors">
+            <Download className="w-4 h-4 text-white/40" />
+            <span className="text-xs font-bold text-white/40 uppercase tracking-widest">{t("app_store")}</span>
+          </div>
+        </div>
+      </motion.div>
+    </Tilt>
   );
 }
 
@@ -431,8 +433,8 @@ export default function LandingPage() {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       transition: { duration: 0.5, ease: "easeOut" as const }
     }
@@ -477,26 +479,26 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">
-      <Header 
-        role="landing" 
-        user={user} 
-        onLogout={handleLogout} 
+      <Header
+        role="landing"
+        user={user}
+        onLogout={handleLogout}
         className={cn("transition-all duration-500")}
         theme={headerTheme}
       />
 
 
-      <motion.main 
+      <motion.main
         className="flex-1"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
       >
 
-        {/* Scroll Progress Bar */}
+        {/* Scroll Progress Indicator */}
         <motion.div
-          className="fixed top-0 left-0 right-0 h-1 bg-primary z-[100] origin-left"
-          style={{ scaleX }}
+          className="fixed top-0 left-0 right-0 h-1.5 bg-primary origin-left z-[100]"
+          style={{ scaleX: scrollYProgress }}
         />
 
         {/* ── 1. HERO ──────────────────────────────────────────────────────── */}
@@ -507,83 +509,208 @@ export default function LandingPage() {
           noPadding
         >
           {/* Parallax decorative elements */}
-          <motion.div 
+          <motion.div
             style={{ y: y1 }}
-            className="absolute top-0 right-0 w-1/3 h-full bg-primary/5 -skew-x-12 transform translate-x-1/2 pointer-events-none z-0" 
+            className="absolute top-0 right-0 w-1/3 h-full bg-primary/5 -skew-x-12 transform translate-x-1/2 pointer-events-none z-0"
           />
-          <motion.div 
+          <motion.div
             style={{ y: y2, rotate }}
-            className="absolute -bottom-24 left-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none opacity-20 z-0" 
+            className="absolute -bottom-24 left-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none opacity-20 z-0"
           />
 
-          <div className="flex flex-col items-center text-center relative z-10">
-            {/* Driver count badge */}
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/10 rounded-full px-4 py-2 mb-8 shadow-xl"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-              </span>
-              <span className="text-[10px] md:text-xs font-bold text-white uppercase tracking-[0.2em]">{t("trust_drivers_active")}</span>
-            </motion.div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center relative z-10 px-4 md:px-0">
+            {/* Left Column: Content */}
+            <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
+              {/* Driver count badge */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/10 rounded-full px-4 py-2 mb-8 shadow-xl"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                </span>
+                <span className="text-[10px] md:text-xs font-bold text-white uppercase tracking-[0.2em]">{t("trust_drivers_active")}</span>
+              </motion.div>
 
-            <motion.h1 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
-              className="text-4xl md:text-7xl font-extrabold text-white leading-[1.1] mb-6 font-bn max-w-4xl tracking-tight"
-            >
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-primary to-white bg-[length:200%_auto] animate-gradient-x">
-                {t("hero_headline")}
-              </span>
-            </motion.h1>
-            
-            <Reveal delay={0.8}>
-              <p className="text-white/70 text-base md:text-lg font-normal mb-10 font-bn max-w-2xl leading-relaxed">
-                {t("hero_sub")}
-              </p>
-            </Reveal>
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
+                className="text-4xl md:text-6xl xl:text-7xl font-extrabold text-white leading-[1.1] mb-6 font-bn tracking-tight"
+              >
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-primary to-white bg-[length:200%_auto] animate-gradient-x">
+                  {t("hero_headline")}
+                </span>
+              </motion.h1>
 
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5, duration: 0.5 }}
-              className="w-full max-w-sm"
-            >
-              <Magnetic>
-                <AppButton
-                  onClick={handleBookNow}
-                  className="w-full h-16 px-8 py-4 text-lg rounded-2xl bg-primary text-white font-black shadow-2xl shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none"
-                  leftIcon={<MapPin className="w-6 h-6" />}
+              <Reveal delay={0.8}>
+                <p className="text-white/70 text-base md:text-lg font-normal mb-10 font-bn max-w-xl leading-relaxed">
+                  {t("hero_sub")}
+                </p>
+              </Reveal>
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+                className="w-full max-w-sm"
+              >
+                <Magnetic>
+                  <AppButton
+                    onClick={handleBookNow}
+                    className="w-full h-16 px-8 py-4 text-lg rounded-2xl bg-primary text-white font-black shadow-2xl shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none"
+                    leftIcon={<MapPin className="w-6 h-6" />}
+                  >
+                    {t("hero_book_now")}
+                  </AppButton>
+                </Magnetic>
+              </motion.div>
+
+              {/* Trust badges */}
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="flex flex-wrap justify-center lg:justify-start gap-3 mt-12"
+              >
+                <motion.div variants={itemVariants}><TrustBadge variant="glass" icon={<Star className="w-4 h-4 fill-amber-400 text-amber-400" />} label={t("hero_badge_drivers")} /></motion.div>
+                <motion.div variants={itemVariants}><TrustBadge variant="glass" icon={<BadgeCheck className="w-4 h-4 text-primary" />} label={t("hero_badge_safe")} /></motion.div>
+                <motion.div variants={itemVariants}><TrustBadge variant="glass" icon={<BadgeCheck className="w-4 h-4 text-primary" />} label={t("hero_badge_fast")} /></motion.div>
+                <motion.div variants={itemVariants}><TrustBadge variant="glass" icon={<Banknote className="w-4 h-4 text-primary" />} label={t("hero_cash_note")} /></motion.div>
+              </motion.div>
+            </div>
+
+            {/* Right Column: Premium Image with Effects */}
+            <div className="relative hidden lg:flex justify-center items-center">
+              {/* Glow background effect */}
+              <motion.div
+                animate={{
+                  scale: [1, 1.2, 1],
+                  opacity: [0.3, 0.5, 0.3],
+                }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="absolute w-[120%] h-[120%] bg-primary/20 rounded-full blur-[120px] z-0"
+              />
+              
+              {/* Image with floating animation */}
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 1, delay: 0.6 }}
+                className="relative z-10"
+              >
+                <motion.div
+                  animate={{
+                    y: [0, -20, 0],
+                  }}
+                  transition={{
+                    duration: 6,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
                 >
-                  {t("hero_book_now")}
-                </AppButton>
-              </Magnetic>
-            </motion.div>
+                  <div className="relative group/cng">
+                    {/* Background Glow */}
+                    <div className="absolute inset-0 bg-primary/20 blur-[100px] rounded-full scale-150 opacity-50 group-hover:opacity-70 transition-opacity duration-700" />
+                    
+                    <div className="relative overflow-hidden rounded-[2rem]">
+                      <Image
+                        src="/cng_premium.png"
+                        alt="Premium CNG Auto Rickshaw"
+                        width={800}
+                        height={600}
+                        className="object-contain drop-shadow-[0_20px_50px_rgba(11,122,60,0.3)] select-none pointer-events-none relative z-10 transition-transform duration-700 group-hover/cng:scale-[1.02]"
+                        priority
+                        style={{
+                          maskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)',
+                          WebkitMaskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)'
+                        }}
+                      />
+                      
+                      {/* Light Sweep Animation */}
+                      <motion.div
+                        initial={{ x: "-100%" }}
+                        animate={{ x: "200%" }}
+                        transition={{ 
+                          duration: 3, 
+                          repeat: Infinity, 
+                          repeatDelay: 4,
+                          ease: "easeInOut"
+                        }}
+                        className="absolute inset-0 z-20 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 pointer-events-none"
+                      />
+                    </div>
 
-            {/* Trust badges */}
-            <motion.div 
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="flex flex-wrap justify-center gap-3 mt-12"
-            >
-              <motion.div variants={itemVariants}><TrustBadge variant="glass" icon={<Star className="w-4 h-4 fill-amber-400 text-amber-400" />} label={t("hero_badge_drivers")} /></motion.div>
-              <motion.div variants={itemVariants}><TrustBadge variant="glass" icon={<BadgeCheck className="w-4 h-4 text-primary" />} label={t("hero_badge_safe")} /></motion.div>
-              <motion.div variants={itemVariants}><TrustBadge variant="glass" icon={<BadgeCheck className="w-4 h-4 text-primary" />} label={t("hero_badge_fast")} /></motion.div>
-              <motion.div variants={itemVariants}><TrustBadge variant="glass" icon={<Banknote className="w-4 h-4 text-primary" />} label={t("hero_cash_note")} /></motion.div>
-            </motion.div>
+                    {/* Floating Trust Indicators around the vehicle */}
+                    <motion.div
+                      animate={{ y: [0, -10, 0] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                      className="absolute -top-4 -right-4 z-20 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 shadow-xl flex items-center gap-2 group-hover/cng:scale-110 transition-transform duration-300"
+                    >
+                      <div className="bg-primary/20 p-1.5 rounded-lg">
+                        <ShieldCheck className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="text-[10px] font-bold text-white uppercase tracking-wider whitespace-nowrap">{t("hero_badge_safe")}</span>
+                    </motion.div>
+
+                    <motion.div
+                      animate={{ y: [0, 10, 0] }}
+                      transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                      className="absolute bottom-12 -left-8 z-20 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 shadow-xl flex items-center gap-2 group-hover/cng:scale-110 transition-transform duration-300"
+                    >
+                      <div className="bg-primary/20 p-1.5 rounded-lg">
+                        <Zap className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="text-[10px] font-bold text-white uppercase tracking-wider whitespace-nowrap">{t("hero_badge_fast")}</span>
+                    </motion.div>
+
+                    {/* Price Lock Indicator - New Meaningful Element */}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 1.2 }}
+                      className="absolute -bottom-2 right-4 z-20 bg-gradient-to-br from-primary to-primary-dark border border-white/20 rounded-2xl p-3 shadow-2xl flex items-center gap-2"
+                    >
+                      <div className="bg-white/20 p-1.5 rounded-lg">
+                        <Banknote className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[8px] font-bold text-white/70 uppercase tracking-tight">{t("fixed_fare")}</span>
+                        <span className="text-[10px] font-black text-white uppercase leading-none">No Surprise</span>
+                      </div>
+                    </motion.div>
+                  </div>
+                </motion.div>
+
+                {/* Refined shadow beneath the image */}
+                <motion.div
+                  animate={{
+                    scaleX: [1, 1.1, 1],
+                    opacity: [0.3, 0.4, 0.3],
+                  }}
+                  transition={{
+                    duration: 6,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-[90%] h-12 bg-primary/20 blur-3xl rounded-[100%] z-0"
+                />
+              </motion.div>
+            </div>
           </div>
         </Section>
 
         {/* ── 2. LOCAL TRUST ───────────────────────────────────────────────── */}
         <Section id="trust" variant="white" className="bg-gradient-to-b from-white via-primary/[0.02] to-slate-50/50">
           <SectionHeading title={t("trust_title")} />
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -613,7 +740,7 @@ export default function LandingPage() {
         {/* ── 3. HOW IT WORKS ──────────────────────────────────────────────── */}
         <Section id="how-it-works" variant="mesh" className="border-y border-slate-100/50">
           <SectionHeading title={t("how_title")} />
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -621,50 +748,54 @@ export default function LandingPage() {
             className="grid md:grid-cols-3 gap-12 relative"
           >
             {/* Desktop line indicator - Animated SVG Path */}
-            <div className="hidden md:block absolute top-6 left-[15%] right-[15%] w-[70%] h-20 z-0 pointer-events-none">
+            <div className="hidden md:block absolute top-12 left-[15%] right-[15%] w-[70%] h-20 z-0 pointer-events-none">
               <svg width="100%" height="100%" viewBox="0 0 800 100" fill="none" preserveAspectRatio="none">
                 <motion.path
                   d="M 0 50 Q 200 100 400 50 Q 600 0 800 50"
                   stroke="url(#line-gradient)"
-                  strokeWidth="2"
-                  strokeDasharray="8 8"
+                  strokeWidth="3"
+                  strokeDasharray="12 12"
                   initial={{ pathLength: 0, opacity: 0 }}
                   whileInView={{ pathLength: 1, opacity: 1 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 2, ease: "easeInOut", delay: 0.5 }}
+                  transition={{ duration: 2.5, ease: "easeInOut", delay: 0.5 }}
                 />
                 <defs>
                   <linearGradient id="line-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.2" />
-                    <stop offset="50%" stopColor="var(--primary)" stopOpacity="1" />
-                    <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.2" />
+                    <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.1" />
+                    <stop offset="50%" stopColor="var(--primary)" stopOpacity="0.8" />
+                    <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.1" />
                   </linearGradient>
                 </defs>
               </svg>
             </div>
 
             {[
-              { icon: <MapPin className="w-6 h-6" />, step: t("step_1"), title: t("how_step1"), sub: t("how_step1_sub") },
-              { icon: <Banknote className="w-6 h-6" />, step: t("step_2"), title: t("how_step2"), sub: t("how_step2_sub") },
-              { icon: <Navigation className="w-6 h-6" />, step: t("step_3"), title: t("how_step3"), sub: t("how_step3_sub") },
+              { icon: <MapPin className="w-7 h-7" />, step: t("step_1"), title: t("how_step1"), sub: t("how_step1_sub") },
+              { icon: <Banknote className="w-7 h-7" />, step: t("step_2"), title: t("how_step2"), sub: t("how_step2_sub") },
+              { icon: <Navigation className="w-7 h-7" />, step: t("step_3"), title: t("how_step3"), sub: t("how_step3_sub") },
             ].map((item, i) => (
-              <motion.div 
-                key={i} 
-                variants={itemVariants} 
+              <motion.div
+                key={i}
+                variants={itemVariants}
                 className="flex flex-col items-center relative z-10 text-center group"
               >
-                <motion.div 
+                {/* Step Number Circle */}
+                <motion.div
                   animate={{ y: [0, -5, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, delay: i * 0.5, ease: "easeInOut" }}
-                  className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xl shrink-0 shadow-lg border-4 border-white mb-6 group-hover:scale-110 transition-transform duration-300"
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: i * 0.5 }}
+                  className="w-16 h-16 rounded-[2rem] bg-white shadow-xl flex items-center justify-center relative mb-6 group-hover:bg-primary group-hover:text-white transition-colors duration-300 border border-slate-100"
                 >
-                  {item.step}
+                  <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-primary text-white text-xs font-black flex items-center justify-center shadow-lg border-2 border-white z-20">
+                    {item.step}
+                  </div>
+                  <div className="text-primary group-hover:text-white transition-colors duration-300">
+                    {item.icon}
+                  </div>
                 </motion.div>
-                <div className="bg-primary/5 p-3 rounded-full mb-4 text-primary">
-                  {item.icon}
-                </div>
-                <h3 className="font-bold text-slate-900 text-xl mb-2 font-bn">{item.title}</h3>
-                <p className="text-sm text-slate-600 mt-1 font-bn leading-relaxed max-w-[200px] font-normal">{item.sub}</p>
+
+                <h3 className="text-lg font-bold text-slate-900 mb-2 font-bn">{item.title}</h3>
+                <p className="text-sm text-slate-600 font-bn leading-relaxed max-w-[200px] font-normal">{item.sub}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -673,7 +804,7 @@ export default function LandingPage() {
         {/* ── 4. WHY CHOOSE US ──────────────────────────────────────────────── */}
         <Section id="why-us" variant="slate" className="bg-gradient-to-b from-slate-50 to-white/80">
           <SectionHeading title={t("why_title")} />
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -686,12 +817,18 @@ export default function LandingPage() {
               { icon: <Users className="w-8 h-8" />, text: t("why_drivers") },
               { icon: <Star className="w-8 h-8" />, text: t("why_simple") },
             ].map((item, i) => (
-              <motion.div key={i} variants={itemVariants} className="bg-white rounded-xl p-6 premium-card-shadow-hover border border-slate-100 flex flex-col items-center text-center gap-4 focus-within:ring-2 focus-within:ring-primary/20">
-                <div className="bg-primary/10 p-4 rounded-2xl text-primary shadow-sm">
-                  {item.icon}
-                </div>
-                <p className="font-bn font-semibold text-base text-slate-900 leading-tight">{item.text}</p>
-              </motion.div>
+              <Tilt key={i} className="h-full">
+                <motion.div
+                  variants={itemVariants}
+                  whileHover={{ y: -5 }}
+                  className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 h-full border border-slate-100 flex flex-col items-center text-center gap-4 premium-card-shadow-hover transition-all duration-300"
+                >
+                  <div className="bg-gradient-to-br from-primary/10 to-primary/5 p-4 rounded-2xl text-primary shadow-sm group-hover:scale-110 transition-transform duration-300">
+                    {item.icon}
+                  </div>
+                  <p className="font-bn font-bold text-base text-slate-900 leading-tight">{item.text}</p>
+                </motion.div>
+              </Tilt>
             ))}
           </motion.div>
         </Section>
@@ -699,7 +836,7 @@ export default function LandingPage() {
         {/* ── 5. POPULAR ROUTES ────────────────────────────────────────────── */}
         <Section id="popular-routes" variant="white" className="bg-gradient-to-b from-white via-primary/[0.02] to-slate-50/50">
           <SectionHeading title={t("routes_title")} />
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -716,7 +853,7 @@ export default function LandingPage() {
         {/* ── 6. FEATURES ──────────────────────────────────────────────────── */}
         <Section id="features" variant="mesh">
           <SectionHeading title={t("feat_title")} />
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -735,7 +872,7 @@ export default function LandingPage() {
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/5 blur-[100px] pointer-events-none" />
 
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -768,7 +905,7 @@ export default function LandingPage() {
         {/* ── 8. TESTIMONIALS ──────────────────────────────────────────────── */}
         <Section id="reviews" variant="premium">
           <SectionHeading title={t("reviews_title")} />
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -784,13 +921,27 @@ export default function LandingPage() {
         </Section>
 
         {/* ── 9. DOWNLOAD APP ──────────────────────────────────────────────── */}
-        <Section id="download" variant="dark" className="border-y border-white/5">
+        <Section id="download" variant="dark" className="border-y border-white/5 py-24 md:py-32">
           <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(22,163,74,0.15),transparent_60%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(99,102,241,0.1),transparent_60%)]" />
+            <motion.div 
+              animate={{ 
+                opacity: [0.1, 0.2, 0.1],
+                scale: [1, 1.1, 1],
+              }}
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(11,122,60,0.2),transparent_60%)]" 
+            />
+            <motion.div 
+              animate={{ 
+                opacity: [0.05, 0.15, 0.05],
+                scale: [1.1, 1, 1.1],
+              }}
+              transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(99,102,241,0.15),transparent_60%)]" 
+            />
           </div>
 
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -827,7 +978,7 @@ export default function LandingPage() {
         {/* ── 10. FAQ ───────────────────────────────────────────────────────── */}
         <Section id="faq" variant="premium" className="border-t border-slate-100">
           <SectionHeading title={t("faq_title")} />
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -868,7 +1019,7 @@ export default function LandingPage() {
 
         {/* ── 11. FOOTER ───────────────────────────────────────────────────── */}
         <footer id="footer" className="bg-slate-900 text-slate-300 px-4 pt-12 pb-28 border-t border-slate-800">
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -916,7 +1067,7 @@ export default function LandingPage() {
       </motion.main>
 
       {/* ── STICKY BOTTOM CTA (mobile) ────────────────────────────────────── */}
-      <motion.div 
+      <motion.div
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 1, duration: 0.8, ease: "circOut" }}
@@ -924,13 +1075,13 @@ export default function LandingPage() {
       >
         <div className="max-w-sm mx-auto w-full">
           <motion.div
-            animate={{ 
+            animate={{
               scale: [1, 1.02, 1],
             }}
-            transition={{ 
-              duration: 2, 
-              repeat: Infinity, 
-              ease: "easeInOut" 
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
             }}
           >
             <AppButton

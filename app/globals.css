@@ -15,7 +15,7 @@ html {
 
 @theme {
   --font-sans: var(--font-sans), "Inter", system-ui, sans-serif;
-  --font-bangla: var(--font-bangla), "Hind Siliguri", sans-serif;
+  --font-bangla: var(--font-bangla), "SolaimanLipi", sans-serif;
 
   --color-primary: var(--primary);
   --color-primary-light: #DCFCE7;

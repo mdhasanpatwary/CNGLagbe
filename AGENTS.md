@@ -41,6 +41,19 @@ Refer to [/docs/ui-rules.md](file:///Users/patwary/Projects/CNGLagbe/docs/ui-rul
 5. **Step-wise Validation**: In multi-step forms, use `trigger(['field1', 'field2'])` to validate current step fields before proceeding.
 6. **Types**: Always export the input type using `z.infer<typeof schema>`.
 
+## Efficiency & Resource Rules (MANDATORY)
+1. **Never run unnecessary background tasks**: Avoid long-running or resource-intensive background processes unless essential for the task.
+2. **Never auto-open browser or perform visual verification**: Only use browser tools when explicitly requested or absolutely necessary for debugging a specific UI issue.
+3. **Avoid full project scans**: Focus on files directly related to the current task. Use targeted searches rather than broad directory listings.
+4. **No repeated build/lint/test commands**: Do not run these commands after every small change. Run them only once after a logical block of changes or when requested.
+5. **Targeted analysis only**: Analyze and view only the files necessary to complete the current request.
+6. **Minimize CPU and RAM usage**: Prefer lightweight tool calls and avoid parallel execution of heavy tasks.
+7. **Lightweight execution**: Favor fast, targeted edits over excessive verification or comprehensive auditing.
+8. **No heavy parallel tasks**: Run one heavy task at a time to prevent resource exhaustion.
+9. **Process Cleanup**: Stop any unused processes or servers immediately after the task is complete.
+
+For small changes, avoid rebuilding the entire project. Use targeted edits and minimal validation only.
+
 ## Taste & Regression Tracking (taste.md)
 1. **Always Update**: Whenever you fix a bug, address an edge case, or implement a specific UI/UX preference requested by the user, you MUST document it in `taste.md`.
 2. **Review First**: Before making UI or behavioral changes, quickly review `taste.md` to ensure you aren't breaking previously established preferences or fixes.
