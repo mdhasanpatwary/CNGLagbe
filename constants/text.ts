@@ -524,6 +524,18 @@ export const TEXT = {
     en: "For our partners",
     bn: "আমাদের পার্টনারদের জন্য"
   },
+  hero_no_surprise: {
+    en: "No Surprise",
+    bn: "কোন চমক নেই"
+  },
+  skip_to_content: {
+    en: "Skip to main content",
+    bn: "মূল কন্টেন্টে যান"
+  },
+  scroll_progress: {
+    en: "Page scroll progress",
+    bn: "পেজ স্ক্রল অগ্রগতি"
+  },
 } as const;
 
 

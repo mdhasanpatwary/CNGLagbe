@@ -15,7 +15,7 @@ import { User as UserType } from "@/lib/types/user";
 interface HeaderProps {
   role?: "landing" | "user" | "driver" | "admin";
   variant?: "sticky" | "floating";
-  theme?: "primary" | "light" | "dark" | "transparent";
+  theme?: "primary" | "light" | "dark";
   title?: string;
   user?: UserType | null;
 
@@ -65,13 +65,12 @@ export function Header({
 
   const themes = {
     primary: "bg-primary text-primary-foreground shadow-md",
-    light: "bg-white/70 backdrop-blur-xl border-b border-slate-200/50 text-slate-800 shadow-sm",
-    dark: "bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl backdrop-blur-lg bg-opacity-90",
-    transparent: "bg-transparent text-white",
+    light: "bg-white border-b border-slate-200 text-slate-800 shadow-sm",
+    dark: "bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl",
   };
 
   const floatingStyles = isFloating
-    ? "fixed top-4 left-4 right-4 z-50 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/50 shadow-xl"
+    ? "fixed top-4 left-4 right-4 z-50 rounded-2xl bg-white border border-slate-200 shadow-xl"
     : "sticky top-0 z-20 w-full";
 
 
@@ -90,9 +89,9 @@ export function Header({
 
         <div className="flex items-center gap-3">
           <Link href={isDriver ? "/driver" : isAdmin ? "/admin" : user ? "/user" : "/"} className="flex items-center gap-2 group">
-            <div className={cn("flex items-center group-hover:opacity-80 transition-opacity", title ? "h-7" : "h-9")}>
+            <div className="flex items-center group-hover:opacity-80 transition-opacitych-11">
               <Image
-                src={effectiveTheme === "dark" || effectiveTheme === "primary" || effectiveTheme === "transparent" ? "/logo_white.png" : "/logo_dark_text.png"}
+                src="/logo.png"
                 alt="CNGLagbe Logo"
                 width={140}
                 height={36}
@@ -116,8 +115,8 @@ export function Header({
             onClick={onRefresh}
             disabled={isRefreshing}
             className={cn(
-              "rounded-xl h-9 px-3 gap-2 font-bold text-base",
-               isAdmin || effectiveTheme === "transparent" ? "bg-white/5 text-white hover:bg-white/10 border border-white/10" : "text-slate-600"
+              "rounded-xl h-11 px-3 gap-2 font-bold text-base",
+              isAdmin ? "bg-white/5 text-white hover:bg-white/10 border border-white/10" : "text-slate-600"
             )}
           >
             <RefreshCcw size={16} className={isRefreshing ? "animate-spin" : ""} />
@@ -130,8 +129,8 @@ export function Header({
             variant="ghost"
             onClick={onRecenter}
             className={cn(
-              "h-9 px-3 gap-2 font-bold text-base",
-               effectiveTheme === "primary" || effectiveTheme === "dark" || effectiveTheme === "transparent" ? "text-white hover:bg-white/10" : "text-slate-600 hover:bg-slate-100"
+              "h-11 px-3 gap-2 font-bold text-base",
+              effectiveTheme === "primary" || effectiveTheme === "dark" ? "text-white hover:bg-white/10" : "text-slate-600 hover:bg-slate-100"
             )}
           >
             <Navigation size={18} />
@@ -154,10 +153,10 @@ export function Header({
                 isMenuOpen && (effectiveTheme === "primary" || effectiveTheme === "dark" ? "bg-white/30" : "bg-slate-200")
               )}
             >
-              <div className="w-8 h-8 rounded-full overflow-hidden bg-white/20 flex items-center justify-center border border-white/10 ring-2 ring-white/5">
+              <div className="w-11 h-11 rounded-full overflow-hidden bg-white/20 flex items-center justify-center border border-white/10 ring-2 ring-white/5">
                 {user.photoUrl
-                  ? <Image src={user.photoUrl} alt={user.name} width={32} height={32} className="w-full h-full object-cover object-top transition-all duration-500" />
-                  : <User size={16} className="text-slate-400" />}
+                  ? <Image src={user.photoUrl} alt={user.name} width={44} height={44} className="w-full h-full object-cover object-top transition-all duration-500" />
+                  : <User size={20} className="text-slate-400" />}
               </div>
               <ChevronLeft size={14} className={cn(
                 "transition-transform duration-300 opacity-40",
@@ -200,7 +199,7 @@ export function Header({
                         href="/user"
                         onClick={() => setIsMenuOpen(false)}
                         className={cn(
-                          "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors group text-primary",
+                          "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-colors group text-primary min-h-[44px]",
                           effectiveTheme === "primary" || effectiveTheme === "dark" ? "hover:bg-white/10" : "hover:bg-primary/5"
                         )}
                       >
@@ -213,7 +212,7 @@ export function Header({
                       href={isDriver ? "/driver/profile" : "/profile"}
                       onClick={() => setIsMenuOpen(false)}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors group",
+                        "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-colors group min-h-[44px]",
                         effectiveTheme === "primary" || effectiveTheme === "dark" ? "hover:bg-white/10" : "hover:bg-slate-100"
                       )}
                     >
@@ -226,7 +225,7 @@ export function Header({
                         href="/user/history"
                         onClick={() => setIsMenuOpen(false)}
                         className={cn(
-                          "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors group",
+                          "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-colors group min-h-[44px]",
                           effectiveTheme === "primary" || effectiveTheme === "dark" ? "hover:bg-white/10" : "hover:bg-slate-100"
                         )}
                       >
@@ -239,7 +238,7 @@ export function Header({
                       href={isDriver ? "/driver/profile" : "/profile"} // Fallback to profile for now as settings is usually inside
                       onClick={() => setIsMenuOpen(false)}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors group",
+                        "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-colors group min-h-[44px]",
                         effectiveTheme === "primary" || effectiveTheme === "dark" ? "hover:bg-white/10" : "hover:bg-slate-100"
                       )}
                     >
@@ -268,7 +267,7 @@ export function Header({
                         }
                       }}
                       className={cn(
-                        "flex w-full h-auto items-center justify-start gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors text-red-500 hover:text-red-600 border-none",
+                        "flex w-full h-auto items-center justify-start gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-colors text-red-500 hover:text-red-600 border-none min-h-[44px]",
                         effectiveTheme === "primary" || effectiveTheme === "dark" ? "hover:bg-red-500/10" : "hover:bg-red-50"
                       )}
                     >
@@ -281,19 +280,19 @@ export function Header({
             </AnimatePresence>
           </div>
         ) : role === "landing" && (
-            <Link href="/login">
+          <Link href="/login">
             <AppButton
-                variant="outline"
-                className={cn(
-                  "rounded-full font-black text-[11px] uppercase h-9 px-6 transition-all duration-300 tracking-wider",
-                  effectiveTheme === "transparent" || effectiveTheme === "primary" || effectiveTheme === "dark"
-                    ? "border-white/40 text-white hover:bg-white hover:text-primary hover:border-white shadow-lg shadow-black/10" 
-                    : "border-primary/30 text-primary hover:bg-primary hover:text-white shadow-sm"
-                )}
-              >
-                {t("user_login")}
-              </AppButton>
-            </Link>
+              variant="outline"
+              className={cn(
+                "rounded-full font-black text-[11px] uppercase h-11 px-6 transition-all duration-300 tracking-wider",
+                effectiveTheme === "primary" || effectiveTheme === "dark"
+                  ? "border-white/40 text-white hover:bg-white hover:text-primary hover:border-white shadow-lg shadow-black/10"
+                  : "border-primary/30 text-primary hover:bg-primary hover:text-white shadow-sm"
+              )}
+            >
+              {t("user_login")}
+            </AppButton>
+          </Link>
         )}
       </div>
     </header>

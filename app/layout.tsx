@@ -67,6 +67,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 import { Providers } from "@/components/Providers";
 import { Toaster } from "sonner";
+import { Footer } from "@/components/layout/Footer";
 
 export default function RootLayout({
   children,
@@ -77,7 +78,12 @@ export default function RootLayout({
     <html lang="en" className={cn("antialiased", inter.variable, solaimanLipi.variable)}>
       <body className="min-h-screen bg-slate-50 pb-safe font-sans relative">
         <Providers>
-          {children}
+          <div className="flex flex-col min-h-screen">
+            <div className="flex-1">
+              {children}
+            </div>
+            <Footer />
+          </div>
         </Providers>
         <Toaster richColors position="top-right" />
       </body>

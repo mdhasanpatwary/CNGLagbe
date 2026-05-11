@@ -31,13 +31,13 @@ export function AppButton({
 }: AppButtonProps) {
   const { t } = useLang();
 
-  const baseStyles = "h-12 px-4 rounded-lg font-medium text-base flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none";
+  const baseStyles = "h-12 px-4 rounded-lg font-medium text-base flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-offset-2";
   
   const variants = {
-    primary: "bg-primary text-white hover:bg-primary/90",
-    secondary: "bg-gray-100 text-gray-800 hover:bg-gray-200",
-    ghost: "bg-transparent text-primary hover:bg-primary/10",
-    outline: "bg-transparent border-2 border-primary text-primary hover:bg-primary/5",
+    primary: "bg-primary text-white hover:bg-primary/90 focus:ring-primary",
+    secondary: "bg-gray-100 text-gray-800 hover:bg-gray-200 focus:ring-gray-300",
+    ghost: "bg-transparent text-primary hover:bg-primary/10 focus:ring-primary/30",
+    outline: "bg-transparent border-2 border-primary text-primary hover:bg-primary/5 focus:ring-primary/30",
   };
 
   return (
