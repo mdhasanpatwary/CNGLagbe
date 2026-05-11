@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { Phone, Key, LogIn, ArrowRight } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +14,17 @@ import { loginSchema, type LoginInput } from "@/lib/schemas/auth";
 import { PageHeading } from "@/components/ui/PageHeading";
 
 export default function UserLogin() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/user";
   const { t } = useLang();
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -81,7 +91,7 @@ export default function UserLogin() {
       const resData = await res.json();
 
       if (res.ok) {
-        router.push("/user");
+        router.push(redirect);
       } else {
         setServerError(resData.error || t("login_failed"));
       }

@@ -148,6 +148,7 @@ export const TEXT = {
   date: { en: "Date", bn: "তারিখ" },
   map_error: { en: "Map Error", bn: "ম্যাপে সমস্যা" },
   sim_mode: { en: "Demo Mode", bn: "ডেমো মোড" },
+  demo_tag: { en: "DEMO", bn: "ডেমো" },
   current_loc: { en: "Pickup", bn: "কোথায় আছেন?" },
   confirm_pickup: { en: "Pickup Here", bn: "এইখানে আসো" },
   where_to: { en: "Where to?", bn: "কোথায় যাবেন?" },
@@ -528,8 +529,8 @@ export const TEXT = {
     bn: "আমাদের পার্টনারদের জন্য"
   },
   hero_no_surprise: {
-    en: "No Surprise",
-    bn: "কোন চমক নেই"
+    en: "No Hidden Costs",
+    bn: "লুকানো খরচ নেই"
   },
   skip_to_content: {
     en: "Skip to main content",

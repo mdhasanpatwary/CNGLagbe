@@ -124,11 +124,11 @@ export default function LandingPage() {
 
   const handleBookNow = useCallback(() => {
     if (!user) {
-      router.push("/login");
+      router.push("/login?redirect=/user/map");
     } else if (user.role === "DRIVER") {
       router.push("/dashboard");
     } else {
-      router.push("/user");
+      router.push("/user/map");
     }
   }, [user, router]);
 
@@ -419,8 +419,14 @@ export default function LandingPage() {
                           <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary group-hover/field:scale-110 transition-transform">
                             {field.icon}
                           </div>
-                          <div className="w-full bg-white/5 border border-white/5 rounded-[16px] py-3.5 sm:py-4 pl-12 pr-4 text-white/40 text-sm sm:text-base font-bn cursor-default group-hover/field:border-primary/30 group-hover/field:bg-white/10 transition-all">
-                            {field.label}
+                          <div 
+                            onClick={handleBookNow}
+                            className="w-full bg-white/5 border border-white/5 rounded-[16px] py-3.5 sm:py-4 pl-12 pr-4 text-white/40 text-sm sm:text-base font-bn cursor-pointer group-hover/field:border-primary/30 group-hover/field:bg-white/10 transition-all flex items-center justify-between"
+                          >
+                            <span>{field.label}</span>
+                            <span className="text-[10px] sm:text-[11px] font-medium tracking-wider bg-white/10 px-2 py-0.5 rounded-full text-white/20 group-hover/field:text-primary/40 transition-colors">
+                              {t("demo_tag")}
+                            </span>
                           </div>
                         </motion.div>
                       ))}
