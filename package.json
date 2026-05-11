@@ -1,7 +1,8 @@
 {
   "name": "cnglagbe",
-  "desc": "on time cng booking app",
+  "desc": "on time cng booking service",
   "version": "0.1.0",
+  "homepage": "https://www.cnglagbe.com",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",

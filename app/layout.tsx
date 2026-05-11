@@ -37,6 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const isDriver = role === "driver";
   
   return {
+    metadataBase: new URL("https://www.cnglagbe.com"),
     title: isDriver
       ? "CNGLagbe Driver | Manage Your Bookings"
       : "CNG Booking in Chhagalnaiya | Fast, Fixed Fare, Local Service",
