@@ -41,4 +41,6 @@ export interface Booking {
   completedAt?: string | null;
   cancelledAt?: string | null;
   driver?: BookingDriver | null;
+  rating?: number | null;
+  feedback?: string | null;
 }

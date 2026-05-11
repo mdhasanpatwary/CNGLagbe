@@ -77,6 +77,8 @@ model Booking {
   completedAt    DateTime?
   polyline       String?
   mapSnapshotUrl String?
+  rating         Int?
+  feedback       String?
   driver         Driver?            @relation(fields: [driverId], references: [id])
   user           User?              @relation(fields: [userId], references: [id])
   rejections     BookingRejection[]

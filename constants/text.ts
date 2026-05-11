@@ -143,6 +143,8 @@ export const TEXT = {
   status: { en: "Status", bn: "খবর" },
   distance: { en: "Distance", bn: "দূরত্ব" },
   total_fare: { en: "Price", bn: "দাম" },
+  fare: { en: "Fare", bn: "ভাড়া" },
+  time: { en: "Time", bn: "সময়" },
   driver_payout: { en: "Driver", bn: "ড্রাইভার" },
   commission: { en: "Fee", bn: "ফি" },
   date: { en: "Date", bn: "তারিখ" },
@@ -186,7 +188,7 @@ export const TEXT = {
   loading: { en: "Loading...", bn: "অপেক্ষা করুন" },
   error: { en: "Error", bn: "ভুল" },
   dr_on_way: { en: "On way", bn: "আসছে" },
-  booking_done: { en: "Finished", bn: "শেষ" },
+  booking_done: { en: "Driver Arrived", bn: "ড্রাইভার পৌঁছেছেন" },
   safe_journey: { en: "Safe journey", bn: "শুভ যাত্রা" },
   your_driver: { en: "Driver", bn: "চালক" },
   call_driver: { en: "Call", bn: "কল দিন" },
@@ -285,7 +287,7 @@ export const TEXT = {
   driver_assigned_desc: { en: "Your driver is coming", bn: "আপনার ড্রাইভার আসছে" },
   driver_on_the_way: { en: "Driver is on the way", bn: "ড্রাইভার পথে আছে" },
   arriving_soon: { en: "Arriving soon", bn: "কিছুক্ষণের মধ্যেই পৌঁছাবে" },
-  wait_minutes: { en: "Wait 3-5 mins", bn: "৩-৫ মিনিট অপেক্ষা করুন" },
+  wait_minutes: { en: "Wait 10-15 mins", bn: "১০-১৫ মিনিট অপেক্ষা করুন" },
   driver_arrived: { en: "Driver Arrived", bn: "ড্রাইভার পৌঁছেছেন" },
   driver_arrived_info: { en: "Driver is at your pickup location", bn: "ড্রাইভার আপনার জায়গায় পৌঁছেছেন" },
   timeout_label: { en: "Timeout", bn: "সময়সীমা" },
@@ -548,6 +550,11 @@ export const TEXT = {
     en: "SCAN TO DOWNLOAD",
     bn: "স্ক্যান করে নামান"
   },
+  rate_driver: { en: "Rate Driver", bn: "রেটিং দিন" },
+  rate_desc: { en: "How was your ride?", bn: "কেমন ছিল আপনার যাত্রা?" },
+  feedback_ph: { en: "Tell us more (optional)", bn: "আরো কিছু বলতে চান? (ঐচ্ছিক)" },
+  rating_submitted: { en: "Thanks for rating!", bn: "রেটিং দেওয়ার জন্য ধন্যবাদ!" },
+  submit_rating: { en: "Submit", bn: "রেটিং দিন" },
 } as const;
 
 

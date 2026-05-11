@@ -2,13 +2,13 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, Navigation, Pin, Banknote, Clock, Route, CheckCircle2, Search, X, LocateFixed, ArrowLeft } from "lucide-react";
+import { MapPin, Navigation, Pin, Banknote, Clock, Route, CheckCircle2, X, LocateFixed, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { AppButton } from "@/components/ui/AppButton";
 import { Badge } from "@/components/ui/badge";
-import { Header } from "@/components/layout/Header";
 import { useLang } from "@/hooks/useLang";
 import { COLORS } from "@/constants/colors";
+import { cn } from "@/lib/utils";
 
 import {
   saveBookingSession,
@@ -21,7 +21,7 @@ import { useQuery } from "@tanstack/react-query";
 
 // Types
 type Point = { lat: number; lng: number; address?: string };
-type Step = "PICKUP" | "DESTINATION" | "CONFIRM";
+type Step = "BOOKING" | "CONFIRM";
 
 interface FareData {
   distance: number;
@@ -53,7 +53,8 @@ export default function UserMapPage() {
   const pickupMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
   const destMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
 
-  const [step, setStep] = useState<Step>("PICKUP");
+  const [step, setStep] = useState<Step>("BOOKING");
+  const [focusedInput, setFocusedInput] = useState<"PICKUP" | "DESTINATION">("PICKUP");
   const [fareData, setFareData] = useState<FareData | null>(null);
   const [loading, setLoading] = useState(false);
   const [mapError, setMapError] = useState(false);
@@ -79,15 +80,15 @@ export default function UserMapPage() {
   // ─── Step based camera movement ──────────────────────────────────────────
   useEffect(() => {
     if (isDraggingRef.current) return;
-    if (step === "DESTINATION" && !destination && map) {
+    if (step === "BOOKING" && focusedInput === "DESTINATION" && !destination && map) {
       // Zoom out or stay centered to let user pick
       map.setZoom(14);
     }
-    if (step === "PICKUP" && pickup && map) {
+    if (step === "BOOKING" && focusedInput === "PICKUP" && pickup && map) {
       map.panTo(pickup);
       map.setZoom(15);
     }
-  }, [step, map, pickup, destination]);
+  }, [step, map, pickup, destination, focusedInput]);
 
   // ─── React Query for Unified Sync (Auth + Active Booking) ─────────────────
   const { data: syncData } = useQuery({
@@ -126,13 +127,13 @@ export default function UserMapPage() {
         const lat = Math.round(pos.lat * 10000) / 10000;
         const lng = Math.round(pos.lng * 10000) / 10000;
         const cacheKey = `${lat},${lng}`;
-        
+
         if (geocodeCache.current[cacheKey]) {
           return geocodeCache.current[cacheKey];
         }
 
         let address = "";
-        
+
         // Try client-side Google Maps Geocoder first (Best UX, uses Maps JS API quota)
         if (window.google?.maps?.Geocoder) {
           try {
@@ -151,7 +152,7 @@ export default function UserMapPage() {
             console.warn("Client geocoder failed, falling back to API", geocoderErr);
           }
         }
-        
+
         // Fallback to our backend API if client geocoder fails or isn't loaded
         if (!address) {
           try {
@@ -167,14 +168,14 @@ export default function UserMapPage() {
             console.warn("API geocode failed", apiErr);
           }
         }
-        
+
         // Final fallback to lat, lng string
         if (!address) {
           address = `${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`;
         } else {
           geocodeCache.current[cacheKey] = address;
         }
-        
+
         return address;
       } catch (err) {
         console.error("Geocode error:", err);
@@ -237,7 +238,7 @@ export default function UserMapPage() {
     container.style.display = "flex";
     container.style.flexDirection = "column";
     container.style.alignItems = "center";
-    
+
     const labelDiv = document.createElement("div");
     labelDiv.style.backgroundColor = color;
     labelDiv.style.color = COLORS.glyph;
@@ -253,15 +254,15 @@ export default function UserMapPage() {
     labelDiv.style.display = "flex";
     labelDiv.style.alignItems = "center";
     labelDiv.style.gap = "2px";
-    
+
     const iconSpan = document.createElement("span");
     iconSpan.textContent = type === 'pickup' ? "📍" : "📌";
     labelDiv.appendChild(iconSpan);
-    
+
     const textSpan = document.createElement("span");
     textSpan.textContent = label;
     labelDiv.appendChild(textSpan);
-    
+
     container.appendChild(labelDiv);
     container.appendChild(pin);
     return container;
@@ -285,156 +286,105 @@ export default function UserMapPage() {
 
     const initMapWrapper = async () => {
       const initMap = async () => {
-      try {
-        let attempts = 0;
-        while (!window.google?.maps?.importLibrary && attempts < 10) {
-          await new Promise((r) => setTimeout(r, 100));
-          attempts++;
-        }
-
-        if (!window.google?.maps?.importLibrary) {
-          setMapError(true);
-          return;
-        }
-
-        const { AdvancedMarkerElement, PinElement } =
-          (await window.google.maps.importLibrary(
-            "marker"
-          )) as google.maps.MarkerLibrary;
-
-        await window.google.maps.importLibrary("places");
-        await window.google.maps.importLibrary("geometry");
-
-        const defaultLocation = { lat: 23.0361, lng: 91.5194 };
-
-        const mapInstance = new window.google.maps.Map(
-          mapRef.current as HTMLElement,
-          {
-            center: defaultLocation,
-            zoom: 13,
-            mapTypeControl: false,
-            streetViewControl: false,
-            fullscreenControl: false,
-            zoomControl: true,
-            zoomControlOptions: { position: window.google.maps.ControlPosition.RIGHT_BOTTOM },
-            gestureHandling: "greedy",
-            mapId: "DEMO_MAP_ID",
+        try {
+          let attempts = 0;
+          while (!window.google?.maps?.importLibrary && attempts < 10) {
+            await new Promise((r) => setTimeout(r, 100));
+            attempts++;
           }
-        );
 
-        setMap(mapInstance);
+          if (!window.google?.maps?.importLibrary) {
+            setMapError(true);
+            return;
+          }
 
-        // ── Restore session block ──────────────────────────────────────────
-        const session = getBookingSession();
-        if (session) {
-          const restoredPickup: Point = {
-            lat: session.pickup.lat,
-            lng: session.pickup.lng,
-            address: session.pickup.label,
+          await window.google.maps.importLibrary("marker");
+
+          await window.google.maps.importLibrary("places");
+          await window.google.maps.importLibrary("geometry");
+
+          const defaultLocation = { lat: 23.0361, lng: 91.5194 };
+
+          const mapInstance = new window.google.maps.Map(
+            mapRef.current as HTMLElement,
+            {
+              center: defaultLocation,
+              zoom: 13,
+              mapTypeControl: false,
+              streetViewControl: false,
+              fullscreenControl: false,
+              zoomControl: true,
+              zoomControlOptions: { position: window.google.maps.ControlPosition.RIGHT_BOTTOM },
+              gestureHandling: "greedy",
+              mapId: "DEMO_MAP_ID",
+            }
+          );
+
+          setMap(mapInstance);
+
+          // ── Restore session block ──────────────────────────────────────────
+          const session = getBookingSession();
+          if (session) {
+            const restoredPickup: Point = {
+              lat: session.pickup.lat,
+              lng: session.pickup.lng,
+              address: session.pickup.label,
+            };
+            const restoredDrop: Point = {
+              lat: session.drop.lat,
+              lng: session.drop.lng,
+              address: session.drop.label,
+            };
+
+            setPickup(restoredPickup);
+            setDestination(restoredDrop);
+            setFareData({
+              distance: session.route.distanceKm,
+              fare: session.fare,
+              currency: "BDT",
+            });
+            setRouteInfo({
+              distanceText: session.route.distanceText,
+              durationText: session.route.durationText,
+              durationMinutes: session.route.durationMinutes ?? null,
+              encodedPolyline: session.route.polyline,
+            });
+            restoredFromSession.current = true;
+            setStep("CONFIRM");
+            setToastVisible(true);
+            setPickupSearchValue(restoredPickup.address || "");
+            setDestSearchValue(restoredDrop.address || "");
+            return;
+          }
+
+          // ── Normal block ──────────────────────────────────────────────────
+          const handleGeoSuccess = async (position: GeolocationPosition) => {
+            const pos: Point = { lat: position.coords.latitude, lng: position.coords.longitude };
+            pos.address = await reverseGeocode(pos);
+            mapInstance.setCenter(pos);
+            setPickup(pos);
           };
-          const restoredDrop: Point = {
-            lat: session.drop.lat,
-            lng: session.drop.lng,
-            address: session.drop.label,
+
+          const handleGeoError = async () => {
+            console.log("Geolocation failed.");
+            const pos: Point = { ...defaultLocation };
+            pos.address = await reverseGeocode(pos);
+            mapInstance.setCenter(pos);
+            setPickup(pos);
+            setLocFallbackVisible(true);
+            setTimeout(() => setLocFallbackVisible(false), 3500);
           };
 
-          setPickup(restoredPickup);
-          setDestination(restoredDrop);
-          setFareData({
-            distance: session.route.distanceKm,
-            fare: session.fare,
-            currency: "BDT",
-          });
-          setRouteInfo({
-            distanceText: session.route.distanceText,
-            durationText: session.route.durationText,
-            durationMinutes: session.route.durationMinutes ?? null,
-            encodedPolyline: session.route.polyline,
-          });
-          restoredFromSession.current = true;
-          setStep("CONFIRM");
-          setToastVisible(true);
-          setPickupSearchValue(restoredPickup.address || "");
-          setDestSearchValue(restoredDrop.address || "");
-
-          const pinGreen = new PinElement({ background: COLORS.primary, borderColor: COLORS.pickupBorder, glyphColor: COLORS.glyph });
-          const pickupM = new AdvancedMarkerElement({
-            position: restoredPickup,
-            map: mapInstance,
-            title: t("pickup"),
-            content: createLabeledMarker(pinGreen, t("pickup"), COLORS.primary, 'pickup'),
-            gmpDraggable: true,
-          });
-          pickupM.addListener("drag", () => handleMarkerDrag(pickupM, 'pickup', false));
-          pickupM.addListener("dragend", () => handleMarkerDrag(pickupM, 'pickup', true));
-          pickupMarkerRef.current = pickupM;
-
-          const pinRed = new PinElement({ background: COLORS.drop, borderColor: COLORS.dropBorder, glyphColor: COLORS.glyph });
-          const dropM = new AdvancedMarkerElement({
-            position: restoredDrop,
-            map: mapInstance,
-            title: t("drop"),
-            content: createLabeledMarker(pinRed, t("drop"), COLORS.drop, 'drop'),
-            gmpDraggable: true,
-          });
-          dropM.addListener("drag", () => handleMarkerDrag(dropM, 'drop', false));
-          dropM.addListener("dragend", () => handleMarkerDrag(dropM, 'drop', true));
-          destMarkerRef.current = dropM;
-          return;
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(handleGeoSuccess, handleGeoError, { timeout: 10000 });
+          } else {
+            void handleGeoError();
+          }
+        } catch (e) {
+          console.error("Map initialization failed", e);
+          setMapError(true);
         }
-
-        // ── Normal block ──────────────────────────────────────────────────
-        const handleGeoSuccess = async (position: GeolocationPosition) => {
-          const pos: Point = { lat: position.coords.latitude, lng: position.coords.longitude };
-          pos.address = await reverseGeocode(pos);
-          mapInstance.setCenter(pos);
-          setPickup(pos);
-
-          const pinGreen = new PinElement({ background: COLORS.primary, borderColor: COLORS.pickupBorder, glyphColor: COLORS.glyph });
-          const marker = new AdvancedMarkerElement({
-            position: pos,
-            map: mapInstance,
-            title: t("pickup"),
-            content: createLabeledMarker(pinGreen, t("pickup"), COLORS.primary, 'pickup'),
-            gmpDraggable: true,
-          });
-          marker.addListener("drag", () => handleMarkerDrag(marker, 'pickup', false));
-          marker.addListener("dragend", () => handleMarkerDrag(marker, 'pickup', true));
-          pickupMarkerRef.current = marker;
-        };
-
-        const handleGeoError = async () => {
-          console.log("Geolocation failed.");
-          const pos: Point = { ...defaultLocation };
-          pos.address = await reverseGeocode(pos);
-          mapInstance.setCenter(pos);
-          setPickup(pos);
-          setLocFallbackVisible(true);
-          setTimeout(() => setLocFallbackVisible(false), 3500);
-
-          const pinGreen = new PinElement({ background: COLORS.primary, borderColor: COLORS.pickupBorder, glyphColor: COLORS.glyph });
-          const marker = new AdvancedMarkerElement({
-            position: pos,
-            map: mapInstance,
-            title: t("pickup"),
-            content: createLabeledMarker(pinGreen, t("pickup"), COLORS.primary, 'pickup'),
-            gmpDraggable: true,
-          });
-          marker.addListener("drag", () => handleMarkerDrag(marker, 'pickup', false));
-          marker.addListener("dragend", () => handleMarkerDrag(marker, 'pickup', true));
-          pickupMarkerRef.current = marker;
-        };
-
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(handleGeoSuccess, handleGeoError, { timeout: 10000 });
-        } else {
-          void handleGeoError();
-        }
-      } catch (e) {
-        console.error("Map initialization failed", e);
-        setMapError(true);
-      }
-    };
+      };
 
       if (window.google?.maps && 'importLibrary' in window.google.maps) {
         initMap();
@@ -446,9 +396,9 @@ export default function UserMapPage() {
       if (existingScript) {
         // If script is already there but loading, wait for it
         if (window.google?.maps) {
-           initMap();
+          initMap();
         } else {
-           existingScript.addEventListener('load', initMap);
+          existingScript.addEventListener('load', initMap);
         }
         return;
       }
@@ -484,10 +434,7 @@ export default function UserMapPage() {
         address: place.formatted_address || place.name || "",
       };
 
-      // Move/create marker
-      if (pickupMarkerRef.current) {
-        pickupMarkerRef.current.position = pos;
-      }
+      // The marker will be updated/created by the useEffect monitoring the 'pickup' state.
       if (map) {
         map.panTo(pos);
         map.setZoom(16);
@@ -521,13 +468,10 @@ export default function UserMapPage() {
         address: place.formatted_address || place.name || "",
       };
 
-      // Move/create marker
-      if (destMarkerRef.current) {
-        destMarkerRef.current.position = pos;
-      }
+      // The marker will be updated/created by the useEffect monitoring the 'destination' state.
       if (map) {
         map.panTo(pos);
-        map.setZoom(15);
+        map.setZoom(16);
       }
 
       clearBookingSession();
@@ -541,17 +485,17 @@ export default function UserMapPage() {
   useEffect(() => {
     if (!map) return;
     const timer = setTimeout(() => {
-      if (step === "PICKUP") initPickupAutocomplete();
-      if (step === "DESTINATION") initDestAutocomplete();
+      if (step === "BOOKING") {
+        initPickupAutocomplete();
+        initDestAutocomplete();
+      }
     }, 100);
     return () => clearTimeout(timer);
   }, [step, map, initPickupAutocomplete, initDestAutocomplete]);
 
   // ─── Step navigation ──────────────────────────────────────────────────────
   const handleNextStep = async () => {
-    if (step === "PICKUP" && pickup) {
-      setStep("DESTINATION");
-    } else if (step === "DESTINATION" && destination) {
+    if (step === "BOOKING" && pickup && destination) {
       setLoading(true);
       try {
         const res = await apiFetch("/api/fare/calculate", {
@@ -631,9 +575,9 @@ export default function UserMapPage() {
         };
         map.panTo(pos);
         map.setZoom(15);
-        
+
         if (pickupMarkerRef.current) {
-           pickupMarkerRef.current.position = pos;
+          pickupMarkerRef.current.position = pos;
         }
 
         pos.address = await reverseGeocode(pos);
@@ -650,9 +594,9 @@ export default function UserMapPage() {
         // Fallback to updating address for the current position anyway
         if (pickupMarkerRef.current?.position) {
           const p = pickupMarkerRef.current.position;
-          const point: Point = { 
+          const point: Point = {
             lat: typeof p.lat === "function" ? p.lat() : (p.lat as number),
-            lng: typeof p.lng === "function" ? p.lng() : (p.lng as number) 
+            lng: typeof p.lng === "function" ? p.lng() : (p.lng as number)
           };
           reverseGeocode(point).then(address => {
             setPickup({ ...point, address });
@@ -679,7 +623,7 @@ export default function UserMapPage() {
         };
 
         let address = "";
-        
+
         // Handle POI (Point of Interest) clicks
         const iconEvent = e as google.maps.MapMouseEvent & { placeId?: string; stop?: () => void };
         if (iconEvent.placeId && typeof iconEvent.stop === "function") {
@@ -701,20 +645,21 @@ export default function UserMapPage() {
           }
         }
 
-        if (step === "PICKUP") {
+        if (step === "BOOKING") {
           if (!address) address = await reverseGeocode(pos);
           pos.address = address;
           clearBookingSession();
           restoredFromSession.current = false;
           setRouteInfo(null);
-          setPickup(pos);
-        } else if (step === "DESTINATION") {
-          if (!address) address = await reverseGeocode(pos);
-          pos.address = address;
-          clearBookingSession();
-          restoredFromSession.current = false;
-          setRouteInfo(null);
-          setDestination(pos);
+
+          if (focusedInput === "PICKUP") {
+            setPickup(pos);
+            setPickupSearchValue(address);
+            if (!destination) setFocusedInput("DESTINATION");
+          } else {
+            setDestination(pos);
+            setDestSearchValue(address);
+          }
         }
       }
     );
@@ -722,7 +667,7 @@ export default function UserMapPage() {
     return () => {
       window.google.maps.event.removeListener(clickListener);
     };
-  }, [map, step, reverseGeocode]);
+  }, [map, step, reverseGeocode, destination, focusedInput]);
 
   // ─── Update Markers ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -735,7 +680,7 @@ export default function UserMapPage() {
       if (pickup && !pickupMarkerRef.current) {
         const pinGreen = new PinElement({ background: COLORS.primary, borderColor: COLORS.pickupBorder });
         const marker = new AdvancedMarkerElement({
-          position: pickup,
+          position: { lat: pickup.lat, lng: pickup.lng },
           map,
           title: t("pickup"),
           content: createLabeledMarker(pinGreen, t("pickup"), COLORS.primary, 'pickup'),
@@ -753,9 +698,13 @@ export default function UserMapPage() {
           isSame = Math.abs(curLat - pickup.lat) < 0.000001 && Math.abs(curLng - pickup.lng) < 0.000001;
         }
         if (!isSame) {
-          pickupMarkerRef.current.position = pickup;
+          pickupMarkerRef.current.position = { lat: pickup.lat, lng: pickup.lng };
         }
-        
+        // Ensure it is attached to map
+        if (pickupMarkerRef.current.map !== map) {
+          pickupMarkerRef.current.map = map;
+        }
+
         // Always update content to reflect language changes
         const pinGreen = new PinElement({ background: COLORS.primary, borderColor: COLORS.pickupBorder, glyphColor: COLORS.glyph });
         pickupMarkerRef.current.title = t("pickup");
@@ -765,7 +714,7 @@ export default function UserMapPage() {
       if (destination && !destMarkerRef.current) {
         const pinRed = new PinElement({ background: COLORS.drop, borderColor: COLORS.dropBorder });
         const marker = new AdvancedMarkerElement({
-          position: destination,
+          position: { lat: destination.lat, lng: destination.lng },
           map,
           title: t("drop"),
           content: createLabeledMarker(pinRed, t("drop"), COLORS.drop, 'drop'),
@@ -783,7 +732,11 @@ export default function UserMapPage() {
           isSame = Math.abs(curLat - destination.lat) < 0.000001 && Math.abs(curLng - destination.lng) < 0.000001;
         }
         if (!isSame) {
-          destMarkerRef.current.position = destination;
+          destMarkerRef.current.position = { lat: destination.lat, lng: destination.lng };
+        }
+        // Ensure it is attached to map
+        if (destMarkerRef.current.map !== map) {
+          destMarkerRef.current.map = map;
         }
 
         // Always update content to reflect language changes
@@ -802,10 +755,18 @@ export default function UserMapPage() {
       return;
     }
 
-    const bounds = new window.google.maps.LatLngBounds();
-    bounds.extend(pickup);
-    bounds.extend(destination);
-    map.fitBounds(bounds, { top: 80, right: 80, bottom: 80, left: 80 });
+    const fitToPoints = (pts: Point[]) => {
+      const b = new window.google.maps.LatLngBounds();
+      pts.forEach(p => b.extend(p));
+      const isMobile = window.innerWidth < 768;
+      const padding = isMobile
+        ? { top: 100, right: 40, bottom: window.innerHeight * 0.6, left: 40 }
+        : { top: 80, right: 80, bottom: 80, left: 420 };
+      map.fitBounds(b, padding);
+    };
+
+    // Initial fit to pickup/destination
+    fitToPoints([pickup, destination]);
 
     const drawPolyline = (path: google.maps.LatLng[], opacity: number) => {
       const poly = new window.google.maps.Polyline({
@@ -861,6 +822,15 @@ export default function UserMapPage() {
 
         const route = result.routes[0];
         const leg = route.legs[0];
+
+        // ─── Update bounds to actual route bounds ───
+        if (route.bounds && map) {
+          const isMobile = window.innerWidth < 768;
+          const padding = isMobile
+            ? { top: 100, right: 40, bottom: window.innerHeight * 0.6, left: 40 }
+            : { top: 80, right: 80, bottom: 80, left: 420 };
+          map.fitBounds(route.bounds, padding);
+        }
 
         // Decode the overview polyline for drawing + storage
         const encodedPolyline = route.overview_polyline ?? "";
@@ -925,19 +895,19 @@ export default function UserMapPage() {
         </div>
       )}
 
-      {/* ── Floating Header ─────────────────────────────────────────────────── */}
-      <Header
-        role="user"
-        variant="floating"
-        className="md:left-[420px] left-4 right-4"
-        user={syncData?.user}
-        onRecenter={() => { const p = pickup ?? destination; if (p) { map?.panTo(p); map?.setZoom(15); } }}
-      />
+      {/* ── Floating Back Button ────────────────────────────────────────────── */}
+      <AppButton
+        onClick={() => router.back()}
+        className="absolute top-4 left-4 z-40 w-12 h-12 rounded-full bg-white/90 backdrop-blur-md shadow-lg border border-slate-200 text-slate-700 hover:bg-white transition-all p-0 flex items-center justify-center md:left-[420px]"
+        variant="ghost"
+      >
+        <ArrowLeft size={20} />
+      </AppButton>
 
 
       {/* ── Route pill (CONFIRM step, floats at map top-center) ──────────── */}
       {step === "CONFIRM" && (
-        <div className="absolute top-24 left-1/2 -translate-x-1/2 z-20 bg-white/95 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-slate-100 flex items-center gap-2 max-w-[70vw] animate-in fade-in slide-in-from-top-2">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-white/95 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-slate-100 flex items-center gap-2 max-w-[70vw] animate-in fade-in slide-in-from-top-2">
           <span className="text-[10px] font-black uppercase text-primary flex items-center gap-1">
             <MapPin size={10} /> {t("pickup")}
           </span>
@@ -992,155 +962,120 @@ export default function UserMapPage() {
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto px-5 pb-8 pt-2">
 
-          {/* ── PICKUP STEP ─────────────────────────────────────────────── */}
-          {step === "PICKUP" && (
+          {/* ── BOOKING STEP (Consolidated) ────────────────────────────────── */}
+          {step === "BOOKING" && (
             <div className="animate-in fade-in slide-in-from-bottom-3 duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-black text-slate-900">{t("set_pickup_title")}</h2>
-                <Badge className="bg-primary-light text-primary-dark border-none text-[10px] font-bold px-2 py-0.5">
-                  {t("pickup")}
-                </Badge>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-black text-slate-900">{t("book_your_cng")}</h2>
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  <Route size={20} />
+                </div>
               </div>
 
-              {/* Pickup search */}
-              <div className="relative mb-3">
-                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none">
-                  <Search size={16} />
+              {/* Combined inputs with vertical connector */}
+              <div className="relative space-y-4 mb-6 pl-4">
+                {/* Vertical connector line */}
+                <div className="absolute left-[7px] top-7 bottom-7 w-0.5 bg-slate-100 border-l border-dashed border-slate-300" />
+
+                {/* Pickup Field */}
+                <div className="relative">
+                  <div className={cn(
+                    "absolute -left-5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border-2 border-white shadow-sm z-10 transition-colors duration-300",
+                    focusedInput === "PICKUP" ? "bg-primary scale-125" : "bg-slate-300"
+                  )} />
+                  <div className="relative group">
+                    <div className={cn(
+                      "absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors duration-300",
+                      focusedInput === "PICKUP" ? "text-primary" : "text-slate-400"
+                    )}>
+                      <MapPin size={18} />
+                    </div>
+                    <input
+                      ref={pickupSearchRef}
+                      type="text"
+                      value={pickupSearchValue}
+                      onFocus={() => setFocusedInput("PICKUP")}
+                      onChange={(e) => setPickupSearchValue(e.target.value)}
+                      placeholder={t("hero_pickup_ph") as string}
+                      className={cn(
+                        "w-full pl-11 pr-20 py-4 rounded-2xl border-2 transition-all text-sm font-semibold",
+                        focusedInput === "PICKUP"
+                          ? "border-primary/30 bg-primary/5 text-slate-800 shadow-sm"
+                          : "border-slate-100 bg-slate-50/50 text-slate-500"
+                      )}
+                      autoComplete="off"
+                    />
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                      {pickupSearchValue && (
+                        <AppButton
+                          onClick={() => { setPickupSearchValue(""); setPickup(null); pickupSearchRef.current?.focus(); }}
+                          className="text-slate-400 hover:text-slate-600 p-2 h-9 w-9 border-none transition-all cursor-pointer"
+                          variant="ghost"
+                          leftIcon={<X size={16} />}
+                        />
+                      )}
+                      <AppButton
+                        onClick={handleUseCurrentLocation}
+                        className={cn(
+                          "p-2 h-9 w-9 rounded-xl border-none transition-all cursor-pointer",
+                          !pickup?.address ? "text-primary bg-primary/10 animate-pulse" : "text-slate-400 hover:text-primary hover:bg-primary/5"
+                        )}
+                        variant="ghost"
+                        leftIcon={<LocateFixed size={18} />}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <input
-                  ref={pickupSearchRef}
-                  id="pickup-search-input"
-                  type="text"
-                  value={pickupSearchValue}
-                  onChange={(e) => setPickupSearchValue(e.target.value)}
-                  placeholder={t("type_location") as string}
-                  className="w-full pl-10 pr-9 py-3.5 rounded-2xl border-2 border-primary/20 bg-primary/5 text-sm font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-primary/40 focus:bg-white transition-all"
-                  autoComplete="off"
-                />
-                {pickupSearchValue && (
-                  <AppButton
-                    onClick={() => { setPickupSearchValue(""); pickupSearchRef.current?.focus(); }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 h-auto w-auto border-none"
-                    aria-label="Clear"
-                    variant="ghost"
-                    leftIcon={<X size={14} />}
-                  />
-                )}
+
+                {/* Destination Field */}
+                <div className="relative">
+                  <div className={cn(
+                    "absolute -left-5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-sm border-2 border-white shadow-sm z-10 transition-colors duration-300",
+                    focusedInput === "DESTINATION" ? "bg-red-500 scale-125" : "bg-slate-300"
+                  )} />
+                  <div className="relative group">
+                    <div className={cn(
+                      "absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors duration-300",
+                      focusedInput === "DESTINATION" ? "text-red-500" : "text-slate-400"
+                    )}>
+                      <Navigation size={18} />
+                    </div>
+                    <input
+                      ref={destSearchRef}
+                      type="text"
+                      value={destSearchValue}
+                      onFocus={() => setFocusedInput("DESTINATION")}
+                      onChange={(e) => setDestSearchValue(e.target.value)}
+                      placeholder={t("hero_dest_ph") as string}
+                      className={cn(
+                        "w-full pl-11 pr-12 py-4 rounded-2xl border-2 transition-all text-sm font-semibold",
+                        focusedInput === "DESTINATION"
+                          ? "border-red-200 bg-red-50/30 text-slate-800 shadow-sm"
+                          : "border-slate-100 bg-slate-50/50 text-slate-500"
+                      )}
+                      autoComplete="off"
+                    />
+                    {destSearchValue && (
+                      <AppButton
+                        onClick={() => { setDestSearchValue(""); setDestination(null); destSearchRef.current?.focus(); }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-2 h-9 w-9 border-none cursor-pointer"
+                        variant="ghost"
+                        leftIcon={<X size={16} />}
+                      />
+                    )}
+                  </div>
+                </div>
               </div>
 
-              {/* Current location chip */}
-              {pickup?.address ? (
-                <AppButton
-                  onClick={handleUseCurrentLocation}
-                  className="w-full flex items-center justify-start text-left gap-3 bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors rounded-2xl px-4 py-3 mb-3 cursor-pointer active:scale-[0.98] h-auto"
-                  variant="secondary"
-                >
-                  <LocateFixed size={16} className="text-primary shrink-0" />
-                  <p className="text-sm font-semibold text-slate-700 truncate flex-1">{pickup.address}</p>
-                  <span className="text-[9px] font-black uppercase text-primary-dark bg-primary/20 px-2 py-0.5 rounded-full shrink-0">
-                    {t("use_current_loc")}
-                  </span>
-                </AppButton>
-              ) : (
-                <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 mb-3">
-                  <div className="w-4 h-4 rounded-full border-2 border-slate-200 border-t-primary animate-spin shrink-0" />
-                  <p className="text-sm font-semibold text-slate-400 truncate flex-1">{t("loading")}</p>
-                </div>
-              )}
 
-              <p className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">
+              <p className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">
                 {t("tap_map_hint")}
               </p>
 
               <AppButton
-                className="w-full h-14 rounded-2xl shadow-lg text-base font-bold"
+                className="w-full h-16 rounded-2xl shadow-xl text-lg font-black bg-primary hover:bg-primary-dark transition-all"
                 onClick={handleNextStep}
-                disabled={!pickup}
-              >
-                {t("confirm_pickup")}
-              </AppButton>
-            </div>
-          )}
-
-          {/* ── DESTINATION STEP ─────────────────────────────────────────── */}
-          {step === "DESTINATION" && (
-            <div className="animate-in fade-in slide-in-from-bottom-3 duration-300">
-              {/* Back Button */}
-              <div className="mb-4">
-                <AppButton
-                  onClick={() => setStep("PICKUP")}
-                  className="text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-full transition-colors h-auto border-none inline-flex items-center -ml-1"
-                  variant="ghost"
-                  leftIcon={<ArrowLeft size={14} />}
-                >
-                  {t("back")}
-                </AppButton>
-              </div>
-
-              {/* Mini pickup summary */}
-              <div className="flex items-center gap-2 mb-4 px-0.5">
-                <div className="flex flex-col items-center gap-0.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-                  <div className="w-0.5 h-5 bg-slate-200" />
-                  <div className="w-2.5 h-2.5 rounded-sm bg-red-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-black uppercase text-slate-400 mb-0.5">{t("pickup")}</p>
-                  <p className="text-xs font-semibold text-slate-600 truncate">{pickup?.address ?? "..."}</p>
-                  <p className="text-[10px] font-black uppercase text-slate-400 mt-1.5 mb-0.5">{t("drop")}</p>
-                  <p className="text-xs font-semibold text-slate-400 truncate">{destination?.address ?? t("tap_map_hint")}</p>
-                </div>
-              </div>
-
-              <div className="h-px bg-slate-100 mb-4" />
-
-              <h2 className="text-lg font-black text-slate-900 mb-3">{t("set_dest_title")}</h2>
-
-              {/* Destination search */}
-              <div className="relative mb-3">
-                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-red-400 pointer-events-none">
-                  <Search size={16} />
-                </div>
-                <input
-                  ref={destSearchRef}
-                  id="destination-search-input"
-                  type="text"
-                  value={destSearchValue}
-                  onChange={(e) => setDestSearchValue(e.target.value)}
-                  placeholder={t("type_location") as string}
-                  className="w-full pl-10 pr-9 py-3.5 rounded-2xl border-2 border-red-200 bg-red-50/40 text-sm font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-red-400 focus:bg-white transition-all"
-                  autoComplete="off"
-                  autoFocus
-                />
-                {destSearchValue && (
-                  <AppButton
-                    onClick={() => {
-                      setDestSearchValue("");
-                      setDestination(null);
-                      if (destMarkerRef.current) {
-                        destMarkerRef.current.map = null;
-                        destMarkerRef.current = null;
-                      }
-                      destSearchRef.current?.focus();
-                    }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 h-auto w-auto border-none"
-                    aria-label="Clear"
-                    variant="ghost"
-                    leftIcon={<X size={14} />}
-                  />
-                )}
-              </div>
-
-              {!destination && (
-                <p className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">
-                  {t("tap_map_hint")}
-                </p>
-              )}
-
-              <AppButton
-                className="w-full h-14 rounded-2xl shadow-lg text-base font-bold mt-2"
-                onClick={handleNextStep}
-                disabled={!destination}
+                disabled={!pickup || !destination}
                 loading={loading}
               >
                 {t("calc_fare")}
@@ -1157,8 +1092,8 @@ export default function UserMapPage() {
                 <AppButton
                   onClick={() => {
                     clearRoute();
-                    destAutocompleteRef.current = null;
-                    setStep("DESTINATION");
+                    setStep("BOOKING");
+                    setFocusedInput("DESTINATION");
                   }}
                   className="text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-full transition-colors h-auto border-none"
                   variant="ghost"

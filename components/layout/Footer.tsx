@@ -18,6 +18,9 @@ export function Footer({ showMobileCTAOffset, className }: FooterProps) {
   const { t } = useLang();
   const pathname = usePathname();
 
+  // Do not render footer on map pages
+  if (pathname === "/user/map") return null;
+
   // Automatically show offset on landing page if not explicitly provided
   const effectiveShowOffset = showMobileCTAOffset ?? pathname === "/";
 

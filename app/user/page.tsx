@@ -312,14 +312,13 @@ export default function UserHomePage() {
                     <Link key={booking.id} href={`/user/booking/${booking.id}`} className="block group">
                       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 flex items-center gap-4 active:scale-[0.98] transition-all duration-300 hover:shadow-md hover:border-primary/10">
                         {/* Status icon */}
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
-                          isCompleted ? "bg-primary/10 text-primary" : isCancelled ? "bg-red-50 text-red-400" : "bg-amber-50 text-amber-500"
-                        }`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${isCompleted ? "bg-primary/10 text-primary" : isCancelled ? "bg-red-50 text-red-400" : "bg-amber-50 text-amber-500"
+                          }`}>
                           {isCompleted
                             ? <CheckCircle2 size={18} />
                             : isCancelled
-                            ? <AlertCircle size={18} />
-                            : <Clock3 size={18} />
+                              ? <AlertCircle size={18} />
+                              : <Clock3 size={18} />
                           }
                         </div>
 
@@ -362,7 +361,7 @@ export default function UserHomePage() {
           {/* --- Quick Links Row --- */}
           <section className="relative pt-2">
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
-            
+
             <div className="grid grid-cols-2 gap-3 mt-4">
               <Link href="/user/history" className="block group">
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 flex items-center gap-3 active:scale-[0.98] transition-all duration-300 hover:border-primary/20 hover:shadow-md">
@@ -385,14 +384,14 @@ export default function UserHomePage() {
                   <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center flex-shrink-0 overflow-hidden border border-slate-100">
                     {user?.photoUrl
                       ? (
-                          <Image 
-                            src={user.photoUrl} 
-                            alt={user.name ?? ""} 
-                            width={36}
-                            height={36}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                          />
-                        )
+                        <Image
+                          src={user.photoUrl}
+                          alt={user.name ?? ""}
+                          width={36}
+                          height={36}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                      )
                       : <UserIcon size={16} className="text-slate-400 group-hover:text-primary transition-colors" />
                     }
                   </div>
@@ -410,12 +409,6 @@ export default function UserHomePage() {
           </section>
         </div>
       </main>
-
-      <footer className="py-12 text-center relative">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-slate-200 rounded-full" />
-        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-300">CNGLagbe</p>
-        <p className="text-[8px] font-bold text-slate-200 mt-2 tracking-widest italic">PREMIUM CNG BOOKING</p>
-      </footer>
     </div>
   );
 }

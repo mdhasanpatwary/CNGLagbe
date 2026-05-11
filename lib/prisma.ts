@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+// Re-initializing to pick up new schema fields (rating, feedback)
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
