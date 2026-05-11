@@ -436,7 +436,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                       <h3 className="text-xl font-black text-slate-900 truncate leading-tight">{booking.driver.name}</h3>
                       <p className="text-[10px] font-bold text-slate-400 flex items-center gap-1.5 mt-1 uppercase tracking-wider">
                         <Navigation size={12} className="text-slate-300" />
-                        {t("auto_rickshaw")}
+                        {t("cng")}
                       </p>
                     </div>
                   </div>

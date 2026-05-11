@@ -165,7 +165,7 @@ export const TEXT = {
   search: { en: "Search", bn: "কোথায় যাবেন?" },
   pickup: { en: "Pickup", bn: "পিকআপ" },
   drop: { en: "Drop", bn: "ড্রপ" },
-  auto_rickshaw: { en: "CNG", bn: "সিএনজি" },
+  cng: { en: "CNG", bn: "সিএনজি" },
   app_name: { en: "CNGLagbe", bn: "সিএনজি লাগবে" },
   driver_portal: { en: "Driver Info", bn: "ড্রাইভার" },
   user_portal: { en: "User Profile", bn: "ইউজার" },
@@ -411,7 +411,7 @@ export const TEXT = {
   tag_chhagalnaiya: { en: "Chhagalnaiya", bn: "ছাগলনাইয়া" },
   tag_local_transport: { en: "local transport", bn: "লোকাল ট্রান্সপোর্ট" },
   tag_fixed_fare: { en: "fixed fare", bn: "ফিক্সড ভাড়া" },
-  tag_auto_rickshaw: { en: "auto rickshaw", bn: "অটো রিকশা" },
+  tag_cng: { en: "CNG", bn: "সিএনজি" },
 
   /* ── Admin Dashboard ────────────────────────────────────────────────── */
   needs_review: { en: "Needs Review", bn: "রিভিউ লাগবে" },
@@ -449,7 +449,7 @@ export const TEXT = {
 
   /* ── Landing Page: Service Area ─────────────────────────────────────── */
   area_title: { en: "Our Service Area", bn: "আমাদের সার্ভিস এলাকা" },
-  area_desc: { en: "CNG booking service across Chhagalnaiya Upazila — local auto rickshaw service for all routes.", bn: "ছাগলনাইয়া উপজেলা জুড়ে CNG বুকিং সার্ভিস — সব রুটে লোকাল অটোরিকশা সার্ভিস।" },
+  area_desc: { en: "CNG booking service across Chhagalnaiya Upazila — local CNG service for all routes.", bn: "ছাগলনাইয়া উপজেলা জুড়ে CNG বুকিং সার্ভিস — সব রুটে লোকাল সিএনজি সার্ভিস।" },
   area_coverage: { en: "Full Chhagalnaiya coverage", bn: "পুরো ছাগলনাইয়া কভার" },
 
   /* ── Landing Page: Testimonials ─────────────────────────────────────── */

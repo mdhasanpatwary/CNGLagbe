@@ -335,7 +335,7 @@ export default function LandingPage() {
                     <div className="relative overflow-hidden rounded-3xl">
                       <Image
                         src="/cng_premium.png"
-                        alt="Green CNG auto rickshaw with safety badges and fixed fare guarantee - CNGLagbe's verified vehicle for on-time booking service"
+                        alt="Green CNG with safety badges and fixed fare guarantee - CNGLagbe's verified vehicle for on-time booking service"
                         width={800}
                         height={600}
                         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 800px"
@@ -613,7 +613,7 @@ export default function LandingPage() {
             </motion.div>
             {/* SEO keywords — visible but subtle */}
             <motion.div variants={itemVariants} className="mt-12 flex flex-wrap justify-center gap-x-4 gap-y-2 opacity-60">
-              {[t("tag_cng_booking"), t("tag_chhagalnaiya"), t("tag_local_transport"), t("tag_fixed_fare"), t("tag_auto_rickshaw")].map((tag, i) => (
+              {[t("tag_cng_booking"), t("tag_chhagalnaiya"), t("tag_local_transport"), t("tag_fixed_fare"), t("tag_cng")].map((tag, i) => (
                 <span key={i} className="text-base text-white uppercase tracking-[0.2em]">{tag}</span>
               ))}
             </motion.div>

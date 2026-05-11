@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
     manifest: "/manifest.json",
     keywords: isDriver
       ? ["CNG driver", "CNGLagbe", "booking service Bangladesh"]
-      : ["CNG booking Chhagalnaiya", "local auto rickshaw", "CNG near me", "fixed fare CNG", "ছাগলনাইয়া CNG", "সিএনজি বুকিং"],
+      : ["CNG booking Chhagalnaiya", "local CNG", "CNG near me", "fixed fare CNG", "ছাগলনাইয়া CNG", "সিএনজি বুকিং"],
     appleWebApp: {
       capable: true,
       title: isDriver ? "CNG Driver" : "CNGLagbe",
