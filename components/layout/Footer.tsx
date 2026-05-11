@@ -46,6 +46,7 @@ export function Footer({ showMobileCTAOffset, className }: FooterProps) {
       id="footer"
       className={cn(
         "bg-slate-900 text-slate-300 px-4 sm:px-6 md:px-8 pt-16 pb-8 border-t border-slate-800",
+        effectiveShowOffset && "pb-28 md:pb-8", // Extra padding on mobile to account for sticky CTA
         className
       )}
     >

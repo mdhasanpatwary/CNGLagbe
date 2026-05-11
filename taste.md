@@ -41,9 +41,11 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 
 ## 🏠 Landing Page (Homepage)
 - **Full Landing Page Architecture:** The homepage (`app/page.tsx`) is now a full-length, conversion-optimized landing page — NOT a minimal centered card. It must contain all 11 sections: Hero, Local Trust, How It Works, Why Choose Us, Popular Routes, Features, Service Area, Testimonials, FAQ, Final CTA, and Footer.
-- **Sticky Bottom CTA (Mobile):** A persistent `fixed bottom-0` bar with a prominent "Book Now" button must always be present. This is critical for mobile conversion. The padding-bottom on the footer must account for this bar.
+- **Sticky Bottom CTA (Mobile):** A persistent `fixed bottom-0` bar with a prominent "Book Now" button must always be present. This is critical for mobile conversion. The padding-bottom on the footer must account for this bar (using `pb-28` on mobile).
+- **Sticky CTA Contrast:** Always use `text-white` for all elements inside the green sticky button to ensure WCAG compliance against the brand primary color. Added a premium black logo mark for visual hierarchy.
 - **No Call-to-Book:** The system strictly uses app-based booking to ensure proper booking tracking and safety. All "Call to Book" buttons have been removed.
 - **No Driver Login Button:** The driver login button has been removed from the main landing page header to keep the primary landing page strictly user-focused.
+- **Hero Section Height:** The hero section must have a `min-h-[740px]` to ensure all content (badges, text, image) fits perfectly without layout shifts.
 - **Trust Badges in Hero:** The hero section must display badges: "১০০+ লোকাল ড্রাইভার", "নিরাপদ ও যাচাইকৃত", "দ্রুত পিকআপ", "ক্যাশে পেমেন্ট" to build immediate trust.
 - **Animated Driver Count:** An animated green pulsing dot with "১০০+ ড্রাইভার সক্রিয়" must appear at the top of the hero to signal live service.
 - **Popular Routes Section:** Quick-tap route cards (Bazar→Hospital, Home→School, etc.) directly call `handleBookNow`, giving users a fast path to booking.
@@ -104,7 +106,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 ## 🛠️ Code Quality & Maintenance
 - **Strict Linting Compliance:** The codebase maintains zero linting errors and warnings. Key practices include:
   - **Avoiding `any`:** Never use the `any` type in API routes or components. Always use specific types or `unknown` with type assertions (e.g., `error as Error`).
-  - **Dead Code Removal:** Unused variables (like `_` in destructuring) should be removed or handled by deleting keys from cloned objects to avoid compiler warnings.
+  - **Dead Code Removal:** Unused variables (like `_` in destructuring), imports, and props are strictly removed or handled to ensure build stability and clean code. (2026-05-11)
 - **Design System Enforcement (AppButton):** Native `<button>` elements are strictly prohibited in favor of the `AppButton` component. This ensures consistent styling, loading states, and tactile feedback across all panels. Even highly custom buttons (like the user menu toggle) must be wrapped in `AppButton` with `variant="ghost"` and appropriate overrides.
 
 ## 📝 Form Validation & State Management
@@ -139,3 +141,4 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
   - **Section backgrounds:** Enhanced with a mix of `mesh-gradient`, `noise-bg`, and `premium-bg-surface` to create a high-end, dynamic flow between sections. Added a subtle `dot-grid-texture` overlay to all sections for visual unity.
   - **Header Login Button:** Transitioned from a ghost button to a high-contrast outlined variant (`variant="outline"`) for better visibility on all landing page backgrounds.
   - **Section Spacing:** Increased vertical padding to `py-16 md:py-24` for a more breathable and premium layout.
+  - **App Download Section (Real Imagery):** Prefer high-quality, professional photographs of CNGs with passengers/drivers instead of generic smartphone icons for app identification. This reinforces authenticity and humanizes the platform. (Added 2026-05-11)

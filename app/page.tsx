@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -13,15 +12,13 @@ import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
 import { cn } from "@/lib/utils";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
-import { motion, useScroll, useSpring, useTransform } from "framer-motion";
+import { motion, useScroll, useSpring } from "framer-motion";
 import { Header } from "@/components/layout/Header";
 import { User } from "@/lib/types/user";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Magnetic } from "@/components/ui/Magnetic";
-import { Reveal } from "@/components/ui/Reveal";
 import { Tilt } from "@/components/ui/Tilt";
-import { TrustBadge } from "@/components/landing/TrustBadge";
 import { FeatureCard } from "@/components/landing/FeatureCard";
 import { ReviewCard } from "@/components/landing/ReviewCard";
 import { RouteCard } from "@/components/landing/RouteCard";
@@ -75,11 +72,6 @@ export default function LandingPage() {
       }
     });
   }, [scrollYProgress]);
-
-  // Parallax for Hero
-  const y1 = useTransform(scrollYProgress, [0, 1], [0, -200]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [0, 150]);
-  const rotate = useTransform(scrollYProgress, [0, 1], [0, 45]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -200,7 +192,7 @@ export default function LandingPage() {
         {/* ── 1. HERO ──────────────────────────────────────────────────────── */}
         <section
           id="hero"
-          className="relative w-full h-auto lg:h-[100vh] min-h-screen flex items-center justify-center overflow-hidden lg:overflow-hidden bg-slate-950"
+          className="relative w-full h-auto lg:h-[100vh] min-h-[740px] flex items-center justify-center overflow-hidden lg:overflow-hidden bg-slate-950"
         >
           {/* Cinematic Background Image with Directional Gradient */}
           <div className="absolute inset-0 z-0">
@@ -835,12 +827,26 @@ export default function LandingPage() {
           >
             <AppButton
               onClick={handleBookNow}
-              className="w-full min-h-[56px] h-14 text-sm sm:text-base rounded-2xl font-bold shadow-lg shadow-primary/20 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none touch-manipulation"
-              leftIcon={<MapPin className="w-5 h-5" />}
+              className="w-full min-h-[64px] h-16 text-sm sm:text-base rounded-2xl font-bold shadow-2xl shadow-primary/30 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none touch-manipulation bg-primary text-white border-0 overflow-hidden relative group/sticky"
             >
-              <div className="flex flex-col items-start leading-tight">
-                <span className="text-primary-dark/80 text-[10px] uppercase tracking-widest font-bold">{t("hero_book_now")}</span>
-                <span className="text-lg font-black text-primary leading-none">{t("app_name")}</span>
+              <div className="flex items-center gap-4 w-full">
+                {/* Premium Logo Mark */}
+                <div className="w-11 h-11 rounded-full bg-slate-950 flex items-center justify-center shrink-0 shadow-lg group-hover/sticky:scale-110 transition-transform duration-500">
+                  <Navigation className="w-5 h-5 text-white fill-white" />
+                </div>
+                
+                <div className="flex flex-col items-start leading-tight">
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-white/60" />
+                    <span className="text-white/70 text-[10px] uppercase tracking-[0.2em] font-black">{t("hero_book_now")}</span>
+                  </div>
+                  <span className="text-xl font-black text-white leading-none tracking-tight">{t("app_name")}</span>
+                </div>
+                
+                {/* Arrow indicator */}
+                <div className="ml-auto w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                  <Zap className="w-4 h-4 text-white fill-white" />
+                </div>
               </div>
             </AppButton>
           </motion.div>

@@ -16,7 +16,6 @@ interface HeaderProps {
   role?: "landing" | "user" | "driver" | "admin";
   variant?: "sticky" | "floating" | "fixed";
   theme?: "primary" | "light" | "dark" | "transparent";
-  title?: string;
   user?: UserType | null;
 
   onLogout?: () => void;
@@ -31,7 +30,6 @@ export function Header({
   role = "landing",
   variant = "sticky",
   theme,
-  title,
   user,
 
   onLogout,

@@ -543,6 +543,10 @@ export const TEXT = {
     en: "ON-TIME",
     bn: "অন-টাইম"
   },
+  scan_to_download: {
+    en: "SCAN TO DOWNLOAD",
+    bn: "স্ক্যান করে নামান"
+  },
 } as const;
 
 
