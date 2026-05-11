@@ -14,8 +14,8 @@ import { User as UserType } from "@/lib/types/user";
 
 interface HeaderProps {
   role?: "landing" | "user" | "driver" | "admin";
-  variant?: "sticky" | "floating";
-  theme?: "primary" | "light" | "dark";
+  variant?: "sticky" | "floating" | "fixed";
+  theme?: "primary" | "light" | "dark" | "transparent";
   title?: string;
   user?: UserType | null;
 
@@ -48,6 +48,7 @@ export function Header({
   const isDriver = role === "driver";
   const isAdmin = role === "admin";
   const isFloating = variant === "floating";
+  const isFixed = variant === "fixed";
 
   // Close menu on click outside
   useEffect(() => {
@@ -67,19 +68,23 @@ export function Header({
     primary: "bg-primary text-primary-foreground shadow-md",
     light: "bg-white border-b border-slate-200 text-slate-800 shadow-sm",
     dark: "bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl",
+    transparent: "bg-transparent text-white border-none shadow-none",
   };
 
-  const floatingStyles = isFloating
-    ? "fixed top-4 left-4 right-4 z-50 rounded-2xl bg-white border border-slate-200 shadow-xl"
-    : "sticky top-0 z-20 w-full";
+  const variantStyles = isFloating
+    ? "fixed top-2 md:top-4 left-2 md:left-4 right-2 md:right-4 z-50 rounded-xl md:rounded-2xl bg-white border border-slate-200 shadow-xl"
+    : isFixed
+      ? "fixed top-0 left-0 right-0 z-50 w-full"
+      : "sticky top-0 z-20 w-full";
 
-
+  // Toggle logo based on theme for contrast
+  const logoSrc = (effectiveTheme === "light" && !isFloating) ? "/logo.png" : "/logo_white.png";
 
   return (
     <header className={cn(
-      floatingStyles,
+      variantStyles,
       !isFloating && themes[effectiveTheme],
-      "px-4 py-2 flex justify-between items-center transition-all duration-300",
+      "px-3 md:px-6 py-2 flex justify-between items-center transition-all duration-500",
       effectiveTheme === "light" && !isFloating && "py-2.5",
       isDriver && !isFloating && "pt-[calc(env(safe-area-inset-top)+0.5rem)] pb-2 min-h-[3.5rem]",
       className
@@ -89,13 +94,13 @@ export function Header({
 
         <div className="flex items-center gap-3">
           <Link href={isDriver ? "/driver" : isAdmin ? "/admin" : user ? "/user" : "/"} className="flex items-center gap-2 group">
-            <div className="flex items-center group-hover:opacity-80 transition-opacitych-11">
+            <div className="flex items-center group-hover:opacity-80 transition-opacity h-9 md:h-11">
               <Image
-                src="/logo.png"
+                src={logoSrc}
                 alt="CNGLagbe Logo"
                 width={140}
                 height={36}
-                className="h-full w-auto object-contain transition-all duration-300"
+                className="h-full w-auto object-contain transition-all duration-300 scale-90 md:scale-100 origin-left"
                 style={{ width: "auto" }}
                 priority
               />
@@ -108,19 +113,19 @@ export function Header({
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 md:gap-2">
         {onRefresh && (
           <AppButton
             variant="ghost"
             onClick={onRefresh}
             disabled={isRefreshing}
             className={cn(
-              "rounded-xl h-11 px-3 gap-2 font-bold text-base",
+              "rounded-xl h-10 md:h-11 px-2 md:px-3 gap-2 font-bold text-sm md:text-base",
               isAdmin ? "bg-white/5 text-white hover:bg-white/10 border border-white/10" : "text-slate-600"
             )}
           >
             <RefreshCcw size={16} className={isRefreshing ? "animate-spin" : ""} />
-            <span className="inline">{t("refresh_status")}</span>
+            <span className="hidden sm:inline">{t("refresh_status")}</span>
           </AppButton>
         )}
 
@@ -129,12 +134,12 @@ export function Header({
             variant="ghost"
             onClick={onRecenter}
             className={cn(
-              "h-11 px-3 gap-2 font-bold text-base",
+              "h-10 md:h-11 px-2 md:px-3 gap-2 font-bold text-sm md:text-base",
               effectiveTheme === "primary" || effectiveTheme === "dark" ? "text-white hover:bg-white/10" : "text-slate-600 hover:bg-slate-100"
             )}
           >
             <Navigation size={18} />
-            <span className="inline">{t("recenter")}</span>
+            <span className="hidden sm:inline">{t("recenter")}</span>
           </AppButton>
         )}
 
@@ -148,17 +153,17 @@ export function Header({
               variant="ghost"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className={cn(
-                "group flex h-auto items-center gap-2 px-2 py-1.5 rounded-full transition-all active:scale-95 outline-none border-none hover:bg-transparent",
+                "group flex h-auto items-center gap-1.5 md:gap-2 px-1.5 md:px-2 py-1 md:py-1.5 rounded-full transition-all active:scale-95 outline-none border-none hover:bg-transparent",
                 effectiveTheme === "primary" || effectiveTheme === "dark" ? "bg-white/10 hover:bg-white/20 text-white" : "bg-slate-100 hover:bg-slate-200 text-slate-700",
                 isMenuOpen && (effectiveTheme === "primary" || effectiveTheme === "dark" ? "bg-white/30" : "bg-slate-200")
               )}
             >
-              <div className="w-11 h-11 rounded-full overflow-hidden bg-white/20 flex items-center justify-center border border-white/10 ring-2 ring-white/5">
+              <div className="w-9 h-9 md:w-11 md:h-11 rounded-full overflow-hidden bg-white/20 flex items-center justify-center border border-white/10 ring-2 ring-white/5">
                 {user.photoUrl
                   ? <Image src={user.photoUrl} alt={user.name} width={44} height={44} className="w-full h-full object-cover object-top transition-all duration-500" />
-                  : <User size={20} className="text-slate-400" />}
+                  : <User size={18} className="text-slate-400" />}
               </div>
-              <ChevronLeft size={14} className={cn(
+              <ChevronLeft size={12} className={cn(
                 "transition-transform duration-300 opacity-40",
                 isMenuOpen ? "rotate-90" : "-rotate-90"
               )} />
@@ -284,7 +289,7 @@ export function Header({
             <AppButton
               variant="outline"
               className={cn(
-                "rounded-full font-black text-[11px] uppercase h-11 px-6 transition-all duration-300 tracking-wider",
+                "rounded-full font-black text-[10px] md:text-[11px] uppercase h-10 md:h-11 px-4 md:px-6 transition-all duration-300 tracking-wider",
                 effectiveTheme === "primary" || effectiveTheme === "dark"
                   ? "border-white/40 text-white hover:bg-white hover:text-primary hover:border-white shadow-lg shadow-black/10"
                   : "border-primary/30 text-primary hover:bg-primary hover:text-white shadow-sm"

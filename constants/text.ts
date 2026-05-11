@@ -386,6 +386,9 @@ export const TEXT = {
   hero_badge_safe: { en: "On-time & Safe", bn: "নিরাপদ ও অন-টাইম" },
   hero_badge_fast: { en: "Fast Pickup", bn: "দ্রুত পিকআপ" },
   hero_cash_note: { en: "Cash payment", bn: "ক্যাশে পেমেন্ট" },
+  hero_available_badge: { en: "Now Available in Chhagalnaiya", bn: "ছাগলনাইয়ায় চালু হয়েছে" },
+  book_your_cng: { en: "Book Your CNG", bn: "সিএনজি বুক করুন" },
+  find_cng_now: { en: "Find CNG Now", bn: "সিএনজি খুঁজুন" },
 
   /* ── Landing Page: Local Trust ───────────────────────────────────────── */
   trust_title: { en: "For the People of Chhagalnaiya", bn: "ছাগলনাইয়া মানুষের জন্য" },
@@ -535,6 +538,10 @@ export const TEXT = {
   scroll_progress: {
     en: "Page scroll progress",
     bn: "পেজ স্ক্রল অগ্রগতি"
+  },
+  on_time: {
+    en: "ON-TIME",
+    bn: "অন-টাইম"
   },
 } as const;
 

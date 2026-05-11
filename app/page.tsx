@@ -64,15 +64,14 @@ export default function LandingPage() {
 
   const scaleX = prefersReducedMotion ? scrollYProgress : springValue;
 
-  const [headerTheme, setHeaderTheme] = useState<"light" | "primary">("light");
+  const [headerTheme, setHeaderTheme] = useState<"light" | "transparent">("transparent");
 
   useEffect(() => {
     return scrollYProgress.on("change", (latest) => {
       if (latest > 0.05) {
         setHeaderTheme("light");
       } else {
-        // Keep it light or switch to primary if preferred, but not transparent
-        setHeaderTheme("light");
+        setHeaderTheme("transparent");
       }
     });
   }, [scrollYProgress]);
@@ -107,6 +106,22 @@ export default function LandingPage() {
       .then(res => res.ok ? res.json() : null)
       .then(data => data && setUser(data.user))
       .catch(() => setUser(null));
+  }, []);
+
+  const [showStickyCTA, setShowStickyCTA] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Show sticky CTA when scrolled past hero (approx 80vh)
+      if (window.scrollY > window.innerHeight * 0.8) {
+        setShowStickyCTA(true);
+      } else {
+        setShowStickyCTA(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleLogout = async () => {
@@ -151,9 +166,13 @@ export default function LandingPage() {
 
       <Header
         role="landing"
+        variant="fixed"
         user={user}
         onLogout={handleLogout}
-        className={cn("transition-all duration-500")}
+        className={cn(
+          "transition-all duration-500",
+          headerTheme === "transparent" ? "py-4 sm:py-6" : "py-2 shadow-xl"
+        )}
         theme={headerTheme}
       />
 
@@ -178,249 +197,301 @@ export default function LandingPage() {
         />
 
         {/* ── 1. HERO ──────────────────────────────────────────────────────── */}
-        {/* Note: hero-mesh-gradient is a special variant for the hero section per design spec */}
-        <Section
+        {/* ── 1. HERO ──────────────────────────────────────────────────────── */}
+        <section
           id="hero"
-          variant="dark"
-          className="hero-mesh-gradient pt-20 sm:pt-24 pb-20 sm:pb-28 md:pt-40 md:pb-52 min-h-[calc(100vh-80px)] sm:min-h-[85vh] md:min-h-0 flex items-center"
-          noPadding
+          className="relative w-full h-auto lg:h-[100vh] min-h-screen flex items-center justify-center overflow-hidden lg:overflow-hidden bg-slate-950"
         >
-          {/* Parallax decorative elements */}
-          {!prefersReducedMotion && (
-            <>
-              <motion.div
-                style={{ y: y1 }}
-                className="absolute top-0 right-0 w-1/3 h-full bg-primary/5 -skew-x-12 transform translate-x-1/2 pointer-events-none z-0"
+          {/* Cinematic Background Image with Directional Gradient */}
+          <div className="absolute inset-0 z-0">
+            <Image
+              src="/hero_bg.png"
+              alt="Cinematic background showing a CNG auto-rickshaw on a road in Chhagalnaiya"
+              fill
+              priority
+              className="object-cover object-center scale-105 transition-transform duration-[20s] ease-out brightness-[0.6] grayscale-[0.1]"
+            />
+            {/* Directional Gradient Overlays */}
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/70 to-transparent z-10" />
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-950/50 via-transparent to-slate-950/80 z-10" />
+            
+            {/* Animated Glows */}
+            <motion.div
+              animate={{ 
+                scale: [1, 1.2, 1],
+                opacity: [0.4, 0.6, 0.4]
+              }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none z-10"
+            />
+          </div>
+
+          {/* Animated Route Path SVG Animation (Left Background) */}
+          <div className="absolute left-0 bottom-0 w-full h-full pointer-events-none z-10 overflow-hidden opacity-20 hidden lg:block">
+            <svg width="100%" height="100%" viewBox="0 0 1000 1000" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute -left-20 bottom-0 w-[800px] h-auto">
+              <motion.path
+                d="M-50,900 C150,850 200,600 400,550 C600,500 650,300 850,250 C1050,200 1100,0 1200,-50"
+                stroke="url(#hero-path-gradient)"
+                strokeWidth="4"
+                strokeLinecap="round"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 3, ease: "easeInOut", delay: 0.5 }}
               />
-              <motion.div
-                style={{ y: y2, rotate }}
-                className="absolute -bottom-24 left-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none opacity-20 z-0"
-              />
-            </>
-          )}
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10 w-full max-w-[1200px] mx-auto px-4 sm:px-6 md:px-8">
-            {/* Left Column: Content */}
-            <div className="flex flex-col items-center lg:items-start text-center lg:text-left w-full">
-              {/* Driver count badge - Minimalist version */}
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.6 }}
-                className="inline-flex items-center gap-2.5 bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-full px-4 py-2 mb-8"
-              >
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/40 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                </span>
-                <span className="text-[10px] sm:text-xs font-bold text-white/80 uppercase tracking-[0.25em]">{t("trust_drivers_active")}</span>
-              </motion.div>
-
-              <motion.h1
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.1] mb-6 font-bn tracking-[-0.02em] w-full"
-              >
-                <span className="bg-clip-text text-transparent bg-gradient-to-br from-white via-white to-white/40">
-                  {t("hero_headline")}
-                </span>
-              </motion.h1>
-
-              <Reveal delay={0.5}>
-                <p className="text-white/50 text-sm sm:text-base md:text-lg font-normal mb-10 font-bn max-w-lg leading-relaxed w-full">
-                  {t("hero_sub")}
-                </p>
-              </Reveal>
-
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6, duration: 0.5 }}
-                className="w-full max-w-sm"
-              >
-                <Magnetic>
-                  <AppButton
-                    onClick={handleBookNow}
-                    className="w-full h-14 sm:h-16 px-8 py-4 text-sm sm:text-base rounded-2xl bg-primary text-white font-bold shadow-[0_20px_50px_rgba(22,163,74,0.3)] hover:shadow-[0_20px_50px_rgba(22,163,74,0.5)] transition-all duration-300 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none"
-                    leftIcon={<MapPin className="w-5 h-5 sm:w-6 sm:h-6" />}
-                  >
-                    {t("hero_book_now")}
-                  </AppButton>
-                </Magnetic>
-              </motion.div>
-
-              {/* Trust indicators - Simplified */}
-              <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                className="flex flex-wrap justify-center lg:justify-start gap-4 mt-12 w-full opacity-60"
-              >
-                <motion.div variants={itemVariants} className="flex items-center gap-2">
-                  <Star className="w-3 h-3 fill-primary text-primary" />
-                  <span className="text-[10px] font-bold text-white uppercase tracking-widest">{t("hero_badge_drivers")}</span>
-                </motion.div>
-                <div className="w-px h-3 bg-white/10" />
-                <motion.div variants={itemVariants} className="flex items-center gap-2">
-                  <ShieldCheck className="w-3 h-3 text-primary" />
-                  <span className="text-[10px] font-bold text-white uppercase tracking-widest">{t("hero_badge_safe")}</span>
-                </motion.div>
-                <div className="w-px h-3 bg-white/10" />
-                <motion.div variants={itemVariants} className="flex items-center gap-2">
-                  <Banknote className="w-3 h-3 text-primary" />
-                  <span className="text-[10px] font-bold text-white uppercase tracking-widest">{t("hero_cash_note")}</span>
-                </motion.div>
-              </motion.div>
-            </div>
-
-            {/* Right Column: Premium Image with Effects */}
-            <div className="relative hidden lg:flex justify-center items-center">
-              {/* Glow background effect */}
-              <motion.div
-                animate={prefersReducedMotion ? {} : {
-                  scale: [1, 1.2, 1],
-                  opacity: [0.3, 0.5, 0.3],
+              <defs>
+                <linearGradient id="hero-path-gradient" x1="0" y1="900" x2="1000" y2="0" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="var(--primary)" />
+                  <stop offset="1" stopColor="var(--primary)" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              
+              {/* Moving dot along path */}
+              <motion.circle
+                r="6"
+                fill="var(--primary)"
+                initial={{ offsetDistance: "0%" }}
+                animate={{ offsetDistance: "100%" }}
+                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                style={{ 
+                  offsetPath: "path('M-50,900 C150,850 200,600 400,550 C600,500 650,300 850,250 C1050,200 1100,0 1200,-50')" 
                 }}
-                transition={{
-                  duration: 8,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-                className="absolute w-[120%] h-[120%] bg-primary/20 rounded-full blur-3xl z-0"
               />
+            </svg>
+          </div>
 
-              {/* Image with floating animation */}
-              <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.6 }}
-                className="relative z-10"
-              >
+          <div className="container relative z-20 mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center h-full pt-28 pb-12 lg:pt-32 lg:pb-24">
+            <div className="max-w-[1400px] w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center">
+              
+              {/* Left Side: Content (55%) */}
+              <div className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left">
+                {/* Eyebrow Badge */}
                 <motion.div
-                  animate={prefersReducedMotion ? {} : {
-                    y: [0, -20, 0],
-                  }}
-                  transition={{
-                    duration: 6,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                  className="inline-flex items-center gap-2.5 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full px-4 py-1.5 mb-6"
                 >
-                  <div className="relative group/cng">
-                    {/* Minimalist Route Path Animation */}
-                    <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-full h-24 z-0 pointer-events-none overflow-visible">
-                      <svg width="100%" height="100%" viewBox="0 0 400 100" fill="none" className="overflow-visible">
-                        <motion.path
-                          d="M -50 80 Q 100 80 200 50 T 450 20"
-                          stroke="url(#route-gradient)"
-                          strokeWidth="1.5"
-                          strokeDasharray="4 8"
-                          initial={{ pathLength: 0, opacity: 0 }}
-                          animate={{ pathLength: 1, opacity: 0.3 }}
-                          transition={{ duration: 3, ease: "easeInOut", repeat: Infinity, repeatDelay: 1 }}
-                        />
-                        <defs>
-                          <linearGradient id="route-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stopColor="var(--primary)" />
-                            <stop offset="100%" stopColor="transparent" />
-                          </linearGradient>
-                        </defs>
-                      </svg>
-                    </div>
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/40 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                  </span>
+                  <span className="text-[10px] sm:text-xs font-black text-white/90 uppercase tracking-[0.3em] font-sans">
+                    {t("hero_available_badge")}
+                  </span>
+                </motion.div>
 
-                    {/* Background Glow - More subtle */}
-                    <div className="absolute inset-0 bg-primary/10 blur-[100px] rounded-full scale-150 opacity-30 pointer-events-none" />
-
-                    <div className="relative overflow-hidden rounded-3xl">
-                      <Image
-                        src="/cng_premium.png"
-                        alt="Green CNG with safety badges and fixed fare guarantee - CNGLagbe's verified vehicle for on-time booking service"
-                        width={800}
-                        height={600}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 800px"
-                        className="object-contain drop-shadow-2xl select-none pointer-events-none relative z-10 transition-transform duration-700 group-hover/cng:scale-[1.02]"
-                        priority
-                        style={{
-                          maskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)',
-                          WebkitMaskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)'
+                {/* Main Heading with Word Reveal */}
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.1] lg:leading-[0.95] mb-6 sm:mb-8 font-bn tracking-tighter">
+                  {t("hero_headline").split(" ").map((word, i) => (
+                    <span key={i} className="inline-block overflow-hidden mr-[0.2em] last:mr-0 pb-2">
+                      <motion.span
+                        initial={{ y: "100%" }}
+                        animate={{ y: 0 }}
+                        transition={{ 
+                          duration: 0.8, 
+                          delay: 0.2 + (i * 0.1), 
+                          ease: [0.16, 1, 0.3, 1] 
                         }}
-                      />
+                        className={cn(
+                          "inline-block drop-shadow-[0_8px_24px_rgba(0,0,0,0.5)]",
+                          (i >= 3) ? "text-primary" : "text-white"
+                        )}
+                      >
+                        {word}
+                      </motion.span>
+                    </span>
+                  ))}
+                </h1>
 
-                      {/* Light Sweep Animation */}
-                      {!prefersReducedMotion && (
-                        <motion.div
-                          initial={{ x: "-100%" }}
-                          animate={{ x: "200%" }}
-                          transition={{
-                            duration: 3,
-                            repeat: Infinity,
-                            repeatDelay: 4,
-                            ease: "easeInOut"
-                          }}
-                          className="absolute inset-0 z-20 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 pointer-events-none"
-                        />
-                      )}
+                {/* Subheading */}
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                  className="text-lg sm:text-xl text-white/70 font-medium mb-8 sm:mb-10 font-bn max-w-xl leading-relaxed"
+                >
+                  {t("hero_sub")}
+                </motion.p>
+
+                {/* Primary CTA & Stats Row */}
+                <div className="flex flex-col sm:flex-row items-center gap-8 sm:gap-10 mb-10 sm:mb-14 w-full sm:w-auto">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.8, delay: 1, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    <Magnetic>
+                      <AppButton
+                        onClick={handleBookNow}
+                        className="group w-full sm:w-auto min-w-[240px] h-16 sm:h-20 px-8 rounded-[20px] bg-primary text-white shadow-[0_20px_50px_rgba(22,163,74,0.3)] hover:shadow-[0_20px_60px_rgba(22,163,74,0.5)] transition-all duration-500"
+                      >
+                        <div className="flex items-center gap-4 text-left">
+                          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                            <MapPin className="w-6 h-6" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-white/70 text-[9px] font-black uppercase tracking-[0.2em] mb-1">{t("hero_book_now")}</span>
+                            <span className="text-xl font-black leading-none">{t("app_name")}</span>
+                          </div>
+                        </div>
+                      </AppButton>
+                    </Magnetic>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.8, delay: 1.2 }}
+                    className="flex flex-col items-center sm:items-start gap-1"
+                  >
+                    <div className="flex -space-x-3 mb-2">
+                      {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="w-10 h-10 rounded-full border-2 border-slate-950 overflow-hidden bg-slate-800 shadow-lg">
+                          <Image src={`/icons/driver_avatar_${i}.png`} alt="Driver" width={40} height={40} className="object-cover" />
+                        </div>
+                      ))}
+                      <div className="w-10 h-10 rounded-full border-2 border-slate-950 bg-slate-900 flex items-center justify-center text-[10px] font-black text-primary shadow-lg">
+                        +100
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success/40 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success"></span>
+                      </span>
+                      <p className="text-xs font-black text-white/50 uppercase tracking-widest leading-none">
+                        {t("trust_drivers_active")}
+                      </p>
+                    </div>
+                  </motion.div>
+                </div>
+
+                {/* Trust Badges */}
+                <motion.div
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-4"
+                >
+                  {[
+                    { icon: <ShieldCheck className="w-4 h-4" />, text: t("hero_badge_safe") },
+                    { icon: <Banknote className="w-4 h-4" />, text: t("hero_cash_note") },
+                    { icon: <Zap className="w-4 h-4" />, text: t("hero_badge_fast") }
+                  ].map((badge, idx) => (
+                    <motion.div
+                      key={idx}
+                      variants={itemVariants}
+                      className="flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl px-3 py-2 sm:px-3.5"
+                    >
+                      <div className="text-primary">{badge.icon}</div>
+                      <span className="text-[11px] font-black text-white/90 uppercase tracking-widest font-bn">{badge.text}</span>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </div>
+
+              {/* Right Side: Booking Widget Card (45%) */}
+              <div className="lg:col-span-5 flex items-center justify-center lg:justify-end">
+                <motion.div
+                  initial={{ opacity: 0, x: 60, rotateY: -10 }}
+                  animate={{ opacity: 1, x: 0, rotateY: 0 }}
+                  transition={{ duration: 1.2, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  className="w-full lg:max-w-[420px] bg-slate-950/40 backdrop-blur-[40px] border border-white/10 rounded-[32px] p-5 sm:p-8 shadow-[0_40px_120px_rgba(0,0,0,0.6)] relative group"
+                >
+                  {/* Subtle edge highlight */}
+                  <div className="absolute inset-0 rounded-[40px] bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-50 pointer-events-none" />
+                  
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-6 sm:mb-8">
+                      <h2 className="text-xl sm:text-2xl font-black text-white font-bn tracking-tight">
+                        {t("book_your_cng")}
+                      </h2>
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+                        <Route className="w-5 h-5 sm:w-6 sm:h-6" />
+                      </div>
                     </div>
 
-                    {/* Floating Trust Indicators around the vehicle */}
-                    <motion.div
-                      animate={prefersReducedMotion ? {} : { y: [0, -10, 0] }}
-                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                      className="absolute -top-4 -right-4 z-20 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 shadow-xl flex items-center gap-2 group-hover/cng:scale-110 transition-transform duration-300"
+                    {/* Simulation Form */}
+                    <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
+                      {[
+                        { icon: <MapPin className="w-6 h-6" />, label: t("hero_pickup_ph") },
+                        { icon: <Navigation className="w-6 h-6" />, label: t("hero_dest_ph") }
+                      ].map((field, idx) => (
+                        <motion.div 
+                          key={idx}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 1 + (idx * 0.15) }}
+                          className="relative group/field"
+                        >
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary group-hover/field:scale-110 transition-transform">
+                            {field.icon}
+                          </div>
+                          <div className="w-full bg-white/5 border border-white/5 rounded-[16px] py-3.5 sm:py-4 pl-12 pr-4 text-white/40 text-sm sm:text-base font-bn cursor-default group-hover/field:border-primary/30 group-hover/field:bg-white/10 transition-all">
+                            {field.label}
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    {/* Fare Display */}
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1.4 }}
+                      className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-[20px] mb-6 sm:mb-8"
                     >
-                      <div className="bg-primary/20 p-1.5 rounded-lg">
-                        <ShieldCheck className="w-4 h-4 text-primary" />
+                      <div className="flex flex-col">
+                        <span className="text-white/40 text-[10px] uppercase tracking-[0.2em] font-black mb-1.5">{t("fixed_fare")}</span>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-3xl font-black text-white leading-none">৳</span>
+                          <span className="text-4xl font-black text-white leading-none tracking-tight">---</span>
+                        </div>
                       </div>
-                      <span className="text-sm font-bold text-white uppercase tracking-wider whitespace-nowrap">{t("hero_badge_safe")}</span>
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full border border-primary/10">
+                          {t("hero_no_surprise")}
+                        </div>
+                      </div>
                     </motion.div>
 
+                    {/* Big Button */}
                     <motion.div
-                      animate={prefersReducedMotion ? {} : { y: [0, 10, 0] }}
-                      transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                      className="absolute bottom-12 -left-8 z-20 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 shadow-xl flex items-center gap-2 group-hover/cng:scale-110 transition-transform duration-300"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1.6 }}
                     >
-                      <div className="bg-primary/20 p-1.5 rounded-lg">
-                        <Zap className="w-4 h-4 text-primary" />
-                      </div>
-                      <span className="text-sm font-bold text-white uppercase tracking-wider whitespace-nowrap">{t("hero_badge_fast")}</span>
-                    </motion.div>
-
-                      {/* Price Lock Indicator - Minimalist */}
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 1.2 }}
-                        className="absolute -bottom-2 right-4 z-20 bg-white/[0.03] backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-2xl flex items-center gap-3"
+                      <AppButton
+                        onClick={handleBookNow}
+                        className="w-full h-20 rounded-[20px] bg-primary text-white font-black text-xl shadow-2xl hover:bg-success hover:scale-[1.02] active:scale-[0.98] transition-all duration-500"
                       >
-                        <div className="bg-primary/20 p-2 rounded-xl">
-                          <Banknote className="w-5 h-5 text-primary" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[10px] font-bold text-primary uppercase tracking-widest">{t("fixed_fare")}</span>
-                          <span className="text-sm font-bold text-white uppercase tracking-tight">{t("hero_no_surprise")}</span>
-                        </div>
-                      </motion.div>
+                        {t("find_cng_now")}
+                      </AppButton>
+                    </motion.div>
                   </div>
                 </motion.div>
-
-                {/* Refined shadow beneath the image */}
-                <motion.div
-                  animate={prefersReducedMotion ? {} : {
-                    scaleX: [1, 1.1, 1],
-                    opacity: [0.3, 0.4, 0.3],
-                  }}
-                  transition={{
-                    duration: 6,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                  className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-[90%] h-12 bg-primary/20 blur-3xl rounded-[100%] z-0"
-                />
-              </motion.div>
+              </div>
             </div>
           </div>
-        </Section>
+
+          {/* Scroll Hint */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 2, duration: 1 }}
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-3"
+          >
+            <div className="w-6 h-10 rounded-full border-2 border-white/20 p-1 flex justify-center">
+              <motion.div 
+                animate={{ y: [0, 16, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                className="w-1 h-2 bg-primary rounded-full shadow-[0_0_10px_rgba(22,163,74,0.5)]"
+              />
+            </div>
+            <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] font-sans ml-1">{t("explore") || "EXPLORE"}</span>
+          </motion.div>
+        </section>
+
 
         {/* ── 2. LOCAL TRUST ───────────────────────────────────────────────── */}
         {/* Note: Gradient overlay is intentional per design spec for subtle visual enhancement */}
@@ -431,14 +502,14 @@ export default function LandingPage() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 w-full"
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 w-full"
           >
             {[
               { icon: <Users className="w-6 h-6" />, text: t("trust_local_drivers") },
               { icon: <Route className="w-6 h-6" />, text: t("trust_familiar_roads") },
               { icon: <ShieldCheck className="w-6 h-6" />, text: t("trust_reliable") },
             ].map((item, i) => (
-              <motion.div key={i} variants={itemVariants} className="flex flex-col items-center text-center gap-5 bg-white rounded-3xl p-8 border border-gray-100 premium-card-shadow-hover hover:border-primary/20 transition-all duration-200">
+              <motion.div key={i} variants={itemVariants} className="flex flex-col items-center text-center gap-5 bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 premium-card-shadow-hover hover:border-primary/20 transition-all duration-200">
                 <div className="bg-primary text-white p-4 rounded-2xl shadow-lg shadow-primary/20 shrink-0 w-14 h-14 flex items-center justify-center">
                   {item.icon}
                 </div>
@@ -461,7 +532,7 @@ export default function LandingPage() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-12 sm:gap-16 relative w-full"
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-16 relative w-full"
           >
             {/* Desktop line indicator - Animated SVG Path aligned to centers */}
             <div className="hidden md:block absolute top-0 left-0 w-full h-16 z-0 pointer-events-none">
@@ -511,7 +582,7 @@ export default function LandingPage() {
                 </motion.div>
 
                 <h3 className="text-base font-bold text-slate-900 mb-2 font-bn group-hover:text-primary transition-colors">{item.title}</h3>
-                <p className="text-sm text-slate-500 font-bn leading-relaxed max-w-[180px] font-normal">{item.sub}</p>
+                <p className="text-sm text-slate-500 font-bn leading-relaxed max-w-[220px] sm:max-w-[180px] font-normal">{item.sub}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -724,8 +795,8 @@ export default function LandingPage() {
               <span className="sr-only">{t("app_name")} {t("hero_book_now")}</span>
             </motion.div>
             <motion.h2 variants={itemVariants} className="text-2xl md:text-4xl font-extrabold font-bn mb-6 tracking-tight leading-normal">{t("final_cta_title")}</motion.h2>
-            <motion.p variants={itemVariants} className="text-white text-base font-normal mb-12 font-bn max-w-xl mx-auto leading-relaxed">{t("final_cta_sub")}</motion.p>
-            <motion.div variants={itemVariants} className="max-w-sm mx-auto px-2 sm:px-0 w-full">
+            <motion.p variants={itemVariants} className="text-white text-base font-normal mb-8 sm:mb-12 font-bn max-w-xl mx-auto leading-relaxed">{t("final_cta_sub")}</motion.p>
+            <motion.div variants={itemVariants} className="max-w-xs sm:max-w-sm mx-auto px-2 sm:px-0 w-full">
               <Magnetic>
                 <AppButton
                   onClick={handleBookNow}
@@ -744,8 +815,11 @@ export default function LandingPage() {
       {/* ── STICKY BOTTOM CTA (mobile) ────────────────────────────────────── */}
       <motion.div
         initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 1, duration: 0.5, ease: "circOut" }}
+        animate={{ 
+          y: showStickyCTA ? 0 : 100, 
+          opacity: showStickyCTA ? 1 : 0 
+        }}
+        transition={{ type: "spring", stiffness: 260, damping: 20 }}
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 p-3 sm:p-4 bg-white/90 backdrop-blur-xl border-t border-slate-100 shadow-2xl safe-area-bottom"
       >
         <div className="max-w-sm mx-auto w-full">
@@ -764,7 +838,10 @@ export default function LandingPage() {
               className="w-full min-h-[56px] h-14 text-sm sm:text-base rounded-2xl font-bold shadow-lg shadow-primary/20 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none touch-manipulation"
               leftIcon={<MapPin className="w-5 h-5" />}
             >
-              {t("hero_book_now")}
+              <div className="flex flex-col items-start leading-tight">
+                <span className="text-primary-dark/80 text-[10px] uppercase tracking-widest font-bold">{t("hero_book_now")}</span>
+                <span className="text-lg font-black text-primary leading-none">{t("app_name")}</span>
+              </div>
             </AppButton>
           </motion.div>
         </div>

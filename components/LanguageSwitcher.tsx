@@ -9,12 +9,12 @@ export function LanguageSwitcher() {
   const { lang, setLang } = useLang();
 
   return (
-    <div className="flex items-center bg-slate-100/80 p-1 rounded-full border border-slate-200/50 shadow-inner">
+    <div className="flex items-center bg-slate-100/80 p-0.5 md:p-1 rounded-full border border-slate-200/50 shadow-inner gap-0.5">
       <AppButton
         variant="ghost"
         onClick={() => setLang("bn")}
         className={cn(
-          "px-4 py-2.5 h-auto rounded-full text-[10px] font-black tracking-wider transition-all duration-300 border-none min-h-[44px] min-w-[44px]",
+          "px-2 md:px-4 py-1.5 md:py-2.5 h-auto rounded-full text-[9px] md:text-[10px] font-black tracking-wider transition-all duration-300 border-none min-h-[36px] md:min-h-[44px] min-w-[36px] md:min-w-[44px]",
           lang === "bn" 
             ? "bg-white text-primary shadow-sm hover:bg-white" 
             : "text-slate-400 hover:text-slate-600 bg-transparent hover:bg-transparent"
@@ -26,7 +26,7 @@ export function LanguageSwitcher() {
         variant="ghost"
         onClick={() => setLang("en")}
         className={cn(
-          "px-4 py-2.5 h-auto rounded-full text-[10px] font-black tracking-wider transition-all duration-300 border-none min-h-[44px] min-w-[44px]",
+          "px-2 md:px-4 py-1.5 md:py-2.5 h-auto rounded-full text-[9px] md:text-[10px] font-black tracking-wider transition-all duration-300 border-none min-h-[36px] md:min-h-[44px] min-w-[36px] md:min-w-[44px]",
           lang === "en" 
             ? "bg-white text-primary shadow-sm hover:bg-white" 
             : "text-slate-400 hover:text-slate-600 bg-transparent hover:bg-transparent"

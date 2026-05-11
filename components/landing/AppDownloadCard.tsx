@@ -29,7 +29,7 @@ export function AppDownloadCard({ title, type, comingSoon }: AppDownloadCardProp
         whileHover={{ y: -10, backgroundColor: "rgba(255, 255, 255, 0.12)" }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
         style={{ backgroundColor: "rgba(255, 255, 255, 0.08)" }}
-        className="backdrop-blur-md border border-white/10 rounded-[2.5rem] p-8 flex flex-col items-center text-center gap-6 group shadow-2xl relative overflow-hidden cursor-pointer h-full"
+        className="backdrop-blur-md border border-white/10 rounded-[2.5rem] p-6 sm:p-8 flex flex-col items-center text-center gap-6 group shadow-2xl relative overflow-hidden cursor-pointer h-full"
       >
         {comingSoon && (
           <div className="absolute top-7 right-[-45px] w-[170px] bg-amber-400 text-slate-900 text-xs font-bold py-1 rotate-45 shadow-sm uppercase tracking-wider z-20 text-center">
