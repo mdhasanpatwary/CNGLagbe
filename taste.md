@@ -81,7 +81,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 
 ## ✨ Premium Animations (Framer Motion)
 - **Scroll Progress Bar:** A fixed primary-colored bar (`bg-primary`) at the very top (`top-0`) tracks the user's scroll progress through the landing page.
-- **Hero Title Word Reveal:** The main hero headline must animate word-by-word with a staggered delay (`i * 0.1`) and spring transition for a high-end "entrance" feel.
+- **Hero Title Word Reveal:** The main hero headline must animate word-by-word with a staggered delay (`i * 0.1`) and spring transition for a high-end "entrance" feel. To prevent cropping of Bengali characters by `overflow-hidden`, each word container must have horizontal padding (e.g., `px-[0.1em]`). (Fixed 2026-05-13)
 - **Parallax Background Elements:** Background decorative shapes (blobs, skewed divs) in the Hero section should use `useTransform` to move vertically on scroll at different speeds (e.g., `-200px` to `150px`).
 - **Staggered Child Reveal:** All grid-based sections (Features, Routes, FAQ, Reviews) must use `containerVariants` (with `staggerChildren`) and `itemVariants` for a smooth, sequential "pop-in" effect as they enter the viewport.
 - **Subtle Perpetual Motion:** Step numbers in "How It Works" use a Y-axis oscillation (`y: [0, -5, 0]`) to feel "alive" without being distracting.

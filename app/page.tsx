@@ -273,9 +273,9 @@ export default function LandingPage() {
                 </motion.div>
 
                 {/* Main Heading with Word Reveal */}
-                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.1] lg:leading-[0.95] mb-6 sm:mb-8 font-bn tracking-tighter">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.1] lg:leading-[0.95] mb-6 sm:mb-8 font-bn tracking-tight">
                   {t("hero_headline").split(" ").map((word, i) => (
-                    <span key={i} className="inline-block overflow-hidden mr-[0.2em] last:mr-0 pb-2">
+                    <span key={i} className="inline-block overflow-hidden mr-[0.15em] last:mr-0 pb-2 px-[0.1em]">
                       <motion.span
                         initial={{ y: "100%" }}
                         animate={{ y: 0 }}
