@@ -107,7 +107,7 @@ function LoginForm() {
       {/* Texture Overlay */}
       <div className="absolute inset-0 dot-grid-texture opacity-50 pointer-events-none" />
       
-      <Header />
+      <Header theme="light" />
       <div className="flex-1 flex flex-col justify-center relative z-10">
         <div className="max-w-md w-full mx-auto p-6">
           <PageHeading

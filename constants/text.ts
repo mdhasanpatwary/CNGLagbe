@@ -1,11 +1,11 @@
 export const TEXT = {
   booking_summary: {
     en: "Booking Info",
-    bn: "বুকিং খবর"
+    bn: "বুকিং ইনফো"
   },
   booking_details: {
     en: "Booking Details",
-    bn: "বুকিং বিস্তারিত"
+    bn: "বুকিং ডিটেইলস"
   },
   confirm_find_driver: {
     en: "Get Driver",
@@ -17,7 +17,7 @@ export const TEXT = {
   },
   payment_cash: {
     en: "Cash",
-    bn: "নগদ দিন"
+    bn: "ক্যাশ"
   },
   driver_login: {
     en: "Driver",
@@ -25,7 +25,7 @@ export const TEXT = {
   },
   admin_login: {
     en: "Admin Login",
-    bn: "অ্যাডমিন প্রবেশ"
+    bn: "অ্যাডমিন লগইন"
   },
   need_cng: {
     en: "Need CNG?",
@@ -37,19 +37,19 @@ export const TEXT = {
   },
   set_pickup: {
     en: "Pickup",
-    bn: "পিকআপ দিন"
+    bn: "পিকআপ"
   },
   fare_desc: {
     en: "Know the price",
-    bn: "ভাড়া আগেভাগেই জানুন"
+    bn: "ভাড়া আগেই জানুন"
   },
   reliable_drivers: {
     en: "Safe Drivers",
-    bn: "আসল ড্রাইভার"
+    bn: "নিরাপদ ড্রাইভার"
   },
   drivers_desc: {
     en: "Verified drivers",
-    bn: "আসল ড্রাইভার"
+    bn: "ভেরিফাইড ড্রাইভার"
   },
   admin_dashboard: {
     en: "Admin",
@@ -74,11 +74,11 @@ export const TEXT = {
   good_afternoon: { en: "Good afternoon", bn: "শুভ দুপুর" },
   good_evening: { en: "Good evening", bn: "শুভ সন্ধ্যা" },
   good_night: { en: "Good night", bn: "শুভ রাত্রি" },
-  book_cng: { en: "Book CNG", bn: "সিএনজি লাগবে" },
+  book_cng: { en: "Book CNG", bn: "বুক সিএনজি" },
   book_cng_sub: { en: "Tap to book now", bn: "এখনই বুক করুন" },
   my_bookings: { en: "My Bookings", bn: "আমার বুকিং" },
   spent: { en: "Spent", bn: "খরচ" },
-  no_bookings_sub: { en: "Book your first CNG!", bn: "প্রথম বুকিং করুন!" },
+  no_bookings_sub: { en: "Book your first CNG!", bn: "প্রথম সিএনজি বুকিং করুন!" },
   explore: {
     en: "Explore",
     bn: "ঘুরে দেখুন"
@@ -113,15 +113,15 @@ export const TEXT = {
   },
   active_drivers: {
     en: "On Duty",
-    bn: "চালু ড্রাইভার"
+    bn: "অ্যাক্টিভ ড্রাইভার"
   },
   assigned_desc: {
     en: "Pending bookings",
-    bn: "বাকি বুকিং"
+    bn: "পেন্ডিং বুকিং"
   },
   recent_bookings: {
     en: "Last Bookings",
-    bn: "আগের বুকিং"
+    bn: "লাস্ট বুকিং"
   },
   no_bookings: {
     en: "No bookings found",
@@ -140,7 +140,7 @@ export const TEXT = {
     bn: "এখনই"
   },
   id: { en: "ID", bn: "আইডি" },
-  status: { en: "Status", bn: "খবর" },
+  status: { en: "Status", bn: "স্ট্যাটাস" },
   distance: { en: "Distance", bn: "দূরত্ব" },
   total_fare: { en: "Price", bn: "দাম" },
   fare: { en: "Fare", bn: "ভাড়া" },
@@ -148,19 +148,19 @@ export const TEXT = {
   driver_payout: { en: "Driver", bn: "ড্রাইভার" },
   commission: { en: "Fee", bn: "ফি" },
   date: { en: "Date", bn: "তারিখ" },
-  map_error: { en: "Map Error", bn: "ম্যাপে সমস্যা" },
+  map_error: { en: "Map Error", bn: "ম্যাপে এরর" },
   sim_mode: { en: "Demo Mode", bn: "ডেমো মোড" },
   demo_tag: { en: "DEMO", bn: "ডেমো" },
   current_loc: { en: "Pickup", bn: "কোথায় আছেন?" },
   confirm_pickup: { en: "Pickup Here", bn: "এইখানে আসো" },
   where_to: { en: "Where to?", bn: "কোথায় যাবেন?" },
   calc_fare: { en: "Get Price", bn: "ভাড়া দেখুন" },
-  passengers: { en: "5 seats", bn: "৫ জন হবে" },
-  fare_tooltip: { en: "Fixed price", bn: "বাড়তি চার্জ নেই" },
-  fare_final: { en: "Final price", bn: "এই ভাড়াই শেষ" },
+  passengers: { en: "5 seats", bn: "৫ সিট" },
+  fare_tooltip: { en: "Fixed price", bn: "এক দাম" },
+  fare_final: { en: "Final price", bn: "ফাইনাল ভাড়া" },
   est_time: { en: "Time", bn: "সময়" },
   payment_label: { en: "Payment", bn: "পেমেন্ট" },
-  cash: { en: "Cash", bn: "নগদ" },
+  cash: { en: "Cash", bn: "ক্যাশ" },
   finding_driver: { en: "Finding Driver", bn: "ড্রাইভার খুঁজছি" },
   restored_msg: { en: "Route Restored", bn: "আগের ম্যাপ" },
   back: { en: "Back", bn: "পিছনে" },
@@ -169,30 +169,30 @@ export const TEXT = {
   pickup: { en: "Pickup", bn: "পিকআপ" },
   drop: { en: "Drop", bn: "ড্রপ" },
   cng: { en: "CNG", bn: "সিএনজি" },
-  app_name: { en: "CNGLagbe", bn: "সিএনজি লাগবে" },
-  driver_portal: { en: "Driver Info", bn: "ড্রাইভার" },
-  user_portal: { en: "User Profile", bn: "ইউজার" },
-  admin_portal: { en: "Control Panel", bn: "অ্যাডমিন" },
-  signin_desc: { en: "Login here", bn: "প্রবেশ করুন" },
+  app_name: { en: "CNGLagbe", bn: "CNGLagbe" },
+  driver_portal: { en: "Driver Info", bn: "ড্রাইভার ইনফো" },
+  user_portal: { en: "User Profile", bn: "ইউজার প্রোফাইল" },
+  admin_portal: { en: "Control Panel", bn: "কন্ট্রোল প্যানেল" },
+  signin_desc: { en: "Login here", bn: "লগইন করুন" },
   signup_desc: { en: "Create account", bn: "নতুন অ্যাকাউন্ট তৈরি করুন" },
   phone_number: { en: "Phone", bn: "ফোন" },
   password: { en: "Password", bn: "পাসওয়ার্ড" },
   continue: { en: "Continue", bn: "চালিয়ে যান" },
-  login_btn: { en: "Login", bn: "প্রবেশ" },
+  login_btn: { en: "Login", bn: "লগইন" },
   already_have_account: { en: "Already have an account?", bn: "আপনার কি অ্যাকাউন্ট আছে?" },
   login_here_question: { en: "Already registered?", bn: "আগে যোগ দিয়েছেন?" },
   new_driver_question: { en: "New driver?", bn: "নতুন ড্রাইভার?" },
-  login_failed: { en: "Login failed", bn: "প্রবেশ করতে পারিনি" },
+  login_failed: { en: "Login failed", bn: "লগইন করতে পারিনি" },
   network_error: { en: "Network error", bn: "নেটে সমস্যা" },
   bk_home: { en: "Home", bn: "হোম" },
-  loading: { en: "Loading...", bn: "অপেক্ষা করুন" },
-  error: { en: "Error", bn: "ভুল" },
+  loading: { en: "Loading...", bn: "অপেক্ষা করুন..." },
+  error: { en: "Error", bn: "এরর" },
   dr_on_way: { en: "On way", bn: "আসছে" },
   booking_done: { en: "Driver Arrived", bn: "ড্রাইভার পৌঁছেছেন" },
   safe_journey: { en: "Safe journey", bn: "শুভ যাত্রা" },
-  your_driver: { en: "Driver", bn: "চালক" },
+  your_driver: { en: "Driver", bn: "ড্রাইভার" },
   call_driver: { en: "Call", bn: "কল দিন" },
-  bk_another: { en: "New Booking", bn: "আবার বুকিং" },
+  bk_another: { en: "New Booking", bn: "নতুন বুকিং" },
   nav_pickup: { en: "Pickup Map", bn: "পিকআপ ম্যাপ" },
   nav_drop: { en: "Drop Map", bn: "ড্রপ ম্যাপ" },
   open_google_maps: { en: "Google Maps", bn: "গুগল ম্যাপ" },
@@ -201,16 +201,16 @@ export const TEXT = {
   finish: { en: "Finish", bn: "শেষ করুন" },
   online: { en: "Online", bn: "অনলাইন" },
   offline: { en: "Offline", bn: "অফলাইন" },
-  go_online: { en: "Go Online", bn: "চালু করুন" },
-  go_offline: { en: "Go Offline", bn: "বন্ধ করুন" },
+  go_online: { en: "Go Online", bn: "অনলাইনে যান" },
+  go_offline: { en: "Go Offline", bn: "অফলাইনে যান" },
   km_unit: { en: "km", bn: "কিমি" },
   min_unit: { en: "min", bn: "মিনিট" },
   currency: { en: "৳", bn: "৳" },
   bdt: { en: "BDT", bn: "টাকা" },
   not_found: { en: "Not found", bn: "কিছু পাওয়া যায় নাই" },
-  active: { en: "Active", bn: "চলছে" },
+  active: { en: "Active", bn: "অ্যাক্টিভ" },
   reject: { en: "Reject", bn: "বাতিল" },
-  accept: { en: "Accept", bn: "নিলাম" },
+  accept: { en: "Accept", bn: "অ্যাকসেপ্ট" },
   incoming: { en: "New Bookings", bn: "নতুন বুকিং" },
   finding: { en: "Finding...", bn: "খোঁজা হচ্ছে..." },
   driver_signup: { en: "Join as Driver", bn: "ড্রাইভার হিসেবে যোগ দিন" },
@@ -241,9 +241,9 @@ export const TEXT = {
   approval_call: { en: "We will call you", bn: "আমরা আপনাকে কল দিবো" },
   approve_btn: { en: "Approve", bn: "অনুমোদন দিন" },
   pending_drivers: { en: "Pending Drivers", bn: "বাকি ড্রাইভার" },
-  user_login: { en: "Login", bn: "প্রবেশ" },
-  otp_label: { en: "OTP Code", bn: "কোড দিন" },
-  enter_otp: { en: "Enter 4-digit code", bn: "৪ ডিজিট কোড" },
+  user_login: { en: "Login", bn: "লগইন" },
+  otp_label: { en: "OTP Code", bn: "OTP কোড" },
+  enter_otp: { en: "Enter 4-digit code", bn: "৪ ডিজিট কোড দিন" },
   verify_btn: { en: "Verify", bn: "যাচাই করুন" },
   logout: { en: "Logout", bn: "লগআউট" },
   welcome_user: { en: "Welcome", bn: "স্বাগতম" },
@@ -252,13 +252,13 @@ export const TEXT = {
   tap_map_dest: { en: "Tap map to drop pin", bn: "ম্যাপে ড্রপ দিন" },
   set_drop: { en: "Drop Here", bn: "এখানে নামবো" },
   wait_driver: { en: "Driver coming", bn: "ড্রাইভার আসছে" },
-  pay_cash: { en: "Pay Cash", bn: "নগদ দিন" },
+  pay_cash: { en: "Pay Cash", bn: "ক্যাশ দিন" },
   vehicle_no: { en: "CNG No", bn: "সিএনজি নাম্বার" },
   driver_arrived_desc: { en: "Driver is here", bn: "ড্রাইভার চলে এসেছে" },
   booking_history: { en: "Booking History", bn: "বুকিং ইতিহাস" },
-  report_issue: { en: "Report", bn: "সমস্যা জানান" },
-  issue_reason: { en: "Issue", bn: "কী সমস্যা?" },
-  reason_fare: { en: "Wrong Fare", bn: "বেশি ভাড়া" },
+  report_issue: { en: "Report", bn: "অভিযোগ" },
+  issue_reason: { en: "Issue", bn: "ইস্যু" },
+  reason_fare: { en: "Wrong Fare", bn: "ভুল ভাড়া" },
   reason_noshow: { en: "No-show", bn: "আসে নাই" },
   reason_misconduct: { en: "Misconduct", bn: "খারাপ ব্যবহার" },
   reason_other: { en: "Other", bn: "অন্যান্য" },
@@ -268,13 +268,13 @@ export const TEXT = {
   view_details: { en: "Details", bn: "বিস্তারিত" },
   pickup_point: { en: "From", bn: "কোথা থেকে" },
   drop_point: { en: "To", bn: "কোথায়" },
-  vehicle_type: { en: "Vehicle", bn: "ধরণ" },
+  vehicle_type: { en: "Vehicle", bn: "ভেহিক্যাল" },
   cng_gas: { en: "CNG", bn: "সিএনজি" },
-  cng_electric: { en: "Electric", bn: "ব্যাটারি" },
+  cng_electric: { en: "Electric", bn: "ইলেকট্রিক" },
   upload_photo: { en: "Profile Photo", bn: "প্রোফাইল ছবি" },
   photo_desc: { en: "Your face must be clear", bn: "নিজের পরিষ্কার ছবি দিন" },
   photo_required: { en: "Needed", bn: "লাগবে" },
-  today_cash: { en: "Today Cash", bn: "আজকের নগদ" },
+  today_cash: { en: "Today Cash", bn: "আজকের ক্যাশ" },
   today_bookings: { en: "Today Bookings", bn: "আজকের বুকিং" },
   wait_requests: { en: "Waiting...", bn: "অপেক্ষা করুন" },
   cancel_request: { en: "Cancel Request", bn: "রিকোয়েস্ট বাতিল" },
@@ -283,14 +283,14 @@ export const TEXT = {
   retry_booking: { en: "Try Again", bn: "আবার দেখুন" },
   booking_cancelled: { en: "Booking Cancelled", bn: "বুকিং বাতিল" },
   booking_cancelled_desc: { en: "This booking is now closed", bn: "এই বুকিং এখন বন্ধ" },
-  driver_assigned: { en: "Driver Assigned", bn: "ড্রাইভার মিলেছে" },
+  driver_assigned: { en: "Driver Assigned", bn: "ড্রাইভার অ্যাসাইনড" },
   driver_assigned_desc: { en: "Your driver is coming", bn: "আপনার ড্রাইভার আসছে" },
   driver_on_the_way: { en: "Driver is on the way", bn: "ড্রাইভার পথে আছে" },
   arriving_soon: { en: "Arriving soon", bn: "কিছুক্ষণের মধ্যেই পৌঁছাবে" },
   wait_minutes: { en: "Wait 10-15 mins", bn: "১০-১৫ মিনিট অপেক্ষা করুন" },
   driver_arrived: { en: "Driver Arrived", bn: "ড্রাইভার পৌঁছেছেন" },
-  driver_arrived_info: { en: "Driver is at your pickup location", bn: "ড্রাইভার আপনার জায়গায় পৌঁছেছেন" },
-  timeout_label: { en: "Timeout", bn: "সময়সীমা" },
+  driver_arrived_info: { en: "Driver is at your pickup location", bn: "ড্রাইভার আপনার পিক-আপ লোকেশনে পৌঁছেছেন" },
+  timeout_label: { en: "Timeout", bn: "টাইমআউট" },
   search_timeout_help: {
     en: "We’ll automatically retry or cancel if no driver is found.",
     bn: "ড্রাইভার না পেলে আমরা আবার চেষ্টা করব বা বাতিল করব।"
@@ -307,10 +307,10 @@ export const TEXT = {
   reason_vehicle_issue: { en: "Vehicle issue", bn: "গাড়িতে সমস্যা" },
   reason_user_noshow: { en: "User no-show", bn: "কাস্টমার আসেনি" },
   reason_long_wait: { en: "Long wait time", bn: "অনেক সময় লাগছে" },
-  cash_only: { en: "Cash Only", bn: "শুধু নগদ" },
+  cash_only: { en: "Cash Only", bn: "শুধু ক্যাশ" },
   pay_driver: { en: "Pay Driver", bn: "ড্রাইভারকে দিন" },
-  collect_cash: { en: "Collect Cash", bn: "নগদ নিন" },
-  overview: { en: "Home", bn: "সারসংক্ষেপ" },
+  collect_cash: { en: "Collect Cash", bn: "ক্যাশ নিন" },
+  overview: { en: "Home", bn: "হোম" },
   drivers: { en: "Drivers", bn: "ড্রাইভার" },
   users: { en: "Users", bn: "ইউজার" },
   logs: { en: "Bookings", bn: "বুকিং" },
@@ -319,8 +319,8 @@ export const TEXT = {
   add_bazar: { en: "Add Bazar", bn: "বাজার যোগ করুন" },
   bazar_name: { en: "Bazar Name", bn: "বাজারের নাম" },
   delete_bazar: { en: "Delete", bn: "মুছে ফেলুন" },
-  active_booking: { en: "Active Booking", bn: "চলতি বুকিং" },
-  active_bookings: { en: "Active Bookings", bn: "চলতি বুকিং" },
+  active_booking: { en: "Active Booking", bn: "অ্যাক্টিভ বুকিং" },
+  active_bookings: { en: "Active Bookings", bn: "অ্যাক্টিভ বুকিং" },
   no_active_bookings: { en: "No active", bn: "বুকিং নেই" },
   online_drivers: { en: "Online Drivers", bn: "অনলাইন ড্রাইভার" },
   no_online_drivers: { en: "No drivers", bn: "কেউ নেই" },
@@ -359,7 +359,7 @@ export const TEXT = {
     bn: "কোন নতুন ড্রাইভার নেই"
   },
   settings: { en: "Settings", bn: "সেটিংস" },
-  edit_profile: { en: "Edit Profile", bn: "প্রোফাইল পাল্টান" },
+  edit_profile: { en: "Edit Profile", bn: "এডিট প্রোফাইল" },
   save_changes: { en: "Save", bn: "সেভ করুন" },
   birthday: { en: "Birthday", bn: "জন্মদিন" },
   update_success: { en: "Saved", bn: "সেভ হয়েছে" },
@@ -373,7 +373,7 @@ export const TEXT = {
   set_pickup_title: { en: "Where are you?", bn: "কোথায় আছেন?" },
   set_dest_title: { en: "Where to?", bn: "কোথায় যাবেন?" },
   confirm_title: { en: "Your booking", bn: "আপনার বুকিং" },
-  edit_route: { en: "Edit", bn: "পাল্টান" },
+  edit_route: { en: "Edit", bn: "এডিট" },
   tap_map_hint: { en: "or tap anywhere on map", bn: "বা ম্যাপে ট্যাপ করুন" },
   requesting_booking: { en: "Requesting booking…", bn: "বুকিং নিশ্চিত হচ্ছে…" },
   loc_fallback: { en: "Default location used", bn: "ডিফল্ট লোকেশন" },
@@ -495,7 +495,7 @@ export const TEXT = {
   footer_privacy: { en: "Privacy", bn: "গোপনীয়তা" },
   location_full: { en: "Chhagalnaiya, Feni, Bangladesh", bn: "ছাগলনাইয়া, ফেনী, বাংলাদেশ" },
   location_upazila: { en: "Chhagalnaiya Upazila", bn: "ছাগলনাইয়া উপজেলা" },
-  
+
   /* ── Landing Page: Download ─────────────────────────────────────────── */
   download_title: { en: "Download Our App", bn: "আমাদের অ্যাপ নামান" },
   download_sub: { en: "Get the best experience with our mobile apps. Coming soon to your phone.", bn: "মোবাইল অ্যাপ দিয়ে সেরা অভিজ্ঞতা নিন। শীঘ্রই আপনার ফোনে আসছে।" },
@@ -507,14 +507,14 @@ export const TEXT = {
   no_photo: { en: "No Photo", bn: "ছবি নেই" },
   top_rated: { en: "Top Rated", bn: "সেরা রেটেড" },
   payment: { en: "Payment", bn: "পেমেন্ট" },
-  profile_locked_notice: { 
-    en: "Critical fields are locked for security. Contact admin to update them.", 
-    bn: "নিরাপত্তার স্বার্থে গুরুত্বপূর্ণ তথ্যগুলো লক করা আছে। পরিবর্তনের জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।" 
+  profile_locked_notice: {
+    en: "Critical fields are locked for security. Contact admin to update them.",
+    bn: "নিরাপত্তার স্বার্থে গুরুত্বপূর্ণ তথ্যগুলো লক করা আছে। পরিবর্তনের জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।"
   },
   loc_req_title: { en: "Location Required", bn: "লোকেশন প্রয়োজন" },
-  loc_req_desc: { 
-    en: "You must allow location access to continue. Without location, you cannot receive bookings. Please enable location access in your browser settings.", 
-    bn: "চালিয়ে যাওয়ার জন্য আপনাকে অবশ্যই লোকেশন পারমিশন দিতে হবে। লোকেশন ছাড়া আপনি কোনো বুকিং পাবেন না। অনুগ্রহ করে ব্রাউজার সেটিংস থেকে লোকেশন চালু করুন।" 
+  loc_req_desc: {
+    en: "You must allow location access to continue. Without location, you cannot receive bookings. Please enable location access in your browser settings.",
+    bn: "চালিয়ে যাওয়ার জন্য আপনাকে অবশ্যই লোকেশন পারমিশন দিতে হবে। লোকেশন ছাড়া আপনি কোনো বুকিং পাবেন না। অনুগ্রহ করে ব্রাউজার সেটিংস থেকে লোকেশন চালু করুন।"
   },
   i_understand: { en: "I Understand", bn: "আমি বুঝতে পেরেছি" },
   total_bookings: { en: "Total Bookings", bn: "মোট বুকিং" },
