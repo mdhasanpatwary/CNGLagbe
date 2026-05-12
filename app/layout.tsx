@@ -69,6 +69,7 @@ export async function generateMetadata(): Promise<Metadata> {
 import { Providers } from "@/components/Providers";
 import { Toaster } from "sonner";
 import { Footer } from "@/components/layout/Footer";
+import { Analytics } from "@vercel/analytics/next";
 
 export default function RootLayout({
   children,
@@ -87,6 +88,7 @@ export default function RootLayout({
           </div>
         </Providers>
         <Toaster richColors position="top-right" />
+        <Analytics />
       </body>
     </html>
   );
