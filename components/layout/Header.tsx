@@ -282,7 +282,7 @@ export function Header({
               )}
             </AnimatePresence>
           </div>
-        ) : role === "landing" && (
+        ) : role === "landing" && process.env.NODE_ENV !== "production" && (
           <Link href="/login">
             <AppButton
               variant="outline"

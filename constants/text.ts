@@ -555,6 +555,8 @@ export const TEXT = {
   feedback_ph: { en: "Tell us more (optional)", bn: "আরো কিছু বলতে চান? (ঐচ্ছিক)" },
   rating_submitted: { en: "Thanks for rating!", bn: "রেটিং দেওয়ার জন্য ধন্যবাদ!" },
   submit_rating: { en: "Submit", bn: "রেটিং দিন" },
+  booking_coming_soon: { en: "Booking service is coming soon to production.", bn: "বুকিং সার্ভিস শীঘ্রই প্রোডাকশনে আসছে।" },
+  access_restricted: { en: "Access is restricted to landing page in production.", bn: "প্রোডাকশনে শুধুমাত্র ল্যান্ডিং পেজ অ্যাক্সেস করা যাবে।" },
 } as const;
 
 

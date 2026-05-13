@@ -24,6 +24,7 @@ import { ReviewCard } from "@/components/landing/ReviewCard";
 import { RouteCard } from "@/components/landing/RouteCard";
 import { FaqItem } from "@/components/landing/FaqItem";
 import { AppDownloadCard } from "@/components/landing/AppDownloadCard";
+import { toast } from "sonner";
 
 /**
  * Landing Page Component
@@ -123,6 +124,14 @@ export default function LandingPage() {
   };
 
   const handleBookNow = useCallback(() => {
+    if (process.env.NODE_ENV === "production") {
+      toast.info(t("booking_coming_soon"), {
+        description: t("access_restricted"),
+        duration: 5000,
+      });
+      return;
+    }
+
     if (!user) {
       router.push("/login?redirect=/user/map");
     } else if (user.role === "DRIVER") {
@@ -130,7 +139,7 @@ export default function LandingPage() {
     } else {
       router.push("/user/map");
     }
-  }, [user, router]);
+  }, [user, router, t]);
 
   const reviews = [
     { name: t("review_1_name"), location: t("review_1_loc"), text: t("review_1_text") },

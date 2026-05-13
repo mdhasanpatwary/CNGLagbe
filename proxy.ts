@@ -27,11 +27,16 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Auth checking
+  // 2. Production Restriction: Only allow landing page and API
+  if (process.env.NODE_ENV === "production" && path !== "/" && !path.startsWith("/api")) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  // 3. Auth checking
   const token = request.cookies.get("auth_token")?.value;
   const user = token ? await verifyToken(token) : null;
 
-  // 3. API Routes Protection
+  // 4. API Routes Protection
   if (path.startsWith("/api")) {
     if (path.startsWith("/api/driver")) {
       if (!user || user.role !== "DRIVER") {
@@ -53,10 +58,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 4. Auth Pages (Login/Signup) logic
+  // 5. Auth Pages (Login/Signup) logic
   const isAuthPage = path.startsWith("/login") || path.startsWith("/signup") || path.startsWith("/driver/login") || path.startsWith("/driver/signup");
   
-  // 5. Subdomain enforcement and role-based redirects
+  // 6. Subdomain enforcement and role-based redirects
   if (appRole === "driver") {
     // If authenticated driver lands on root driver subdomain, send them to dashboard
     if (user?.role === "DRIVER" && path === "/") {
