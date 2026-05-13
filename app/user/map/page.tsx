@@ -777,10 +777,13 @@ export default function UserMapPage() {
 
   // ─── Route Logic ──────────────────────────────────────────────────────────
   useEffect(() => {
-    if (step !== "CONFIRM" || !map || !pickup || !destination) {
-      if (step !== "CONFIRM") clearRoute();
+    // Clear route whenever we are NOT in the CONFIRM step
+    if (step !== "CONFIRM") {
+      clearRoute();
       return;
     }
+
+    if (!map || !pickup || !destination) return;
 
     const fitToPoints = (pts: Point[]) => {
       const b = new window.google.maps.LatLngBounds();
@@ -796,6 +799,9 @@ export default function UserMapPage() {
     fitToPoints([pickup, destination]);
 
     const drawPolyline = (path: google.maps.LatLng[], opacity: number) => {
+      // Always clear the previous route before drawing a new one
+      clearRoute();
+      
       const poly = new window.google.maps.Polyline({
         path,
         geodesic: true,
@@ -813,8 +819,11 @@ export default function UserMapPage() {
         if (geometry?.encoding) {
           const decodedPath = geometry.encoding.decodePath(routeInfo.encodedPolyline);
           drawPolyline(decodedPath, 0.85);
+          // Once drawn from session, turn off the flag to prevent redundant draws if effect re-runs
+          restoredFromSession.current = false;
         } else {
           drawPolyline([new google.maps.LatLng(pickup.lat, pickup.lng), new google.maps.LatLng(destination.lat, destination.lng)], 0.7);
+          restoredFromSession.current = false;
         }
       } catch {
         restoredFromSession.current = false;
