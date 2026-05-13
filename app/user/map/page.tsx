@@ -705,10 +705,13 @@ export default function UserMapPage() {
           pickupMarkerRef.current.map = map;
         }
 
-        // Always update content to reflect language changes
         const pinGreen = new PinElement({ background: COLORS.primary, borderColor: COLORS.pickupBorder, glyphColor: COLORS.glyph });
         pickupMarkerRef.current.title = t("pickup");
         pickupMarkerRef.current.content = createLabeledMarker(pinGreen, t("pickup"), COLORS.primary, 'pickup');
+      } else if (!pickup && pickupMarkerRef.current) {
+        // Cleanup if pickup is cleared
+        pickupMarkerRef.current.map = null;
+        pickupMarkerRef.current = null;
       }
 
       if (destination && !destMarkerRef.current) {
@@ -739,10 +742,13 @@ export default function UserMapPage() {
           destMarkerRef.current.map = map;
         }
 
-        // Always update content to reflect language changes
         const pinRed = new PinElement({ background: COLORS.drop, borderColor: COLORS.dropBorder, glyphColor: COLORS.glyph });
         destMarkerRef.current.title = t("drop");
         destMarkerRef.current.content = createLabeledMarker(pinRed, t("drop"), COLORS.drop, 'drop');
+      } else if (!destination && destMarkerRef.current) {
+        // Cleanup if destination is cleared
+        destMarkerRef.current.map = null;
+        destMarkerRef.current = null;
       }
     };
     update();

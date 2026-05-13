@@ -9,6 +9,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **POI Clicks on Map:** When a user clicks on a Point of Interest (POI) (like a school or mosque), the app must intercept the click (`e.stop()`) to prevent the default Google Maps info window. It should then fetch the actual place name via the Places API and display it in the search input, rather than just showing coordinates.
 - **Reverse Geocoding (No Plus Codes):** The app must filter out `plus_code` types from Google Geocoding API results. We always prioritize human-readable street or area addresses over Plus Codes (e.g., avoiding strings like `4F6Q+MM8, Bangladesh`).
 - **Responsive Map Padding:** When fitting the map to show a route or markers (`fitBounds`), the padding must be responsive. On mobile, add significant bottom padding (e.g., `window.innerHeight * 0.6`) to ensure the content remains visible above the bottom sheet. On desktop, add left padding (e.g., `420px`) to clear the sidebar.
+- **Marker Cleanup on Input Clear:** When a user clears a location input field (pickup or destination) using the cross icon, the corresponding marker MUST be removed from the map immediately by setting its `map` property to `null`. This keeps the visual map in sync with the input state.
 
 ## 🚖 Booking Request & Booking Flow
 - **Request Again Button:** If a booking search times out or fails to find a driver, a "Request Again" button must appear, allowing the user to seamlessly retry the request without re-entering their pickup and destination.
