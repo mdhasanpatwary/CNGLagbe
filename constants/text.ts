@@ -557,6 +557,7 @@ export const TEXT = {
   submit_rating: { en: "Submit", bn: "রেটিং দিন" },
   booking_coming_soon: { en: "Booking service is coming soon to production.", bn: "বুকিং সার্ভিস শীঘ্রই প্রোডাকশনে আসছে।" },
   access_restricted: { en: "Access is restricted to landing page in production.", bn: "প্রোডাকশনে শুধুমাত্র ল্যান্ডিং পেজ অ্যাক্সেস করা যাবে।" },
+  click_edit_to_change: { en: "Click Edit button to change route", bn: "রুট পরিবর্তন করতে এডিট বাটনে ক্লিক করুন" },
 } as const;
 
 

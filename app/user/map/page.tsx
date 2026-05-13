@@ -677,17 +677,24 @@ export default function UserMapPage() {
       const { AdvancedMarkerElement, PinElement } =
         (await window.google.maps.importLibrary("marker")) as google.maps.MarkerLibrary;
 
+      const pinGreen = new PinElement({ background: COLORS.primary, borderColor: COLORS.pickupBorder, glyphColor: COLORS.glyph });
+      const pinRed = new PinElement({ background: COLORS.drop, borderColor: COLORS.dropBorder, glyphColor: COLORS.glyph });
+
       if (pickup && !pickupMarkerRef.current) {
-        const pinGreen = new PinElement({ background: COLORS.primary, borderColor: COLORS.pickupBorder });
         const marker = new AdvancedMarkerElement({
           position: { lat: pickup.lat, lng: pickup.lng },
           map,
           title: t("pickup"),
           content: createLabeledMarker(pinGreen, t("pickup"), COLORS.primary, 'pickup'),
-          gmpDraggable: true,
+          gmpDraggable: step === "BOOKING",
         });
         marker.addListener("drag", () => handleMarkerDrag(marker, 'pickup', false));
         marker.addListener("dragend", () => handleMarkerDrag(marker, 'pickup', true));
+        marker.content?.addEventListener("pointerdown", () => {
+          if (step === "CONFIRM") {
+            toast.info(t("click_edit_to_change"), { id: "edit-hint" });
+          }
+        });
         pickupMarkerRef.current = marker;
       } else if (pickup && pickupMarkerRef.current) {
         const curPos = pickupMarkerRef.current.position;
@@ -705,9 +712,14 @@ export default function UserMapPage() {
           pickupMarkerRef.current.map = map;
         }
 
-        const pinGreen = new PinElement({ background: COLORS.primary, borderColor: COLORS.pickupBorder, glyphColor: COLORS.glyph });
         pickupMarkerRef.current.title = t("pickup");
         pickupMarkerRef.current.content = createLabeledMarker(pinGreen, t("pickup"), COLORS.primary, 'pickup');
+        pickupMarkerRef.current.content?.addEventListener("pointerdown", () => {
+          if (step === "CONFIRM") {
+            toast.info(t("click_edit_to_change"), { id: "edit-hint" });
+          }
+        });
+        pickupMarkerRef.current.gmpDraggable = step === "BOOKING";
       } else if (!pickup && pickupMarkerRef.current) {
         // Cleanup if pickup is cleared
         pickupMarkerRef.current.map = null;
@@ -715,16 +727,20 @@ export default function UserMapPage() {
       }
 
       if (destination && !destMarkerRef.current) {
-        const pinRed = new PinElement({ background: COLORS.drop, borderColor: COLORS.dropBorder });
         const marker = new AdvancedMarkerElement({
           position: { lat: destination.lat, lng: destination.lng },
           map,
           title: t("drop"),
           content: createLabeledMarker(pinRed, t("drop"), COLORS.drop, 'drop'),
-          gmpDraggable: true,
+          gmpDraggable: step === "BOOKING",
         });
         marker.addListener("drag", () => handleMarkerDrag(marker, 'drop', false));
         marker.addListener("dragend", () => handleMarkerDrag(marker, 'drop', true));
+        marker.content?.addEventListener("pointerdown", () => {
+          if (step === "CONFIRM") {
+            toast.info(t("click_edit_to_change"), { id: "edit-hint" });
+          }
+        });
         destMarkerRef.current = marker;
       } else if (destination && destMarkerRef.current) {
         const curPos = destMarkerRef.current.position;
@@ -742,9 +758,14 @@ export default function UserMapPage() {
           destMarkerRef.current.map = map;
         }
 
-        const pinRed = new PinElement({ background: COLORS.drop, borderColor: COLORS.dropBorder, glyphColor: COLORS.glyph });
         destMarkerRef.current.title = t("drop");
         destMarkerRef.current.content = createLabeledMarker(pinRed, t("drop"), COLORS.drop, 'drop');
+        destMarkerRef.current.content?.addEventListener("pointerdown", () => {
+          if (step === "CONFIRM") {
+            toast.info(t("click_edit_to_change"), { id: "edit-hint" });
+          }
+        });
+        destMarkerRef.current.gmpDraggable = step === "BOOKING";
       } else if (!destination && destMarkerRef.current) {
         // Cleanup if destination is cleared
         destMarkerRef.current.map = null;
@@ -752,7 +773,7 @@ export default function UserMapPage() {
       }
     };
     update();
-  }, [pickup, destination, map, reverseGeocode, createLabeledMarker, t, handleMarkerDrag]);
+  }, [pickup, destination, map, reverseGeocode, createLabeledMarker, t, handleMarkerDrag, step]);
 
   // ─── Route Logic ──────────────────────────────────────────────────────────
   useEffect(() => {
