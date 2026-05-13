@@ -194,6 +194,20 @@ body {
   html {
     @apply font-sans;
   }
+
+  button,
+  [role="button"],
+  select,
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"] {
+    cursor: pointer !important;
+  }
+
+  [disabled],
+  .disabled {
+    cursor: not-allowed !important;
+  }
 }
 
 @keyframes fadeInUp {

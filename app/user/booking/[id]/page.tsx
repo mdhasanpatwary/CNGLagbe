@@ -11,6 +11,7 @@ import {
   Star,
   User as UserIcon,
   XCircle,
+  AlertTriangle,
 } from "lucide-react";
 
 import Image from "next/image";
@@ -50,6 +51,8 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
   const [userFeedback, setUserFeedback] = useState<string>("");
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [isSubmittingOfflineFeedback, setIsSubmittingOfflineFeedback] = useState(false);
+  const [offlineFeedbackSubmitted, setOfflineFeedbackSubmitted] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -121,6 +124,25 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
       console.error("Rating error:", err);
     } finally {
       setIsSubmittingRating(false);
+    }
+  };
+
+  const handleOfflineFeedback = async (feedback: string) => {
+    setIsSubmittingOfflineFeedback(true);
+    try {
+      const res = await apiFetch(`/api/booking/${id}/offline-feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ feedback }),
+      });
+      if (res.ok) {
+        setOfflineFeedbackSubmitted(true);
+        void fetchBooking();
+      }
+    } catch (err) {
+      console.error("Offline feedback error:", err);
+    } finally {
+      setIsSubmittingOfflineFeedback(false);
     }
   };
 
@@ -669,6 +691,45 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                   {t(booking.status === "TIMED_OUT" || uiState === "TIMED_OUT" ? "no_driver_desc" : "booking_cancelled_desc")}
                 </p>
               </div>
+
+              {/* Fraud Feedback Loop */}
+              {booking.isSuspicious && !booking.offlineFeedback && !offlineFeedbackSubmitted && (
+                <div className="mb-8 p-6 bg-amber-50 rounded-[2rem] border-2 border-amber-100 animate-in fade-in zoom-in duration-500">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-600">
+                      <AlertTriangle size={20} />
+                    </div>
+                    <p className="text-sm font-black text-amber-900 leading-tight">
+                      {t("did_driver_arrive")}
+                    </p>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <AppButton
+                      variant="secondary"
+                      className="flex-1 h-12 rounded-xl bg-white border-amber-200 text-amber-700 font-bold"
+                      onClick={() => handleOfflineFeedback("DRIVER_ARRIVED_NO")}
+                      disabled={isSubmittingOfflineFeedback}
+                    >
+                      {t("no")}
+                    </AppButton>
+                    <AppButton
+                      variant="primary"
+                      className="flex-1 h-12 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold"
+                      onClick={() => handleOfflineFeedback("DRIVER_ARRIVED_YES")}
+                      disabled={isSubmittingOfflineFeedback}
+                    >
+                      {t("yes")}
+                    </AppButton>
+                  </div>
+                </div>
+              )}
+
+              {offlineFeedbackSubmitted && (
+                <div className="mb-8 p-4 bg-emerald-50 rounded-2xl border border-emerald-100 text-center">
+                  <p className="text-sm font-bold text-emerald-700">{t("thanks_feedback")}</p>
+                </div>
+              )}
 
               {/* Ride Summary Integrated */}
               <div className="space-y-6 mb-8 pt-6 border-t border-slate-50">

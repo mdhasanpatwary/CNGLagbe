@@ -31,7 +31,7 @@ export function AppButton({
 }: AppButtonProps) {
   const { t } = useLang();
 
-  const baseStyles = "h-12 px-4 rounded-lg font-medium text-base flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-offset-2";
+  const baseStyles = "h-12 px-4 rounded-lg font-medium text-base flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-offset-2";
   
   const variants = {
     primary: "bg-primary text-white hover:bg-primary/90 focus:ring-primary",

@@ -21,6 +21,13 @@ export interface BookingDriver {
   rating?: number;
 }
 
+export interface BookingUser {
+  id: string;
+  name: string;
+  phone: string;
+  photoUrl?: string | null;
+}
+
 export interface Booking {
   id: string;
   userId: string;
@@ -41,6 +48,9 @@ export interface Booking {
   completedAt?: string | null;
   cancelledAt?: string | null;
   driver?: BookingDriver | null;
+  user?: BookingUser | null;
   rating?: number | null;
   feedback?: string | null;
+  isSuspicious?: boolean;
+  offlineFeedback?: string | null;
 }

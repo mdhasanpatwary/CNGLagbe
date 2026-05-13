@@ -837,7 +837,10 @@ export default function UserMapPage() {
     // ─── FIX: Use DirectionsService (stable API) instead of Routes API v2 ───
     // Routes API v2 (Route.computeRoutes) requires a mandatory `fields` header
     // that the JS SDK does not support, causing "not iterable" InvalidValueError.
+    let isActive = true;
+
     async function callDirectionsAPI() {
+      if (!isActive) return;
       try {
         const directionsService = new window.google.maps.DirectionsService();
 
@@ -846,6 +849,8 @@ export default function UserMapPage() {
           destination: destination!,
           travelMode: window.google.maps.TravelMode.DRIVING,
         });
+
+        if (!isActive) return;
 
         if (!result.routes?.length) {
           console.error("Directions request returned no routes");
@@ -860,7 +865,7 @@ export default function UserMapPage() {
         const leg = route.legs[0];
 
         // ─── Update bounds to actual route bounds ───
-        if (route.bounds && map) {
+        if (route.bounds && map && isActive) {
           const isMobile = window.innerWidth < 768;
           const padding = isMobile
             ? { top: 100, right: 40, bottom: window.innerHeight * 0.6, left: 40 }
@@ -871,15 +876,17 @@ export default function UserMapPage() {
         // Decode the overview polyline for drawing + storage
         const encodedPolyline = route.overview_polyline ?? "";
         const geometry = window.google.maps.geometry;
-        if (geometry?.encoding && encodedPolyline) {
-          drawPolyline(geometry.encoding.decodePath(encodedPolyline), 0.85);
-        } else if (route.overview_path?.length) {
-          drawPolyline(route.overview_path, 0.85);
-        } else {
-          drawPolyline(
-            [new google.maps.LatLng(pickup!.lat, pickup!.lng), new google.maps.LatLng(destination!.lat, destination!.lng)],
-            0.7
-          );
+        if (isActive) {
+          if (geometry?.encoding && encodedPolyline) {
+            drawPolyline(geometry.encoding.decodePath(encodedPolyline), 0.85);
+          } else if (route.overview_path?.length) {
+            drawPolyline(route.overview_path, 0.85);
+          } else {
+            drawPolyline(
+              [new google.maps.LatLng(pickup!.lat, pickup!.lng), new google.maps.LatLng(destination!.lat, destination!.lng)],
+              0.7
+            );
+          }
         }
 
         // Distance
@@ -898,22 +905,31 @@ export default function UserMapPage() {
               : `${durationMinutes} min`;
         }
 
-        const newRouteInfo: RouteInfo = { distanceText, durationText, durationMinutes, encodedPolyline };
-        setRouteInfo(newRouteInfo);
+        if (isActive) {
+          const newRouteInfo: RouteInfo = { distanceText, durationText, durationMinutes, encodedPolyline };
+          setRouteInfo(newRouteInfo);
 
-        if (pickup && destination && fareData) {
-          saveBookingSession({
-            pickup: { lat: pickup.lat, lng: pickup.lng, label: pickup.address ?? "" },
-            drop: { lat: destination.lat, lng: destination.lng, label: destination.address ?? "" },
-            route: { polyline: encodedPolyline, distanceText, durationText, durationMinutes, distanceKm: fareData.distance },
-            fare: fareData.fare,
-            lastUpdated: Date.now(),
-          });
+          if (pickup && destination && fareData) {
+            saveBookingSession({
+              pickup: { lat: pickup.lat, lng: pickup.lng, label: pickup.address ?? "" },
+              drop: { lat: destination.lat, lng: destination.lng, label: destination.address ?? "" },
+              route: { polyline: encodedPolyline, distanceText, durationText, durationMinutes, distanceKm: fareData.distance },
+              fare: fareData.fare,
+              lastUpdated: Date.now(),
+            });
+          }
         }
       } catch (err) {
-        console.error("Route calculation failed:", err);
+        if (isActive) {
+          console.error("Route calculation failed:", err);
+        }
       }
     }
+
+    return () => {
+      isActive = false;
+      clearRoute();
+    };
   }, [step, map, pickup, destination, clearRoute, fareData, routeInfo?.encodedPolyline]);
 
   // Derive sheet height class per step (mobile bottom sheet vs desktop sidebar)

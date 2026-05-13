@@ -81,6 +81,8 @@ model Booking {
   feedback       String?
   driver         Driver?            @relation(fields: [driverId], references: [id])
   user           User?              @relation(fields: [userId], references: [id])
+  isSuspicious   Boolean            @default(false)
+  offlineFeedback String?
   rejections     BookingRejection[]
   issueReports   IssueReport[]
 

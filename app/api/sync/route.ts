@@ -110,6 +110,13 @@ export async function GET() {
           fare: true,
           distance: true,
           polyline: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              phone: true,
+            }
+          }
         }
       });
 

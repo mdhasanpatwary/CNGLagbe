@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Power, MapPin, Navigation, Info, ExternalLink, CheckCircle2, XCircle, Banknote, Clock, AlertTriangle } from "lucide-react";
+import { Power, MapPin, Navigation, Info, ExternalLink, CheckCircle2, XCircle, Banknote, Clock, AlertTriangle, Phone } from "lucide-react";
 import { AppButton } from "@/components/ui/AppButton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -697,6 +697,17 @@ export default function DriverHomePage() {
                     </div>
                     <Badge variant="outline" className="h-8 border-primary/20 text-primary font-black text-[10px] uppercase px-3 bg-primary/5">{t("cash_only")}</Badge>
                   </div>
+
+                  {currentBooking.user?.phone && (
+                    <AppButton
+                      onClick={() => window.location.href = `tel:${currentBooking.user?.phone}`}
+                      variant="outline"
+                      className="w-full h-16 text-lg font-black rounded-2xl border-slate-200 hover:bg-slate-50 text-slate-800"
+                      leftIcon={<Phone size={24} className="text-primary" />}
+                    >
+                      {t("call_user")} {currentBooking.user?.name ? `- ${currentBooking.user.name}` : ""}
+                    </AppButton>
+                  )}
 
                   <AppButton 
                     onClick={() => handleArrived(currentBooking.id)} 

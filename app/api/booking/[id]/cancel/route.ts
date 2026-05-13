@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { withIdempotency } from "@/lib/idempotency";
 import { broadcastStatusChange } from "@/lib/realtime";
+import { calculateDistance } from "@/lib/booking-utils";
 
 export async function POST(
   request: Request,
@@ -26,6 +27,8 @@ export async function POST(
           status: true,
           userId: true,
           driverId: true,
+          pickupLat: true,
+          pickupLng: true,
         },
       });
 
@@ -57,6 +60,26 @@ export async function POST(
       if (cancelledBy === "DRIVER") {
         const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
+        // Detect suspicious cancellation (driver near pickup)
+        const driverData = await prisma.driver.findUnique({
+          where: { id: user.sub },
+          select: { currentLat: true, currentLng: true },
+        });
+
+        let isSuspicious = false;
+        if (driverData?.currentLat && driverData?.currentLng) {
+          const dist = calculateDistance(
+            driverData.currentLat,
+            driverData.currentLng,
+            booking.pickupLat,
+            booking.pickupLng
+          );
+          // If within 500m of pickup, it's a suspicious cancellation
+          if (dist < 500) {
+            isSuspicious = true;
+          }
+        }
+
         const [updatedBooking, recentDriverCancels] = await Promise.all([
           prisma.booking.update({
             where: { id },
@@ -65,6 +88,7 @@ export async function POST(
               cancelledAt: now,
               cancelledBy,
               cancelReason: reason,
+              isSuspicious,
             },
           }),
           prisma.booking.count({
@@ -79,7 +103,7 @@ export async function POST(
 
         // +1 because the update above just added another cancellation that the count
         // query may or may not have seen (race), so use >= 2 as threshold (3 total including this one)
-        if (recentDriverCancels >= 2) {
+        if (recentDriverCancels >= 2 || isSuspicious) {
           await prisma.driver.update({
             where: { id: user.sub },
             data: { isOnline: false },

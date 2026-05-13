@@ -191,7 +191,8 @@ export const TEXT = {
   booking_done: { en: "Driver Arrived", bn: "ড্রাইভার পৌঁছেছেন" },
   safe_journey: { en: "Safe journey", bn: "শুভ যাত্রা" },
   your_driver: { en: "Driver", bn: "ড্রাইভার" },
-  call_driver: { en: "Call", bn: "কল দিন" },
+  call_driver: { en: "Call Driver", bn: "ড্রাইভারকে কল দিন" },
+  call_user: { en: "Call User", bn: "ইউজারকে কল দিন" },
   bk_another: { en: "New Booking", bn: "নতুন বুকিং" },
   nav_pickup: { en: "Pickup Map", bn: "পিকআপ ম্যাপ" },
   nav_drop: { en: "Drop Map", bn: "ড্রপ ম্যাপ" },
@@ -301,7 +302,7 @@ export const TEXT = {
   select_reason: { en: "Select Reason", bn: "কারণ বেছে নিন" },
   confirm_cancel: { en: "Cancel Booking", bn: "বুকিং বাতিল করুন" },
   cancel_user_limit: { en: "Limit reached. Wait 30 mins.", bn: "সীমা শেষ। ৩০ মিনিট অপেক্ষা করুন।" },
-  cancel_driver_warning: { en: "Forced offline. Too many cancels.", bn: "অফলাইন করা হয়েছে। আপনি বেশি বাতিল করেছেন।" },
+  cancel_driver_warning: { en: "Forced offline. Cancellation detected near pickup point.", bn: "অফলাইন করা হয়েছে। পিকআপ পয়েন্টের কাছে রাইড বাতিল করার জন্য।" },
   reason_changed_mind: { en: "Changed mind", bn: "মত পাল্টেছি" },
   reason_driver_late: { en: "Driver is late", bn: "ড্রাইভারের দেরি হচ্ছে" },
   reason_vehicle_issue: { en: "Vehicle issue", bn: "গাড়িতে সমস্যা" },
@@ -558,6 +559,11 @@ export const TEXT = {
   booking_coming_soon: { en: "Booking service is coming soon to production.", bn: "বুকিং সার্ভিস শীঘ্রই প্রোডাকশনে আসছে।" },
   access_restricted: { en: "Access is restricted to landing page in production.", bn: "প্রোডাকশনে শুধুমাত্র ল্যান্ডিং পেজ অ্যাক্সেস করা যাবে।" },
   click_edit_to_change: { en: "Click Edit button to change route", bn: "রুট পরিবর্তন করতে এডিট বাটনে ক্লিক করুন" },
+  did_driver_arrive: { en: "Did driver arrive?", bn: "ড্রাইভার কি এসেছিলেন?" },
+  did_driver_ask_offline: { en: "Did driver ask to go offline?", bn: "ড্রাইভার কি অফলাইনে যাওয়ার কথা বলেছে?" },
+  yes: { en: "Yes", bn: "হ্যাঁ" },
+  no: { en: "No", bn: "না" },
+  thanks_feedback: { en: "Thanks for feedback!", bn: "মতামতের জন্য ধন্যবাদ!" },
 } as const;
 
 
