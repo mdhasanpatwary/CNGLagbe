@@ -63,6 +63,10 @@ export async function generateMetadata(): Promise<Metadata> {
       locale: "bn_BD",
       type: "website",
     },
+    icons: {
+      icon: "/icon.png",
+      apple: "/apple-icon.png",
+    },
   };
 }
 

@@ -45,6 +45,11 @@ export async function GET(request: Request) {
         sizes: "512x512",
         type: "image/svg+xml",
         purpose: "any maskable"
+      },
+      {
+        src: "/icon.png",
+        sizes: "512x512",
+        type: "image/png"
       }
     ] : [
       {
@@ -52,6 +57,11 @@ export async function GET(request: Request) {
         sizes: "512x512",
         type: "image/svg+xml",
         purpose: "any maskable"
+      },
+      {
+        src: "/icon.png",
+        sizes: "512x512",
+        type: "image/png"
       }
     ]
   };
