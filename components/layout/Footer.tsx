@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin } from "lucide-react";
+import { MapPin, ExternalLink, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLang } from "@/hooks/useLang";
 import { usePathname } from "next/navigation";
@@ -110,6 +110,34 @@ export function Footer({ showMobileCTAOffset, className }: FooterProps) {
               <li className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-primary" />
                 <span>{t("location_upazila")}</span>
+              </li>
+            </ul>
+
+            <h4 className="text-white font-semibold text-base mt-8 mb-4 uppercase tracking-wider">
+              {t("explore")}
+            </h4>
+            <ul className="space-y-3 text-base">
+              <li>
+                <a
+                  href="https://www.facebook.com/profile.php?id=61588788704424"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-primary transition-colors duration-200 inline-flex items-center gap-2 py-2"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  {t("facebook_page")}
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://www.facebook.com/groups/1323726679617004"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-primary transition-colors duration-200 inline-flex items-center gap-2 py-2"
+                >
+                  <Users className="w-4 h-4" />
+                  {t("facebook_group")}
+                </a>
               </li>
             </ul>
           </motion.div>

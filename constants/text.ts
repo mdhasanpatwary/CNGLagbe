@@ -381,8 +381,8 @@ export const TEXT = {
   loc_paused: { en: "Location paused", bn: "লোকেশন বন্ধ" },
 
   /* ── Landing Page: Hero ─────────────────────────────────────────────── */
-  hero_headline: { en: "Book CNG Fast Across Chhagalnaiya", bn: "ছাগলনাইয়া জুড়ে দ্রুত CNG বুক করুন" },
-  hero_sub: { en: "Fixed Fare • Verified Driver • On-time Service", bn: "ফিক্সড ভাড়া • ভেরিফাইড ড্রাইভার • অন-টাইম সার্ভিস" },
+  hero_headline: { en: "On-time CNG Booking Service in Chhagalnaiya", bn: "ছাগলনাইয়ায় অন-টাইম সিএনজি বুকিং সার্ভিস" },
+  hero_sub: { en: "Fast Pickup • Fixed Fare • Reliable Local Dispatch Network", bn: "দ্রুত পিকআপ • ফিক্সড ভাড়া • নির্ভরযোগ্য লোকাল নেটওয়ার্ক" },
   hero_book_now: { en: "Book Now", bn: "এখনই বুক করুন" },
   hero_pickup_ph: { en: "Your pickup location", bn: "কোথায় আছেন?" },
   hero_dest_ph: { en: "Your destination", bn: "কোথায় যাবেন?" },
@@ -569,6 +569,8 @@ export const TEXT = {
   finish_trip_go_online: { en: "Finish Trip & Go Online", bn: "রাইড শেষ - অনলাইনে যান" },
   trip_active: { en: "ACTIVE TRIP", bn: "অ্যাক্টিভ রাইড" },
   trip_started: { en: "Trip Started", bn: "রাইড শুরু হয়েছে" },
+  facebook_page: { en: "Facebook Page", bn: "ফেসবুক পেজ" },
+  facebook_group: { en: "Facebook Group", bn: "ফেসবুক গ্রুপ" },
 } as const;
 
 

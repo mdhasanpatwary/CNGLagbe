@@ -36,36 +36,72 @@ export async function generateMetadata(): Promise<Metadata> {
   const role = getAppRole(host);
   const isDriver = role === "driver";
   
+  const baseUrl = "https://www.cnglagbe.com";
+  const fullTitle = isDriver
+    ? "CNGLagbe Driver | Manage Your Bookings"
+    : "CNG Booking in Chhagalnaiya | Fast, Fixed Fare, Local Service";
+  const fullDescription = isDriver
+    ? "Manage your CNG bookings — accept requests, navigate, and track your earnings."
+    : "Book CNG instantly in Chhagalnaiya. 100+ local drivers, fixed fare, fast pickup. Cash payment available. CNG near me.";
+
   return {
-    metadataBase: new URL("https://www.cnglagbe.com"),
-    title: isDriver
-      ? "CNGLagbe Driver | Manage Your Bookings"
-      : "CNG Booking in Chhagalnaiya | Fast, Fixed Fare, Local Service",
-    description: isDriver
-      ? "Manage your CNG bookings — accept requests, navigate, and track your earnings."
-      : "Book CNG instantly in Chhagalnaiya. 100+ local drivers, fixed fare, fast pickup. Cash payment available. CNG near me.",
+    metadataBase: new URL(baseUrl),
+    title: {
+      default: fullTitle,
+      template: "%s | CNGLagbe",
+    },
+    description: fullDescription,
+    alternates: {
+      canonical: "/",
+    },
     manifest: "/manifest.json",
     keywords: isDriver
-      ? ["CNG driver", "CNGLagbe", "booking service Bangladesh"]
-      : ["CNG booking Chhagalnaiya", "local CNG", "CNG near me", "fixed fare CNG", "ছাগলনাইয়া CNG", "সিএনজি বুকিং"],
+      ? ["CNG driver", "CNGLagbe", "booking service Bangladesh", "driver app", "CNG app"]
+      : ["CNG booking Chhagalnaiya", "local CNG", "CNG near me", "fixed fare CNG", "ছাগলনাইয়া CNG", "সিএনজি বুকিং", "Chhagalnaiya transport", "Feni CNG"],
     appleWebApp: {
       capable: true,
       title: isDriver ? "CNG Driver" : "CNGLagbe",
       statusBarStyle: "default",
     },
     openGraph: {
-      title: isDriver
-        ? "CNGLagbe Driver"
-        : "CNG Booking in Chhagalnaiya | Fast, Fixed Fare, Local Service",
-      description: isDriver
-        ? "Manage your CNG bookings."
-        : "Book CNG instantly in Chhagalnaiya. 100+ local drivers, fixed fare, fast pickup.",
+      title: fullTitle,
+      description: fullDescription,
+      url: baseUrl,
+      siteName: "CNGLagbe",
+      images: [
+        {
+          url: "/hero_bg.png",
+          width: 1200,
+          height: 630,
+          alt: "CNGLagbe - On-time CNG Booking Service",
+        },
+      ],
       locale: "bn_BD",
       type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: fullTitle,
+      description: fullDescription,
+      images: ["/hero_bg.png"],
     },
     icons: {
       icon: "/icon.png",
       apple: "/apple-icon.png",
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
+    verification: {
+      google: "YOUR_GOOGLE_VERIFICATION_CODE", // Replace with your actual code from Google Search Console
     },
   };
 }

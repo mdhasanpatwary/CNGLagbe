@@ -1,4 +1,11 @@
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /user/map/
+
+User-agent: Googlebot
+Allow: /
 
 Sitemap: https://www.cnglagbe.com/sitemap.xml

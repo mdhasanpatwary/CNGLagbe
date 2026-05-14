@@ -25,6 +25,7 @@ import { RouteCard } from "@/components/landing/RouteCard";
 import { FaqItem } from "@/components/landing/FaqItem";
 import { AppDownloadCard } from "@/components/landing/AppDownloadCard";
 import { toast } from "sonner";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 /**
  * Landing Page Component
@@ -157,6 +158,7 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">
+      <JsonLd />
       {/* Skip to main content link for keyboard users */}
       <a
         href="#main-content"
