@@ -135,6 +135,7 @@ export default function DriverHomePage() {
       });
       if (res.ok) {
          setRejectedIds(new Set());
+         queryClient.invalidateQueries({ queryKey: ["driverSync"] });
          toast.success(t("driver_assigned") as string);
       } else {
          toast.error(t("error") as string);
@@ -143,7 +144,7 @@ export default function DriverHomePage() {
       console.error(e);
       toast.error(t("error") as string);
     }
-  }, [t]);
+  }, [t, queryClient]);
 
 
 
@@ -158,12 +159,15 @@ export default function DriverHomePage() {
       }
       return res.json();
     },
-    // Only poll if online or has active booking, and not in arrived state
+    // Only poll if online and NOT in an active booking
     refetchInterval: (query) => {
       const data = query.state.data;
       const isOnline = isOnlineOverride ?? data?.driver?.isOnline ?? false;
-      const isArrived = isArrivedOptimistic || data?.currentBooking?.status === "PICKED_UP";
-      return (isOnline || !!data?.currentBooking) && !isArrived ? 5000 : false;
+      const hasActiveBooking = !!data?.currentBooking;
+      
+      // Stop polling during active booking to save data/battery. 
+      // We'll use Realtime for status changes instead.
+      return isOnline && !hasActiveBooking ? 5000 : false;
     },
     staleTime: 5000,
   });
@@ -211,6 +215,27 @@ export default function DriverHomePage() {
     isOnlineRef.current = isOnline;
   }, [isOnline]);
 
+  // Realtime Status Listener for Active Booking
+  useEffect(() => {
+    if (!currentBooking?.id) return;
+
+    const channel = supabase.channel(`booking-${currentBooking.id}`)
+      .on("broadcast", { event: "status_change" }, (payload) => {
+        const { status } = payload.payload;
+        // If passenger cancels, we need to refresh the dashboard
+        if (status === "CANCELLED") {
+          setIsOnlineOverride(null); // Reset override to pick up database 'true' state
+          queryClient.invalidateQueries({ queryKey: ["driverSync"] });
+          toast.info(t("booking_cancelled") as string);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentBooking?.id, queryClient, t]);
+
   const handleArrived = useCallback(async (id: string) => {
     try {
       const res = await apiFetch("/api/driver/arrived", {
@@ -222,7 +247,6 @@ export default function DriverHomePage() {
       });
       if (res.ok) {
          setIsArrivedOptimistic(true);
-         setIsOnlineOverride(false); // Set offline to stop polling/location
          queryClient.invalidateQueries({ queryKey: ["driverSync"] });
       }
     } catch (e) {
@@ -240,6 +264,7 @@ export default function DriverHomePage() {
       });
       if (res.ok) {
         setIsArrivedOptimistic(false);
+        setIsOnlineOverride(null); // Reset override to pick up database 'true' state
         queryClient.invalidateQueries({ queryKey: ["driverSync"] });
         toast.success(t("completed") as string);
       } else {
