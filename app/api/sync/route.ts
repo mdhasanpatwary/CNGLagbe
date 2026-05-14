@@ -97,10 +97,11 @@ export async function GET() {
       const currentBookingPromise = prisma.booking.findFirst({
         where: {
           driverId: userId,
-          status: "ACCEPTED",
+          status: { in: ["ACCEPTED", "PICKED_UP"] },
         },
         select: {
           id: true,
+          status: true,
           pickupLat: true,
           pickupLng: true,
           destLat: true,

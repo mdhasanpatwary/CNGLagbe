@@ -64,7 +64,7 @@ export default function DriverHomePage() {
   const [rejectedIds, setRejectedIds] = useState<Set<string>>(new Set());
   const [timeLeft, setTimeLeft] = useState(300);
   const [showCancel, setShowCancel] = useState(false);
-  const [arrivedBooking, setArrivedBooking] = useState<{ id: string; fare: number; distance: number } | null>(null);
+  const [isArrivedOptimistic, setIsArrivedOptimistic] = useState(false);
   const [locationIssue, setLocationIssue] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const consecutiveFailures = useRef(0);
@@ -159,9 +159,11 @@ export default function DriverHomePage() {
       return res.json();
     },
     // Only poll if online or has active booking, and not in arrived state
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
+      const data = query.state.data;
       const isOnline = isOnlineOverride ?? data?.driver?.isOnline ?? false;
-      return (isOnline || !!data?.currentBooking) && !arrivedBooking ? 5000 : false;
+      const isArrived = isArrivedOptimistic || data?.currentBooking?.status === "PICKED_UP";
+      return (isOnline || !!data?.currentBooking) && !isArrived ? 5000 : false;
     },
     staleTime: 5000,
   });
@@ -173,6 +175,37 @@ export default function DriverHomePage() {
   const isApproved = driver?.isApproved ?? true;
   const stats = syncData?.stats || { todayEarnings: 0, todayBookings: 0 };
   const currentBooking = syncData?.currentBooking || null;
+  
+  // Derive arrivedBooking from currentBooking status + optimistic state
+  const arrivedBooking = useMemo(() => {
+    if (isArrivedOptimistic && currentBooking) {
+      return {
+        id: currentBooking.id,
+        fare: currentBooking.fare,
+        distance: currentBooking.distance
+      };
+    }
+    if (currentBooking?.status === "PICKED_UP") {
+      return {
+        id: currentBooking.id,
+        fare: currentBooking.fare,
+        distance: currentBooking.distance
+      };
+    }
+    return null;
+  }, [currentBooking, isArrivedOptimistic]);
+
+  // Sync optimistic state: if server reports PICKED_UP or booking is gone, we don't need optimistic anymore
+  useEffect(() => {
+    if (currentBooking?.status === "PICKED_UP" || !currentBooking) {
+      if (isArrivedOptimistic) {
+        // Defer to next tick to satisfy strict linting against synchronous state updates in effects
+        queueMicrotask(() => {
+          setIsArrivedOptimistic(false);
+        });
+      }
+    }
+  }, [currentBooking?.status, currentBooking, isArrivedOptimistic]);
 
   useEffect(() => {
     isOnlineRef.current = isOnline;
@@ -180,10 +213,6 @@ export default function DriverHomePage() {
 
   const handleArrived = useCallback(async (id: string) => {
     try {
-      // Capture current fare and distance to show in the "Arrived" modal
-      const fare = currentBooking?.fare || 0;
-      const distance = currentBooking?.distance || 0;
-
       const res = await apiFetch("/api/driver/arrived", {
         method: "POST",
         headers: {
@@ -192,14 +221,14 @@ export default function DriverHomePage() {
         body: JSON.stringify({ bookingId: id })
       });
       if (res.ok) {
-         setArrivedBooking({ id: currentBooking.id, fare, distance });
+         setIsArrivedOptimistic(true);
          setIsOnlineOverride(false); // Set offline to stop polling/location
          queryClient.invalidateQueries({ queryKey: ["driverSync"] });
       }
     } catch (e) {
       console.error(e);
     }
-  }, [currentBooking, queryClient]);
+  }, [queryClient]);
 
   const finishTrip = useCallback(async () => {
     if (!arrivedBooking) return;
@@ -210,7 +239,7 @@ export default function DriverHomePage() {
         body: JSON.stringify({ bookingId: arrivedBooking.id })
       });
       if (res.ok) {
-        setArrivedBooking(null);
+        setIsArrivedOptimistic(false);
         queryClient.invalidateQueries({ queryKey: ["driverSync"] });
         toast.success(t("completed") as string);
       } else {
@@ -634,7 +663,7 @@ export default function DriverHomePage() {
         )}
 
         {/* Ongoing Booking - Prominent & Distinct */}
-        {currentBooking && (
+        {currentBooking && currentBooking.status === "ACCEPTED" && (
           <div className="space-y-4 animate-in fade-in zoom-in-95 duration-500">
             <div className="flex items-center justify-between px-2">
               <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
