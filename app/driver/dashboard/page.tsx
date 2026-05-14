@@ -64,7 +64,7 @@ export default function DriverHomePage() {
   const [rejectedIds, setRejectedIds] = useState<Set<string>>(new Set());
   const [timeLeft, setTimeLeft] = useState(300);
   const [showCancel, setShowCancel] = useState(false);
-  const [arrivedBooking, setArrivedBooking] = useState<{ fare: number; distance: number } | null>(null);
+  const [arrivedBooking, setArrivedBooking] = useState<{ id: string; fare: number; distance: number } | null>(null);
   const [locationIssue, setLocationIssue] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const consecutiveFailures = useRef(0);
@@ -188,7 +188,7 @@ export default function DriverHomePage() {
         body: JSON.stringify({ bookingId: id })
       });
       if (res.ok) {
-         setArrivedBooking({ fare, distance });
+         setArrivedBooking({ id: currentBooking.id, fare, distance });
          setIsOnlineOverride(false); // Set offline to stop polling/location
          queryClient.invalidateQueries({ queryKey: ["driverSync"] });
       }

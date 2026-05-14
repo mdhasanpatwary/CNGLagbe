@@ -103,11 +103,26 @@ export async function POST(
 
         // +1 because the update above just added another cancellation that the count
         // query may or may not have seen (race), so use >= 2 as threshold (3 total including this one)
-        if (recentDriverCancels >= 2 || isSuspicious) {
-          await prisma.driver.update({
-            where: { id: user.sub },
-            data: { isOnline: false },
-          });
+        const suspiciousLimitReached = recentDriverCancels >= 2;
+        const shouldStayOffline = (suspiciousLimitReached || isSuspicious);
+        
+        await prisma.driver.update({
+          where: { id: user.sub },
+          data: { 
+            isOnline: shouldStayOffline ? false : {
+              // Only go online if NOT suspended
+              set: true
+            }
+          },
+        });
+
+        // If the driver is suspended, we MUST ensure they stay offline regardless of shouldStayOffline
+        await prisma.driver.updateMany({
+          where: { id: user.sub, isSuspended: true },
+          data: { isOnline: false }
+        });
+        
+        if (shouldStayOffline) {
           driverForcedOffline = true;
         }
 
@@ -121,14 +136,28 @@ export async function POST(
         });
       } else {
         // User cancellation — no rate-limit check needed
-        const updatedBooking = await prisma.booking.update({
-          where: { id },
-          data: {
-            status: "CANCELLED",
-            cancelledAt: now,
-            cancelledBy,
-            cancelReason: reason,
-          },
+        const updatedBooking = await prisma.$transaction(async (tx) => {
+          const bookingUpdate = await tx.booking.update({
+            where: { id },
+            data: {
+              status: "CANCELLED",
+              cancelledAt: now,
+              cancelledBy,
+              cancelReason: reason,
+            },
+          });
+
+          if (booking.driverId) {
+            await tx.driver.updateMany({
+              where: {
+                id: booking.driverId,
+                isSuspended: false,
+              },
+              data: { isOnline: true },
+            });
+          }
+
+          return bookingUpdate;
         });
 
         broadcastStatusChange(id, "CANCELLED");

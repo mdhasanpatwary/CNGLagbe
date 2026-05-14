@@ -360,17 +360,21 @@ export default function UserMapPage() {
           // ── Normal block ──────────────────────────────────────────────────
           const handleGeoSuccess = async (position: GeolocationPosition) => {
             const pos: Point = { lat: position.coords.latitude, lng: position.coords.longitude };
-            pos.address = await reverseGeocode(pos);
+            const address = await reverseGeocode(pos);
+            pos.address = address;
             mapInstance.setCenter(pos);
             setPickup(pos);
+            setPickupSearchValue(address);
           };
 
           const handleGeoError = async () => {
             console.log("Geolocation failed.");
             const pos: Point = { ...defaultLocation };
-            pos.address = await reverseGeocode(pos);
+            const address = await reverseGeocode(pos);
+            pos.address = address;
             mapInstance.setCenter(pos);
             setPickup(pos);
+            setPickupSearchValue(address);
             setLocFallbackVisible(true);
             setTimeout(() => setLocFallbackVisible(false), 3500);
           };
@@ -600,6 +604,7 @@ export default function UserMapPage() {
           };
           reverseGeocode(point).then(address => {
             setPickup({ ...point, address });
+            setPickupSearchValue(address);
           });
         }
       },
@@ -813,27 +818,6 @@ export default function UserMapPage() {
       fallbackPolylineRef.current = poly;
     };
 
-    if (restoredFromSession.current && routeInfo?.encodedPolyline) {
-      try {
-        const geometry = window.google.maps.geometry;
-        if (geometry?.encoding) {
-          const decodedPath = geometry.encoding.decodePath(routeInfo.encodedPolyline);
-          drawPolyline(decodedPath, 0.85);
-          // Once drawn from session, turn off the flag to prevent redundant draws if effect re-runs
-          restoredFromSession.current = false;
-        } else {
-          drawPolyline([new google.maps.LatLng(pickup.lat, pickup.lng), new google.maps.LatLng(destination.lat, destination.lng)], 0.7);
-          restoredFromSession.current = false;
-        }
-      } catch {
-        restoredFromSession.current = false;
-        callDirectionsAPI();
-      }
-      return;
-    }
-
-    callDirectionsAPI();
-
     // ─── FIX: Use DirectionsService (stable API) instead of Routes API v2 ───
     // Routes API v2 (Route.computeRoutes) requires a mandatory `fields` header
     // that the JS SDK does not support, causing "not iterable" InvalidValueError.
@@ -925,6 +909,28 @@ export default function UserMapPage() {
         }
       }
     }
+
+    if (restoredFromSession.current && routeInfo?.encodedPolyline) {
+      try {
+        const geometry = window.google.maps.geometry;
+        if (geometry?.encoding) {
+          const decodedPath = geometry.encoding.decodePath(routeInfo.encodedPolyline);
+          drawPolyline(decodedPath, 0.85);
+          // Once drawn from session, turn off the flag to prevent redundant draws if effect re-runs
+          restoredFromSession.current = false;
+        } else {
+          drawPolyline([new google.maps.LatLng(pickup.lat, pickup.lng), new google.maps.LatLng(destination.lat, destination.lng)], 0.7);
+          restoredFromSession.current = false;
+        }
+      } catch {
+        restoredFromSession.current = false;
+        callDirectionsAPI();
+      }
+      return;
+    }
+
+    callDirectionsAPI();
+
 
     return () => {
       isActive = false;

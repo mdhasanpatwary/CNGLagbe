@@ -30,17 +30,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Booking must be in progress (PICKED_UP) to complete" }, { status: 400 });
     }
 
-    const result = await prisma.booking.update({
-      where: { id: bookingId },
-      data: { 
-        status: "COMPLETED",
-        completedAt: new Date(),
-        driver: {
-          update: {
-            isOnline: true
-          }
-        }
-      },
+    const result = await prisma.$transaction(async (tx) => {
+      const bookingUpdate = await tx.booking.update({
+        where: { id: bookingId },
+        data: { 
+          status: "COMPLETED",
+          completedAt: new Date(),
+        },
+      });
+
+      await tx.driver.updateMany({
+        where: {
+          id: driverId,
+          isSuspended: false
+        },
+        data: { isOnline: true }
+      });
+
+      return bookingUpdate;
     });
 
     // Broadcast status change to user

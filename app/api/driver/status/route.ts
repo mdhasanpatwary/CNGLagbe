@@ -58,16 +58,30 @@ export async function POST(request: Request) {
     const wantOnline = Boolean(isOnline);
 
     if (wantOnline) {
-      // Single conditional UPDATE: only succeeds if driver is approved.
-      // Eliminates the separate findUnique check.
+      // 1. Check if driver has an active booking
+      const activeBooking = await prisma.booking.findFirst({
+        where: {
+          driverId,
+          status: { in: ["ACCEPTED", "PICKED_UP"] },
+        },
+      });
+
+      if (activeBooking) {
+        return NextResponse.json(
+          { error: "Cannot go online while having an active booking" },
+          { status: 400 }
+        );
+      }
+
+      // 2. Single conditional UPDATE: only succeeds if driver is approved.
       const result: number = await prisma.$executeRaw`
         UPDATE "Driver"
         SET "isOnline" = true, "updatedAt" = NOW()
-        WHERE "id" = ${driverId} AND "isApproved" = true
+        WHERE "id" = ${driverId} AND "isApproved" = true AND "isSuspended" = false
       `;
 
       if (result === 0) {
-        return NextResponse.json({ error: "Unauthorized: Driver not approved" }, { status: 403 });
+        return NextResponse.json({ error: "Unauthorized: Driver not approved or is suspended" }, { status: 403 });
       }
 
       return NextResponse.json({ driver: { id: driverId, isOnline: true, isApproved: true } });

@@ -12,6 +12,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Route Polyline Management:** When drawing routes on the map (polylines), the previous polyline MUST be cleared from the map using `setMap(null)` before a new one is drawn. Failure to do this causes multiple route lines to overlap, especially when a user edits their route or restores from a session. The `drawPolyline` helper and the route `useEffect` must always manage the `fallbackPolylineRef` to ensure only one current route is active.
 - **Driver-User Call Interface:** The "Call" button on the driver dashboard must use the `tel:` protocol, be styled as a secondary but clear action (outline variant), and include the user's name if available to improve trust and coordination.
 - **Marker Cleanup on Input Clear:** When a user clears a location input field (pickup or destination) using the cross icon, the corresponding marker MUST be removed from the map immediately by setting its `map` property to `null`. This keeps the visual map in sync with the input state.
+- **Initial Pickup Sync:** When the map initializes and sets the initial pickup location (via geolocation or default), the pickup search input field must be explicitly synchronized with the geocoded address using `setPickupSearchValue`. This ensures the user sees their starting address immediately upon loading the booking interface.
 
 ## 🚖 Booking Request & Booking Flow
 - **Request Again Button:** If a booking search times out or fails to find a driver, a "Request Again" button must appear, allowing the user to seamlessly retry the request without re-entering their pickup and destination.
@@ -99,6 +100,8 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Danger Zones:** `Header.tsx` serves all roles via the `role` prop — always test all 4 variants (`landing`, `user`, `driver`, `admin`). `proxy.ts` handles middleware routing for all panels — test auth redirects for all roles. `constants/text.ts` — never remove or rename a key without grepping for it across the entire codebase.
 - **Build Gates:** `npx tsc --noEmit` must pass with zero errors before any change is finalized. Console errors on any panel are a blocker.
 - **Prisma Schema Changes:** After any `schema.prisma` edit, always run `npx prisma generate` and restart the dev server before testing.
+- **Trip Start Timestamp (startedAt):** The `Booking` model includes a `startedAt` field (DateTime?) to track exactly when a trip begins (when the driver marks the passenger as picked up). This is separate from `acceptedAt` and is used for duration analytics and trip lifecycle management.
+- **Prisma Migration Workaround (Supabase):** When running migrations on Supabase, `npx prisma migrate dev` may fail due to shadow database permission issues or missing table errors. In such cases, use `npx prisma db push` to synchronize the schema directly with the database, ensuring `npx prisma generate` is run immediately after.
 
 ## 🧑‍✈️ Driver Registration & Profile
 - **Address & Nearby Bazar Fields:** Driver registration and profile management include `address` and `nearbyBazar` fields to facilitate local coordination and trust.

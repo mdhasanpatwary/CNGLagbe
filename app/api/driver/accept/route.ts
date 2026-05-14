@@ -37,6 +37,13 @@ export async function POST(request: Request) {
         if (!bookings || bookings.length === 0) throw new Error("Booking not found");
         if (bookings[0].status !== "PENDING") throw new Error("Booking already accepted or cancelled");
 
+        // 3. Set driver offline
+        await tx.driver.update({
+          where: { id: driverId },
+          data: { isOnline: false }
+        });
+
+        // 4. Update booking
         return await tx.booking.update({
           where: { id: bookingId },
           data: {

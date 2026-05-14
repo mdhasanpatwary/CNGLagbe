@@ -535,7 +535,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                 {canCancelAfterAccept && (
                   <AppButton
                     variant="secondary"
-                    onClick={() => setShowCancelModal(true)}
+                    onClick={() => setShowCancel(true)}
                     className="h-14 rounded-2xl border-2 border-slate-100 text-slate-400 font-black uppercase tracking-widest text-[10px] hover:text-red-500 hover:border-red-100 hover:bg-red-50/50 transition-all"
                   >
                     {t("cancel_booking")}
@@ -596,14 +596,21 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                 <p className="text-sm font-medium text-slate-500 text-center mt-1">{t("safe_journey")}</p>
               </div>
 
-              {/* Call Driver CTA */}
-              <a
-                href={`tel:${booking.driver?.phone}`}
-                className="flex h-16 items-center justify-center gap-3 rounded-2xl bg-primary text-base font-black text-white transition-all shadow-xl shadow-primary/25 hover:bg-primary-dark active:scale-[0.98]"
-              >
-                <Phone size={20} fill="currentColor" />
-                {t("call_driver")}
-              </a>
+              {/* Ride Summary Integrated */}
+              <div className="grid grid-cols-3 gap-3 border-t border-slate-100 pt-6">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase mb-1">{t("fare")}</span>
+                  <p className="text-base font-black text-slate-900">{t("currency")}{booking.fare}</p>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase mb-1">{t("time")}</span>
+                  <p className="text-base font-black text-slate-900">{timeValue}</p>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase mb-1">{t("distance")}</span>
+                  <p className="text-base font-black text-slate-900">{booking.distance.toFixed(1)}{t("km_unit")}</p>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -650,10 +657,11 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                   
                   <div className="flex justify-center gap-3 mb-8">
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <button
+                      <AppButton
+                        variant="ghost"
                         key={star}
                         onClick={() => setUserRating(star)}
-                        className="transition-all active:scale-90 p-1"
+                        className="h-auto p-1 transition-all active:scale-90 hover:bg-amber-50"
                       >
                         <Star
                           size={32}
@@ -661,7 +669,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                           strokeWidth={2}
                           className={userRating >= star ? "text-amber-400 drop-shadow-[0_0_8px_rgba(255,184,0,0.3)]" : "text-slate-200"}
                         />
-                      </button>
+                      </AppButton>
                     ))}
                   </div>
 
