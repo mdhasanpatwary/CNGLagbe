@@ -504,3 +504,44 @@ body {
   content: "";
   @apply w-1.5 h-1.5 rounded-full bg-red-500;
 }
+
+/* ─── Road Moving Animation ────────────────────────────────────────────── */
+@keyframes road-move {
+  0% { background-position: 0 0; }
+  100% { background-position: -64px 0; }
+}
+
+.animate-road-move {
+  background-image: linear-gradient(90deg, #94a3b8 70%, transparent 70%);
+  background-size: 32px 6px;
+  background-repeat: repeat-x;
+  mask-image: linear-gradient(90deg, transparent 0%, black 15%, black 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 15%, black 85%, transparent 100%);
+  animation: road-move 1s linear infinite;
+}
+
+@keyframes cng-bounce {
+  0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); }
+  50% { transform: translateY(-3px) translateX(2px) rotate(1deg); }
+}
+
+.animate-cng-bounce {
+  animation: cng-bounce 1.2s ease-in-out infinite;
+}
+
+@keyframes scenery-move {
+  0% { transform: translateX(120px); opacity: 0; }
+  20% { opacity: 0.2; }
+  80% { opacity: 0.2; }
+  100% { transform: translateX(-120px); opacity: 0; }
+}
+
+.animate-scenery-move {
+  animation: scenery-move 6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-road-move, .animate-cng-bounce, .animate-scenery-move {
+    animation: none;
+  }
+}

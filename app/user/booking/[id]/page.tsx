@@ -542,12 +542,51 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
 
             <div className="p-6">
               {/* Visual and Message */}
-              <div className="flex flex-col items-center mb-8">
-                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <CheckCircle2 size={40} className="text-primary" />
+              <div className="flex flex-col items-center mb-10">
+                <div className="w-full max-w-[340px] flex items-center gap-2 mb-8">
+                  {/* Pickup Point */}
+                  <div className="flex flex-col items-center">
+                    <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 shadow-sm">
+                      <div className="w-3 h-3 rounded-full bg-slate-400 border-2 border-white" />
+                    </div>
+                    <span className="text-[9px] font-black text-slate-400 mt-1.5 uppercase tracking-tighter">Pickup</span>
+                  </div>
+
+                  {/* Flat Animation Area (Center) */}
+                  <div className="flex-1 relative h-20 flex flex-col items-center justify-center">
+                    {/* The Moving Road Line */}
+                    <div className="absolute bottom-4 left-0 right-0 h-[4px] animate-road-move opacity-20" />
+                    
+                    {/* The Vehicle */}
+                    <div className="relative z-10 animate-cng-bounce flex flex-col items-center translate-y-2">
+                      <div className="relative w-[50px] h-[50px] mix-blend-multiply">
+                        <Image
+                          src="/cng_side.png"
+                          alt="CNG"
+                          fill
+                          className="object-contain -scale-x-100"
+                          priority
+                        />
+                      </div>
+                    </div>
+
+                    {/* Minimalist Speed effect */}
+                    <div className="absolute bottom-5 left-1/2 -translate-x-6 flex gap-1.5 opacity-20">
+                      <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-ping" style={{ animationDuration: '0.8s' }} />
+                    </div>
+                  </div>
+
+                  {/* Destination Point */}
+                  <div className="flex flex-col items-center">
+                    <div className="w-10 h-10 rounded-2xl bg-red-50 flex items-center justify-center border border-red-100 shadow-sm">
+                      <MapPin className="w-5 h-5 text-red-600 fill-red-600/10" />
+                    </div>
+                    <span className="text-[9px] font-black text-red-600 mt-1.5 uppercase tracking-tighter">Drop</span>
+                  </div>
                 </div>
-                <h3 className="text-xl font-black text-slate-900 text-center">{t("driver_arrived")}</h3>
-                <p className="text-sm font-medium text-slate-500 text-center mt-1">{t("driver_arrived_info")}</p>
+
+                <h3 className="text-xl font-black text-slate-900 text-center tracking-tight">{t("trip_in_progress")}</h3>
+                <p className="text-sm font-medium text-slate-500 text-center mt-1">{t("safe_journey")}</p>
               </div>
 
               {/* Ride Summary Integrated */}

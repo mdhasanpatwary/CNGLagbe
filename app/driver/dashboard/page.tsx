@@ -158,7 +158,7 @@ export default function DriverHomePage() {
       }
       return res.json();
     },
-    refetchInterval: 5000, // Poll every 5s for driver
+    refetchInterval: arrivedBooking ? false : 5000, // Poll every 5s for driver, pause during trip
     staleTime: 5000,
   });
 
@@ -189,13 +189,35 @@ export default function DriverHomePage() {
       });
       if (res.ok) {
          setArrivedBooking({ fare, distance });
+         setIsOnlineOverride(false); // Set offline to stop polling/location
          queryClient.invalidateQueries({ queryKey: ["driverSync"] });
-         await apiFetch("/api/driver/status");
       }
     } catch (e) {
       console.error(e);
     }
   }, [currentBooking, queryClient]);
+
+  const finishTrip = useCallback(async () => {
+    try {
+      setIsOnlineOverride(true);
+      const res = await apiFetch("/api/driver/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isOnline: true })
+      });
+      if (res.ok) {
+        setArrivedBooking(null);
+        queryClient.invalidateQueries({ queryKey: ["driverSync"] });
+        toast.success(t("online") as string);
+      } else {
+        setIsOnlineOverride(false);
+        toast.error(t("error") as string);
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error(t("error") as string);
+    }
+  }, [queryClient, t]);
   
   const requests = useMemo(() => {
     return (syncData?.requests || []).filter((r: Booking) => !rejectedIds.has(r.id));
@@ -773,10 +795,15 @@ export default function DriverHomePage() {
             <Card className="w-full max-w-sm border-none shadow-2xl rounded-[2rem] bg-white overflow-hidden animate-in zoom-in-95 duration-500">
               <CardContent className="p-8 flex flex-col items-center text-center">
                 <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6 shadow-inner shadow-primary/20">
-                  <Banknote className="w-10 h-10 text-primary" />
+                  <Clock className="w-10 h-10 text-primary animate-pulse" />
                 </div>
-                <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-2">{t("booking_done")}</h2>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-8">{t("collect_cash")}</p>
+                <Badge className="mb-4 bg-primary/10 text-primary border-none font-black text-[10px] px-3 py-1 uppercase tracking-widest">
+                  {t("trip_active")}
+                </Badge>
+                <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-2">{t("trip_in_progress")}</h2>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6 leading-relaxed max-w-[250px]">
+                  {t("trip_desc")}
+                </p>
                 
                 <div className="bg-slate-50 p-6 rounded-2xl w-full mb-8 border border-slate-100 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full pointer-events-none" />
@@ -787,18 +814,15 @@ export default function DriverHomePage() {
                   <p className="text-5xl font-black text-slate-800 relative z-10">{t("currency")}{arrivedBooking.fare}</p>
                   <div className="flex flex-col items-center gap-1 mt-3 relative z-10">
                     <p className="text-[10px] font-black text-primary uppercase tracking-widest">{t("collect_cash")}</p>
-                    <Badge variant="outline" className="border-primary/10 text-[9px] font-bold text-primary h-auto px-3 py-1 rounded-full bg-primary/5 uppercase tracking-widest">
-                      {t("cash_only")}
-                    </Badge>
                   </div>
                 </div>
                 
                 <AppButton 
-                  onClick={() => setArrivedBooking(null)} 
+                  onClick={finishTrip} 
                   className="w-full h-16 text-lg font-black rounded-2xl shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 text-white"
                   leftIcon={<CheckCircle2 size={24} />}
                 >
-                  {t("finish")}
+                  {t("finish_trip_go_online")}
                 </AppButton>
               </CardContent>
             </Card>

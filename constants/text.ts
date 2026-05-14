@@ -189,7 +189,7 @@ export const TEXT = {
   error: { en: "Error", bn: "এরর" },
   dr_on_way: { en: "On way", bn: "আসছে" },
   booking_done: { en: "Driver Arrived", bn: "ড্রাইভার পৌঁছেছেন" },
-  safe_journey: { en: "Safe journey", bn: "শুভ যাত্রা" },
+  safe_journey: { en: "Safe Journey! Have a great trip.", bn: "শুভ ভ্রমণ! আপনার যাত্রা সুন্দর হোক।" },
   your_driver: { en: "Driver", bn: "ড্রাইভার" },
   call_driver: { en: "Call Driver", bn: "ড্রাইভারকে কল দিন" },
   call_user: { en: "Call User", bn: "ইউজারকে কল দিন" },
@@ -564,6 +564,11 @@ export const TEXT = {
   yes: { en: "Yes", bn: "হ্যাঁ" },
   no: { en: "No", bn: "না" },
   thanks_feedback: { en: "Thanks for feedback!", bn: "মতামতের জন্য ধন্যবাদ!" },
+  trip_in_progress: { en: "Trip in Progress", bn: "রাইড চলছে" },
+  trip_desc: { en: "You are currently taking a passenger to their destination. Please do not close the app.", bn: "আপনি এখন প্যাসেঞ্জারকে তার গন্তব্যে নিয়ে যাচ্ছেন। অনুগ্রহ করে অ্যাপ বন্ধ করবেন না।" },
+  finish_trip_go_online: { en: "Finish Trip & Go Online", bn: "রাইড শেষ - অনলাইনে যান" },
+  trip_active: { en: "ACTIVE TRIP", bn: "অ্যাক্টিভ রাইড" },
+  trip_started: { en: "Trip Started", bn: "রাইড শুরু হয়েছে" },
 } as const;
 
 
