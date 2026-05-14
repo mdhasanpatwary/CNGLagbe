@@ -144,6 +144,7 @@ export default function DriverProfilePage() {
         <PageHeading
           title={t("profile")}
           subtitle={t("driver_portal")}
+          backHref="/driver/dashboard"
         />
         <Card className="shadow-2xl shadow-slate-200/50 border-none rounded-3xl overflow-visible mb-8">
           <div className="bg-primary h-2 w-full rounded-t-3xl" />

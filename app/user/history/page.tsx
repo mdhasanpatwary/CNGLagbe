@@ -72,6 +72,7 @@ export default function BookingHistoryPage() {
         <PageHeading 
           title={t("booking_history")} 
           subtitle={t("user_portal")}
+          backHref="/user"
         />
         {bookings.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center text-slate-400">

@@ -309,6 +309,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
           }
           subtitle={t("user_portal") as string}
           className="mb-2"
+          backHref="/user/history"
         />
 
         {/* ── FINDING DRIVER STATE ──────────────────────────────────────── */}
