@@ -26,6 +26,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Geolocation Error Handling:** Geolocation timeouts and transient errors are handled gracefully. Unnecessary or spammy error notifications are suppressed to keep the driver's UI clean. Always log benign geolocation errors using `console.warn` instead of `console.error` to prevent triggering the Next.js development error overlay, and ensure objects like `GeolocationPositionError` are logged as `err.message` since they otherwise stringify to `{}`.
 - **Profile Image in Header:** The driver's profile image is displayed in the header for a more personalized and premium experience, consistent with the user panel.
 - **No Auto-Open Map Tabs:** When a driver accepts a booking request, the app must **not** automatically open Google Maps in a new tab or window, as this disrupts the UX by pulling the driver away from the main app interface. Driver navigation is handled explicitly via "Navigate" buttons in the Ongoing Booking view.
+- **Conditional Sync Polling:** To optimize battery and data usage, the driver dashboard polling (`/api/sync`) is conditional. It only runs when the driver is either `ONLINE` or has an `activeBooking`. Polling is automatically paused when the driver is offline and idle, or when the "Arrived" modal is active. (Added 2026-05-15)
 
 ## 📱 UI/UX & Design Standards
 - **Premium Aesthetics:** The app uses modern web design principles (vibrant colors, smooth micro-animations, proper spacing). It should never look like a basic "minimum viable product".

@@ -158,7 +158,11 @@ export default function DriverHomePage() {
       }
       return res.json();
     },
-    refetchInterval: arrivedBooking ? false : 5000, // Poll every 5s for driver, pause during trip
+    // Only poll if online or has active booking, and not in arrived state
+    refetchInterval: (data) => {
+      const isOnline = isOnlineOverride ?? data?.driver?.isOnline ?? false;
+      return (isOnline || !!data?.currentBooking) && !arrivedBooking ? 5000 : false;
+    },
     staleTime: 5000,
   });
 
