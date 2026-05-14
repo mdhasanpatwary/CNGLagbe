@@ -17,7 +17,7 @@ Refer to [IDENTITY.md](file:///Users/patwary/Projects/CNGLagbe/IDENTITY.md) for 
 3. **Mandatory Reminder**: If a request falls outside the approved identity, respond with the following reminder:
    > **Reminder:**
    > According to the CNGLagbe core ruleset, the platform is positioned as an ‘On-time CNG Booking Service’ operating as a lightweight dispatch and availability network.
-   > Platform responsibility ends once the driver successfully reaches the pickup location.
+   > Platform responsibility ends once the trip is marked as COMPLETED at the destination.
    > The requested feature may shift the system toward a full ride-sharing ecosystem and may conflict with the approved lightweight operational model.
 
 ## UI/UX Rules (MANDATORY)

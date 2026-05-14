@@ -21,6 +21,8 @@ export function getBookingUiState(booking: Booking | null, remainingSeconds: num
       return remainingSeconds > 0 ? "FINDING_DRIVER" : "TIMED_OUT";
     case "ACCEPTED":
       return "DRIVER_ASSIGNED";
+    case "PICKED_UP":
+      return "TRIP_IN_PROGRESS";
     case "COMPLETED":
       return "COMPLETED";
     case "CANCELLED":

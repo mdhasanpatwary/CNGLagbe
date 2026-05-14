@@ -29,22 +29,25 @@ export async function POST(request: Request) {
        return NextResponse.json({ error: "Forbidden: Not your booking" }, { status: 403 });
     }
 
-    // In our new model, a booking can be COMPLETED directly from ACCEPTED when the driver arrives.
     if (booking.status !== "ACCEPTED") {
-      return NextResponse.json({ error: "Booking must be ACCEPTED to mark as arrived/completed" }, { status: 400 });
+      return NextResponse.json({ error: "Booking must be ACCEPTED to mark as arrived" }, { status: 400 });
     }
 
     const result = await prisma.booking.update({
       where: { id: bookingId },
       data: { 
-        status: "COMPLETED",
-        completedAt: new Date(),
+        status: "PICKED_UP",
+        startedAt: new Date(),
+        driver: {
+          update: {
+            isOnline: false
+          }
+        }
       },
     });
 
     // Broadcast status change to user
-    // The user's UI should interpret "COMPLETED" as "Driver Arrived / Booking Done"
-    broadcastStatusChange(bookingId, "COMPLETED");
+    broadcastStatusChange(bookingId, "PICKED_UP");
 
     return NextResponse.json({ booking: result });
   } catch (error) {

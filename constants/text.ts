@@ -297,7 +297,7 @@ export const TEXT = {
     bn: "ড্রাইভার না পেলে আমরা আবার চেষ্টা করব বা বাতিল করব।"
   },
   location_denied: { en: "Location Permission Denied", bn: "লোকেশন পারমিশন নেই" },
-  i_arrived: { en: "I've Arrived", bn: "আমি পৌঁছেছি" },
+  i_arrived: { en: "Ride Start", bn: "যাত্রা শুরু" },
   cancel_booking: { en: "Cancel Booking", bn: "বুকিং বাতিল করুন" },
   select_reason: { en: "Select Reason", bn: "কারণ বেছে নিন" },
   confirm_cancel: { en: "Cancel Booking", bn: "বুকিং বাতিল করুন" },

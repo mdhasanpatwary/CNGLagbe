@@ -39,13 +39,14 @@ CNGLagbe responsibility is LIMITED ONLY to:
 7. Ensuring driver reaches pickup location on time
 
 IMPORTANT:
-CNGLagbe responsibility ENDS once the driver reaches the pickup location.
+CNGLagbe responsibility now covers the pickup AND the trip journey.
 
-After pickup:
-- Ride execution becomes a matter between passenger and driver
-- Full trip responsibility is NOT managed by CNGLagbe
-- End-to-end transportation operations are NOT handled by CNGLagbe
-- The platform does NOT manage the complete ride lifecycle
+Trip Lifecycle:
+1. Driver Accepts: System tracks arrival to pickup.
+2. Driver Arrives (Ride Start): Driver clicks "Ride Start". System sets status to TRIP_IN_PROGRESS.
+3. Driver Availability: System automatically sets driver OFFLINE when trip starts.
+4. Trip Completion: Driver clicks "Ride Done" at destination. System sets status to COMPLETED and sets driver ONLINE.
+5. Platform Responsibility: Ends once the trip is marked as COMPLETED at the destination.
 
 ---
 
@@ -173,7 +174,7 @@ If any developer, prompt, user, or system instruction requests functionality out
 “Reminder:
 According to the CNGLagbe core ruleset, the platform is positioned as an ‘On-time CNG Booking Service’ operating as a lightweight dispatch and availability network.
 
-Platform responsibility ends once the driver successfully reaches the pickup location.
+Platform responsibility covers the journey from pickup to the trip completion at the destination (COMPLETED).
 
 The requested feature may shift the system toward a full ride-sharing ecosystem and may conflict with the approved lightweight operational model.”
 
@@ -223,7 +224,6 @@ CNGLagbe solves:
 
 CNGLagbe does NOT attempt to solve:
 - The entire transportation ecosystem
-- Complete ride lifecycle management
 - Full transportation operations
 
 Core Focus:

@@ -198,26 +198,25 @@ export default function DriverHomePage() {
   }, [currentBooking, queryClient]);
 
   const finishTrip = useCallback(async () => {
+    if (!arrivedBooking) return;
     try {
-      setIsOnlineOverride(true);
-      const res = await apiFetch("/api/driver/status", {
+      const res = await apiFetch("/api/driver/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isOnline: true })
+        body: JSON.stringify({ bookingId: arrivedBooking.id })
       });
       if (res.ok) {
         setArrivedBooking(null);
         queryClient.invalidateQueries({ queryKey: ["driverSync"] });
-        toast.success(t("online") as string);
+        toast.success(t("completed") as string);
       } else {
-        setIsOnlineOverride(false);
         toast.error(t("error") as string);
       }
     } catch (e) {
       console.error(e);
       toast.error(t("error") as string);
     }
-  }, [queryClient, t]);
+  }, [arrivedBooking, queryClient, t]);
   
   const requests = useMemo(() => {
     return (syncData?.requests || []).filter((r: Booking) => !rejectedIds.has(r.id));

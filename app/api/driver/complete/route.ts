@@ -26,8 +26,8 @@ export async function POST(request: Request) {
        return NextResponse.json({ error: "Forbidden: Not your booking" }, { status: 403 });
     }
 
-    if (booking.status !== "ACCEPTED") {
-      return NextResponse.json({ error: "Booking must be ACCEPTED to complete" }, { status: 400 });
+    if (booking.status !== "PICKED_UP") {
+      return NextResponse.json({ error: "Booking must be in progress (PICKED_UP) to complete" }, { status: 400 });
     }
 
     const result = await prisma.booking.update({
@@ -35,6 +35,11 @@ export async function POST(request: Request) {
       data: { 
         status: "COMPLETED",
         completedAt: new Date(),
+        driver: {
+          update: {
+            isOnline: true
+          }
+        }
       },
     });
 

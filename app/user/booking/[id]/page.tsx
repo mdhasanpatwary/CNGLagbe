@@ -238,13 +238,19 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
 
   const uiState = getBookingUiState(booking, countdown);
   const cancelLabelKey: TextKey = uiState === "FINDING_DRIVER" ? "cancel_request" : "cancel_booking";
-  const showCancelAction = uiState === "FINDING_DRIVER";
+  const showCancelAction = uiState === "FINDING_DRIVER" || uiState === "DRIVER_ASSIGNED";
   const showDriverCard = (uiState === "DRIVER_ASSIGNED" || uiState === "COMPLETED") && Boolean(booking.driver);
 
 
   const progressPct = uiState === "FINDING_DRIVER"
     ? Math.round((countdown / BOOKING_REQUEST_TIMEOUT_SECONDS) * 100)
     : 100;
+
+  // Driver late cancellation logic (15 mins after accept)
+  const diffMinutes = booking.acceptedAt 
+    ? Math.floor((now - new Date(booking.acceptedAt).getTime()) / (1000 * 60))
+    : 0;
+  const canCancelAfterAccept = uiState === "FINDING_DRIVER" || diffMinutes >= 15;
 
   const timeValue = (() => {
     if (uiState === "FINDING_DRIVER") return `${countdown}s`;
@@ -516,26 +522,38 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                 </div>
               </div>
 
-              {/* Call Driver CTA */}
-              <a
-                href={`tel:${booking.driver.phone}`}
-                className="flex h-16 items-center justify-center gap-3 rounded-2xl bg-primary text-base font-black text-white transition-all shadow-xl shadow-primary/25 hover:bg-primary-dark active:scale-[0.98]"
-              >
-                <Phone size={20} fill="currentColor" />
-                {t("call_driver")}
-              </a>
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-3">
+                <a
+                  href={`tel:${booking.driver.phone}`}
+                  className="flex h-16 items-center justify-center gap-3 rounded-2xl bg-primary text-base font-black text-white transition-all shadow-xl shadow-primary/25 hover:bg-primary-dark active:scale-[0.98]"
+                >
+                  <Phone size={20} fill="currentColor" />
+                  {t("call_driver")}
+                </a>
+
+                {canCancelAfterAccept && (
+                  <AppButton
+                    variant="secondary"
+                    onClick={() => setShowCancelModal(true)}
+                    className="h-14 rounded-2xl border-2 border-slate-100 text-slate-400 font-black uppercase tracking-widest text-[10px] hover:text-red-500 hover:border-red-100 hover:bg-red-50/50 transition-all"
+                  >
+                    {t("cancel_booking")}
+                  </AppButton>
+                )}
+              </div>
             </div>
           </div>
         )}
 
-        {/* ── COMPLETED STATE ───────────────────────────────────────────── */}
-        {uiState === "COMPLETED" && (
+        {/* ── TRIP IN PROGRESS STATE ─────────────────────────────────────── */}
+        {uiState === "TRIP_IN_PROGRESS" && (
           <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
             {/* Status Header */}
             <div className="bg-primary/10 px-6 py-4 border-b border-primary/10 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <CheckCircle2 size={16} className="text-primary-dark" />
-                <span className="text-xs font-black text-primary-dark uppercase tracking-wider">{t("booking_summary")}</span>
+                <Navigation size={16} className="text-primary-dark" />
+                <span className="text-xs font-black text-primary-dark uppercase tracking-wider">{t("trip_active")}</span>
               </div>
               <span className="text-[10px] font-black text-slate-400">#{id.slice(-6).toUpperCase()}</span>
             </div>
@@ -554,23 +572,12 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
 
                   {/* Flat Animation Area (Center) */}
                   <div className="flex-1 relative h-20 flex flex-col items-center justify-center">
-                    {/* The Moving Road Line */}
                     <div className="absolute bottom-4 left-0 right-0 h-[4px] animate-road-move opacity-20" />
-                    
-                    {/* The Vehicle */}
                     <div className="relative z-10 animate-cng-bounce flex flex-col items-center translate-y-2">
                       <div className="relative w-[50px] h-[50px] mix-blend-multiply">
-                        <Image
-                          src="/cng_side.png"
-                          alt="CNG"
-                          fill
-                          className="object-contain -scale-x-100"
-                          priority
-                        />
+                        <Image src="/cng_side.png" alt="CNG" fill className="object-contain -scale-x-100" priority />
                       </div>
                     </div>
-
-                    {/* Minimalist Speed effect */}
                     <div className="absolute bottom-5 left-1/2 -translate-x-6 flex gap-1.5 opacity-20">
                       <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-ping" style={{ animationDuration: '0.8s' }} />
                     </div>
@@ -589,63 +596,72 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                 <p className="text-sm font-medium text-slate-500 text-center mt-1">{t("safe_journey")}</p>
               </div>
 
-              {/* Ride Summary Integrated */}
-              <div className="space-y-6 mb-8 pt-6 border-t border-slate-50">
-                <div className="flex items-start gap-4">
-                  <div className="flex flex-col items-center gap-1 mt-1 shrink-0">
-                    <div className="w-2.5 h-2.5 rounded-full border-2 border-primary bg-white" />
-                    <div className="w-0.5 h-8 bg-slate-100" />
-                    <div className="w-2.5 h-2.5 rounded-full border-2 border-red-400 bg-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="mb-4">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{t("pickup")}</p>
-                      <p className="text-sm font-bold text-slate-800 truncate">{booking.pickupAddress || t("pickup")}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{t("drop")}</p>
-                      <p className="text-sm font-bold text-slate-800 truncate">{booking.destAddress || t("drop")}</p>
-                    </div>
-                  </div>
-                </div>
+              {/* Call Driver CTA */}
+              <a
+                href={`tel:${booking.driver?.phone}`}
+                className="flex h-16 items-center justify-center gap-3 rounded-2xl bg-primary text-base font-black text-white transition-all shadow-xl shadow-primary/25 hover:bg-primary-dark active:scale-[0.98]"
+              >
+                <Phone size={20} fill="currentColor" />
+                {t("call_driver")}
+              </a>
+            </div>
+          </div>
+        )}
 
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100/50">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{t("total_fare")}</span>
-                    <p className="text-base font-black text-slate-900">{t("currency")}{booking.fare}</p>
-                  </div>
-                  <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100/50">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{t("est_time")}</span>
-                    <p className="text-base font-black text-slate-900">{timeValue}</p>
-                  </div>
-                  <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100/50">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{t("distance")}</span>
-                    <p className="text-base font-black text-slate-900">{booking.distance.toFixed(1)}{t("km_unit")}</p>
-                  </div>
+        {/* ── COMPLETED STATE ───────────────────────────────────────────── */}
+        {uiState === "COMPLETED" && (
+          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+            {/* Status Header */}
+            <div className="bg-emerald-50 px-6 py-4 border-b border-emerald-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={16} className="text-emerald-600" />
+                <span className="text-xs font-black text-emerald-700 uppercase tracking-wider">{t("completed")}</span>
+              </div>
+              <span className="text-[10px] font-black text-slate-400">#{id.slice(-6).toUpperCase()}</span>
+            </div>
+
+            <div className="p-6">
+              {/* Success Message */}
+              <div className="flex flex-col items-center mb-8">
+                <div className="w-20 h-20 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
+                  <CheckCircle2 size={40} className="text-emerald-500" />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 text-center">{t("booking_done")}</h3>
+                <p className="text-sm font-medium text-slate-500 text-center mt-1">{t("safe_journey")}</p>
+              </div>
+
+              {/* Fare Summary */}
+              <div className="grid grid-cols-2 gap-3 mb-8">
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">{t("fare")}</span>
+                  <p className="text-xl font-black text-emerald-600">{t("currency")}{booking.fare}</p>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">{t("distance")}</span>
+                  <p className="text-xl font-black text-slate-900">{booking.distance.toFixed(1)}{t("km_unit")}</p>
                 </div>
               </div>
 
               {/* Rating Section */}
-              {(!booking.rating && !ratingSubmitted) ? (
-                <div className="mb-8 pt-6 border-t border-slate-50 text-center">
-                  <h4 className="text-sm font-black text-slate-900 mb-1">{t("rate_driver")}</h4>
-                  <p className="text-xs font-bold text-slate-400 mb-4">{t("rate_desc")}</p>
+              {!booking.rating && !ratingSubmitted ? (
+                <div className="mb-8 pt-6 border-t border-slate-50">
+                  <h4 className="text-sm font-black text-slate-900 text-center mb-1">{t("rate_driver")}</h4>
+                  <p className="text-[11px] font-bold text-slate-400 text-center mb-6 uppercase tracking-wider">{t("rate_desc")}</p>
                   
-                  <div className="flex gap-2 mb-6 justify-center">
+                  <div className="flex justify-center gap-3 mb-8">
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <AppButton
+                      <button
                         key={star}
-                        variant="ghost"
                         onClick={() => setUserRating(star)}
-                        className="p-0 h-auto min-h-0 w-auto bg-transparent hover:bg-transparent active:scale-95 transition-transform focus:ring-0 focus:ring-offset-0"
+                        className="transition-all active:scale-90 p-1"
                       >
                         <Star
-                          size={36}
+                          size={32}
                           fill={userRating >= star ? "#FFB800" : "none"}
                           strokeWidth={2}
-                          className={userRating >= star ? "text-amber-400" : "text-slate-200"}
+                          className={userRating >= star ? "text-amber-400 drop-shadow-[0_0_8px_rgba(255,184,0,0.3)]" : "text-slate-200"}
                         />
-                      </AppButton>
+                      </button>
                     ))}
                   </div>
 
