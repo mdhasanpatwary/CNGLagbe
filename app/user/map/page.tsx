@@ -31,6 +31,7 @@ interface FareData {
 
 interface RouteInfo {
   distanceText: string;
+  distanceKm: number;
   durationText: string;
   durationMinutes: number | null;
   encodedPolyline: string;
@@ -345,6 +346,7 @@ export default function UserMapPage() {
             });
             setRouteInfo({
               distanceText: session.route.distanceText,
+              distanceKm: session.route.distanceKm,
               durationText: session.route.durationText,
               durationMinutes: session.route.durationMinutes ?? null,
               encodedPolyline: session.route.polyline,
@@ -510,6 +512,7 @@ export default function UserMapPage() {
             pickupLng: pickup?.lng,
             destLat: destination.lat,
             destLng: destination.lng,
+            distance: routeInfo?.distanceKm, // Pass road distance if available
           }),
         });
         const data = await res.json();
@@ -537,6 +540,7 @@ export default function UserMapPage() {
             pickupAddress: pickup?.address,
             destAddress: destination?.address,
             polyline: routeInfo?.encodedPolyline,
+            distance: routeInfo?.distanceKm, // Use accurate road distance
           }),
         });
         const data = await res.json();
@@ -890,14 +894,21 @@ export default function UserMapPage() {
         }
 
         if (isActive) {
-          const newRouteInfo: RouteInfo = { distanceText, durationText, durationMinutes, encodedPolyline };
+          const distanceKm = Number((distanceValue / 1000).toFixed(2));
+          const newRouteInfo: RouteInfo = { 
+            distanceText, 
+            distanceKm,
+            durationText, 
+            durationMinutes, 
+            encodedPolyline 
+          };
           setRouteInfo(newRouteInfo);
 
           if (pickup && destination && fareData) {
             saveBookingSession({
               pickup: { lat: pickup.lat, lng: pickup.lng, label: pickup.address ?? "" },
               drop: { lat: destination.lat, lng: destination.lng, label: destination.address ?? "" },
-              route: { polyline: encodedPolyline, distanceText, durationText, durationMinutes, distanceKm: fareData.distance },
+              route: { polyline: encodedPolyline, distanceText, durationText, durationMinutes, distanceKm },
               fare: fareData.fare,
               lastUpdated: Date.now(),
             });

@@ -4,18 +4,21 @@ import { calculateDistance, calculateFare } from "@/lib/fare";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { pickupLat, pickupLng, destLat, destLng } = body;
+    const { pickupLat, pickupLng, destLat, destLng, distance: manualDistance } = body;
 
     if (!pickupLat || !pickupLng || !destLat || !destLng) {
       return NextResponse.json({ error: "Missing coordinates" }, { status: 400 });
     }
 
-    const distance = calculateDistance(
-      Number(pickupLat),
-      Number(pickupLng),
-      Number(destLat),
-      Number(destLng)
-    );
+    // Use manually provided distance (e.g. from Google Maps route) or fallback to Haversine
+    const distance = manualDistance !== undefined 
+      ? Number(manualDistance)
+      : calculateDistance(
+          Number(pickupLat),
+          Number(pickupLng),
+          Number(destLat),
+          Number(destLng)
+        );
 
     const fare = calculateFare(distance);
 

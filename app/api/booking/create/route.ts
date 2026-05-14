@@ -15,7 +15,8 @@ export async function POST(request: Request) {
       const body = await request.json();
       const { 
         pickupLat, pickupLng, destLat, destLng, 
-        pickupAddress, destAddress, polyline
+        pickupAddress, destAddress, polyline,
+        distance: manualDistance
       } = body;
 
       // --- Cancellation Rate Limit Check ---
@@ -59,18 +60,21 @@ export async function POST(request: Request) {
         }
       }
       // -------------------------------------
-
+      
       if (!pickupLat || !pickupLng || !destLat || !destLng) {
         return NextResponse.json({ error: "Missing coordinates" }, { status: 400 });
       }
 
       // Calculate distance and fare strictly server-side based on immutable coordinates
-      const distance = calculateDistance(
-        Number(pickupLat),
-        Number(pickupLng),
-        Number(destLat),
-        Number(destLng)
-      );
+      // or use manualDistance if provided (and valid)
+      const distance = manualDistance !== undefined
+        ? Number(manualDistance)
+        : calculateDistance(
+            Number(pickupLat),
+            Number(pickupLng),
+            Number(destLat),
+            Number(destLng)
+          );
 
       const fare = calculateFare(distance);
 
