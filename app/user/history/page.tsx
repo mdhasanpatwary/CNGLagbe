@@ -96,7 +96,10 @@ export default function BookingHistoryPage() {
                       booking.status === "COMPLETED" ? "bg-primary/10 text-primary-dark" :
                       booking.status === "CANCELLED" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
                     }`}>
-                      {booking.status}
+                      {booking.status === "COMPLETED" ? t("completed") : 
+                       booking.status === "CANCELLED" ? t("cancelled") : 
+                       booking.status === "PICKED_UP" ? t("trip_in_progress") : 
+                       booking.status === "ACCEPTED" ? t("accepted") : t("pending")}
                     </Badge>
                   </div>
 

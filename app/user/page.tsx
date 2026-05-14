@@ -122,16 +122,22 @@ export default function UserHomePage() {
 
   const activeStatusLabel = () => {
     if (!activeBooking) return "";
-    if (activeBooking.status === "PENDING") return t("finding_driver");
-    if (activeBooking.status === "ACCEPTED") return t("driver_arrived");
-    return "";
+    switch (activeBooking.status) {
+      case "PENDING": return t("finding_driver");
+      case "ACCEPTED": return t("dr_on_way");
+      case "PICKED_UP": return t("trip_in_progress");
+      default: return "";
+    }
   };
 
   const activeStatusColor = () => {
     if (!activeBooking) return "";
-    if (activeBooking.status === "PENDING") return "bg-amber-500";
-    if (activeBooking.status === "ACCEPTED") return "bg-blue-500";
-    return "bg-primary";
+    switch (activeBooking.status) {
+      case "PENDING": return "bg-amber-100 text-amber-700";
+      case "ACCEPTED": return "bg-primary/10 text-primary-dark";
+      case "PICKED_UP": return "bg-green-100 text-green-700";
+      default: return "bg-slate-100 text-slate-700";
+    }
   };
 
   return (
