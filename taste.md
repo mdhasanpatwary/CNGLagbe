@@ -27,6 +27,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Profile Image in Header:** The driver's profile image is displayed in the header for a more personalized and premium experience, consistent with the user panel.
 - **No Auto-Open Map Tabs:** When a driver accepts a booking request, the app must **not** automatically open Google Maps in a new tab or window, as this disrupts the UX by pulling the driver away from the main app interface. Driver navigation is handled explicitly via "Navigate" buttons in the Ongoing Booking view.
 - **Conditional Sync Polling:** To optimize battery and data usage, the driver dashboard polling (`/api/sync`) is conditional. It only runs when the driver is either `ONLINE` or has an `activeBooking`. Polling is automatically paused when the driver is offline and idle, or when the "Arrived" modal is active. (Added 2026-05-15)
+- **Layout Stability (Toggling Online):** To prevent layout shifting when toggling online/offline status, the dashboard uses `placeholderData: keepPreviousData` in its sync query. This ensures that the UI (including the Header) remains stable and interactive while the new status is being fetched. The Header and main page structure are kept outside the loading conditional to avoid "white flashes" or full-page unmounts. (Added 2026-05-16)
 
 ## 📱 UI/UX & Design Standards
 - **Premium Aesthetics:** The app uses modern web design principles (vibrant colors, smooth micro-animations, proper spacing). It should never look like a basic "minimum viable product".

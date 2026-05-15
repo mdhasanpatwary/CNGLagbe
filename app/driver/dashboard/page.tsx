@@ -13,7 +13,7 @@ import { supabase } from "@/lib/supabase";
 import { CancelModal } from "@/components/CancelModal";
 import { Header } from "@/components/layout/Header";
 import { apiFetch } from "@/utils/api";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { GoogleMapPreview } from "@/components/GoogleMapPreview";
 import { simplifyAddress } from "@/utils/address";
 import { Booking } from "@/lib/types/booking";
@@ -104,9 +104,15 @@ export default function DriverHomePage() {
         },
         body: JSON.stringify({ isOnline: nextStatus })
       });
-      if (!res.ok) setIsOnlineOverride(null); // Revert on failure
+      if (res.ok) {
+        // Invalidate sync data to ensure server state is reflected
+        queryClient.invalidateQueries({ queryKey: ["driverSync"] });
+      } else {
+        setIsOnlineOverride(null); // Revert on failure
+      }
     } catch (e) {
       console.error(e);
+      setIsOnlineOverride(null);
     }
   };
 
@@ -150,8 +156,8 @@ export default function DriverHomePage() {
 
 
   // ─── React Query for Unified Sync ─────────────────────────────────────────
-  const { data: syncData } = useQuery<DriverSyncData>({
-    queryKey: ["driverSync", isOnlineOverride],
+  const { data: syncData, isLoading: isInitialLoading } = useQuery<DriverSyncData>({
+    queryKey: ["driverSync"], // Removed isOnlineOverride from key to prevent full unmount/reset on toggle
     queryFn: async () => {
       const res = await apiFetch("/api/sync");
       if (res.status === 401) {
@@ -171,10 +177,11 @@ export default function DriverHomePage() {
       return isOnline && !hasActiveBooking ? 5000 : false;
     },
     staleTime: 5000,
+    placeholderData: keepPreviousData, // Keep old data while refetching new status
   });
 
   const isOnline = isOnlineOverride ?? syncData?.driver?.isOnline ?? false;
-  const loading = !syncData;
+  const loading = !syncData && isInitialLoading;
 
   const driver = syncData?.driver;
   const isApproved = driver?.isApproved ?? true;
@@ -597,8 +604,7 @@ export default function DriverHomePage() {
     };
   }, [requests, isOnline, currentBooking, handleReject]);
 
-  if (loading) return null; // Wait for status check
-
+  // ─── Render ──────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center">
       {/* Premium Background Decoration */}
@@ -610,14 +616,19 @@ export default function DriverHomePage() {
         onLogout={logout} 
       />
 
-
       <main className="relative p-6 w-full max-w-md flex flex-col gap-6 flex-1">
         <PageHeading 
           title={t("driver_dashboard") as string} 
           subtitle={t("driver_portal") as string}
           className="mb-6"
         />
-        {!isApproved ? (
+
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4 animate-in fade-in duration-500">
+            <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">{t("loading")}</p>
+          </div>
+        ) : !isApproved ? (
           <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in-95 duration-700">
              <div className="w-24 h-24 bg-amber-100 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl shadow-amber-200/50">
                <Info className="w-10 h-10 text-amber-600 animate-pulse" />
