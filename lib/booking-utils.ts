@@ -6,8 +6,8 @@ import { BOOKING_REQUEST_TIMEOUT_SECONDS } from "@/constants/booking";
  */
 export function getRemainingSeconds(createdAt: string, now: number): number {
   const createdTime = new Date(createdAt).getTime();
-  const elapsed = Math.floor((now - createdTime) / 1000);
-  return Math.max(0, BOOKING_REQUEST_TIMEOUT_SECONDS - elapsed);
+  const elapsed = Math.max(0, Math.floor((now - createdTime) / 1000));
+  return Math.max(0, Math.min(BOOKING_REQUEST_TIMEOUT_SECONDS, BOOKING_REQUEST_TIMEOUT_SECONDS - elapsed));
 }
 
 /**
@@ -35,12 +35,19 @@ export function getBookingUiState(booking: Booking | null, remainingSeconds: num
 }
 
 /**
- * Formats duration in seconds to "m:ss" or a fallback string if too short.
+ * Formats duration in seconds to "H:MM:SS" or "M:SS".
  */
 export function formatDuration(seconds: number, fallback: string): string {
   if (seconds < 10) return fallback;
-  const mins = Math.floor(seconds / 60);
+  
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
+
+  if (hrs > 0) {
+    return `${hrs}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  }
+  
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 

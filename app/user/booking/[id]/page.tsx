@@ -257,12 +257,12 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
 
   // Driver late cancellation logic (15 mins after accept)
   const diffMinutes = booking.acceptedAt 
-    ? Math.floor((now - new Date(booking.acceptedAt).getTime()) / (1000 * 60))
+    ? Math.max(0, Math.floor((now - new Date(booking.acceptedAt).getTime()) / (1000 * 60)))
     : 0;
   const canCancelAfterAccept = uiState === "FINDING_DRIVER" || diffMinutes >= 15;
 
   const remainingWaitSeconds = booking.acceptedAt 
-    ? Math.max(0, 15 * 60 - Math.floor((now - new Date(booking.acceptedAt).getTime()) / 1000))
+    ? Math.max(0, Math.min(15 * 60, 15 * 60 - Math.floor((now - new Date(booking.acceptedAt).getTime()) / 1000)))
     : 0;
 
   const timeValue = (() => {
@@ -558,7 +558,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
 
                 {!canCancelAfterAccept && uiState === "DRIVER_ASSIGNED" && (
                   <p className="text-[10px] font-black text-slate-400 text-center uppercase tracking-widest mt-2 bg-slate-50 py-3 rounded-xl border border-dashed border-slate-200">
-                    {t("cancel_available_in")} {Math.floor(remainingWaitSeconds / 60)}:{(remainingWaitSeconds % 60).toString().padStart(2, '0')}
+                    {t("cancel_available_in")} {formatDuration(remainingWaitSeconds, "0:00")}
                   </p>
                 )}
               </div>
