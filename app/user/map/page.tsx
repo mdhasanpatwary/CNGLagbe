@@ -1042,15 +1042,15 @@ export default function UserMapPage() {
               </div>
 
               {/* Combined inputs with vertical connector */}
-              <div className="relative space-y-4 mb-6 pl-4">
+              <div className="relative space-y-4 mb-6 pl-10">
                 {/* Vertical connector line */}
-                <div className="absolute left-[7px] top-7 bottom-7 w-0.5 bg-slate-100 border-l border-dashed border-slate-300" />
+                <div className="absolute left-[19px] top-[28px] bottom-[28px] w-0.5 border-l-2 border-dashed border-slate-200 z-0" />
 
                 {/* Pickup Field */}
                 <div className="relative">
                   <div className={cn(
-                    "absolute -left-5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border-2 border-white shadow-sm z-10 transition-colors duration-300",
-                    focusedInput === "PICKUP" ? "bg-primary scale-125" : "bg-slate-300"
+                    "absolute -left-[26px] top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-2 border-white shadow-md z-10 transition-all duration-300",
+                    focusedInput === "PICKUP" ? "bg-primary scale-110 ring-4 ring-primary/20" : "bg-slate-300"
                   )} />
                   <div className="relative group">
                     <div className={cn(
@@ -1067,7 +1067,7 @@ export default function UserMapPage() {
                       onChange={(e) => setPickupSearchValue(e.target.value)}
                       placeholder={t("hero_pickup_ph") as string}
                       className={cn(
-                        "w-full pl-11 pr-20 py-4 rounded-2xl border-2 transition-all text-sm font-semibold",
+                        "w-full pl-11 pr-20 py-4 rounded-2xl border-2 transition-all text-sm font-bold",
                         focusedInput === "PICKUP"
                           ? "border-primary/30 bg-primary/5 text-slate-800 shadow-sm"
                           : "border-slate-100 bg-slate-50/50 text-slate-500"
@@ -1099,8 +1099,8 @@ export default function UserMapPage() {
                 {/* Destination Field */}
                 <div className="relative">
                   <div className={cn(
-                    "absolute -left-5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-sm border-2 border-white shadow-sm z-10 transition-colors duration-300",
-                    focusedInput === "DESTINATION" ? "bg-red-500 scale-125" : "bg-slate-300"
+                    "absolute -left-[26px] top-1/2 -translate-y-1/2 w-3 h-3 rounded-sm border-2 border-white shadow-md z-10 transition-all duration-300",
+                    focusedInput === "DESTINATION" ? "bg-red-500 scale-110 ring-4 ring-red-500/20" : "bg-slate-300"
                   )} />
                   <div className="relative group">
                     <div className={cn(
@@ -1117,7 +1117,7 @@ export default function UserMapPage() {
                       onChange={(e) => setDestSearchValue(e.target.value)}
                       placeholder={t("hero_dest_ph") as string}
                       className={cn(
-                        "w-full pl-11 pr-12 py-4 rounded-2xl border-2 transition-all text-sm font-semibold",
+                        "w-full pl-11 pr-12 py-4 rounded-2xl border-2 transition-all text-sm font-bold",
                         focusedInput === "DESTINATION"
                           ? "border-red-200 bg-red-50/30 text-slate-800 shadow-sm"
                           : "border-slate-100 bg-slate-50/50 text-slate-500"
@@ -1172,11 +1172,11 @@ export default function UserMapPage() {
               </div>
 
               {/* Route summary */}
-              <div className="flex items-start gap-3 mb-5 bg-slate-50 rounded-2xl px-4 py-3">
-                <div className="flex flex-col items-center gap-1 mt-1 shrink-0">
-                  <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-                  <div className="w-0.5 h-8 bg-slate-300 border-dashed" />
-                  <div className="w-2.5 h-2.5 rounded-sm bg-red-400" />
+              <div className="flex items-start gap-4 mb-5 bg-slate-50 rounded-2xl px-4 py-4">
+                <div className="flex flex-col items-center gap-1 mt-1.5 shrink-0 w-6">
+                  <div className="w-3 h-3 rounded-full bg-primary border-2 border-white shadow-sm" />
+                  <div className="w-0.5 h-10 border-l-2 border-dashed border-slate-200" />
+                  <div className="w-3 h-3 rounded-sm bg-red-500 border-2 border-white shadow-sm" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] font-black uppercase text-slate-400 mb-0.5">{t("pickup")}</p>
