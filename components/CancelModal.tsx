@@ -19,7 +19,6 @@ const USER_CANCELLATION_REASONS: TextKey[] = [
   "reason_changed_mind",
   "reason_driver_late",
   "reason_vehicle_issue",
-  "reason_long_wait",
   "reason_other",
 ];
 
@@ -39,6 +38,7 @@ export function CancelModal({
 }: CancelModalProps) {
   const { t } = useLang();
   const [selectedReason, setSelectedReason] = useState<TextKey | null>(null);
+  const [customReason, setCustomReason] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,11 +49,15 @@ export function CancelModal({
     setIsLoading(true);
     setError(null);
 
+    const finalReason = selectedReason === "reason_other" && customReason
+      ? `${t("reason_other")}: ${customReason}`
+      : t(selectedReason);
+
     try {
       const res = await fetch(`/api/booking/${bookingId}/cancel`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason: t(selectedReason) }),
+        body: JSON.stringify({ reason: finalReason }),
       });
 
       const data = await res.json();
@@ -100,7 +104,7 @@ export function CancelModal({
             {t("select_reason")}
           </p>
 
-          <div className="space-y-3 mb-8">
+          <div className="space-y-3 mb-6">
             {reasons.map((reasonKey) => (
               <AppButton
                 key={reasonKey}
@@ -116,6 +120,17 @@ export function CancelModal({
               </AppButton>
             ))}
           </div>
+
+          {selectedReason === "reason_other" && (
+            <div className="mb-6 animate-in slide-in-from-top-2 duration-300">
+              <textarea
+                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-200 transition-all min-h-[100px] outline-none font-medium"
+                value={customReason}
+                onChange={(e) => setCustomReason(e.target.value)}
+                placeholder={t("details_label") + "..."}
+              />
+            </div>
+          )}
 
           {error && (
             <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-2xl text-xs font-bold border border-red-100 flex items-center gap-2">

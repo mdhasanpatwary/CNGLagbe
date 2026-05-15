@@ -95,15 +95,24 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
 
   // Countdown timer
   useEffect(() => {
-    if (booking?.status !== "PENDING") return;
+    if (!booking) return;
+    const isPending = booking.status === "PENDING";
+    const isAccepted = booking.status === "ACCEPTED";
+    
+    // We need 'now' for PENDING countdown and for ACCEPTED cancellation 15m timer
+    if (!isPending && !isAccepted) return;
+
     const timer = setInterval(() => {
       const currentNow = Date.now();
-      const remaining = getRemainingSeconds(booking.createdAt, currentNow);
       setNow(currentNow);
-      if (remaining <= 0) void fetchBooking();
+      
+      if (isPending) {
+        const remaining = getRemainingSeconds(booking.createdAt, currentNow);
+        if (remaining <= 0) void fetchBooking();
+      }
     }, 1000);
     return () => clearInterval(timer);
-  }, [booking?.createdAt, booking?.status, fetchBooking]);
+  }, [booking, fetchBooking]);
 
   const handleRate = async () => {
     if (userRating === 0) return;
@@ -251,6 +260,10 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
     ? Math.floor((now - new Date(booking.acceptedAt).getTime()) / (1000 * 60))
     : 0;
   const canCancelAfterAccept = uiState === "FINDING_DRIVER" || diffMinutes >= 15;
+
+  const remainingWaitSeconds = booking.acceptedAt 
+    ? Math.max(0, 15 * 60 - Math.floor((now - new Date(booking.acceptedAt).getTime()) / 1000))
+    : 0;
 
   const timeValue = (() => {
     if (uiState === "FINDING_DRIVER") return `${countdown}s`;
@@ -541,6 +554,12 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                   >
                     {t("cancel_booking")}
                   </AppButton>
+                )}
+
+                {!canCancelAfterAccept && uiState === "DRIVER_ASSIGNED" && (
+                  <p className="text-[10px] font-black text-slate-400 text-center uppercase tracking-widest mt-2 bg-slate-50 py-3 rounded-xl border border-dashed border-slate-200">
+                    {t("cancel_available_in")} {Math.floor(remainingWaitSeconds / 60)}:{(remainingWaitSeconds % 60).toString().padStart(2, '0')}
+                  </p>
                 )}
               </div>
             </div>
