@@ -39,6 +39,31 @@ export async function POST(request: Request) {
         },
       });
 
+      // Update Driver Wallet (Deduct platform fee as debt)
+      const platformFee = bookingUpdate.platformFee || 0;
+      
+      const wallet = await tx.driverWallet.upsert({
+        where: { driverId },
+        create: {
+          driverId,
+          balance: -platformFee,
+        },
+        update: {
+          balance: { decrement: platformFee },
+        },
+      });
+
+      // Log Transaction
+      await tx.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          amount: -platformFee,
+          type: "BOOKING_FEE",
+          bookingId: bookingId,
+          details: `Platform fee for trip #${bookingId.slice(-6)}`,
+        },
+      });
+
       await tx.driver.updateMany({
         where: {
           id: driverId,

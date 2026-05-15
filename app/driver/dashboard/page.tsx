@@ -3,7 +3,8 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Power, MapPin, Navigation, Info, ExternalLink, CheckCircle2, XCircle, Banknote, Clock, AlertTriangle, Phone } from "lucide-react";
+import { Power, MapPin, Navigation, Info, ExternalLink, CheckCircle2, XCircle, Banknote, Clock, AlertTriangle, Phone, Star, TrendingUp, Award, History, ChevronRight } from "lucide-react";
+import Link from "next/link";
 import { AppButton } from "@/components/ui/AppButton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -177,7 +178,14 @@ export default function DriverHomePage() {
 
   const driver = syncData?.driver;
   const isApproved = driver?.isApproved ?? true;
-  const stats = syncData?.stats || { todayEarnings: 0, todayBookings: 0 };
+  const stats = syncData?.stats || { 
+    todayEarnings: 0, 
+    todayBookings: 0,
+    totalEarnings: 0,
+    totalBookings: 0,
+    totalRatings: 0,
+    avgRating: 0
+  };
   const currentBooking = syncData?.currentBooking || null;
   
   // Derive arrivedBooking from currentBooking status + optimistic state
@@ -186,6 +194,9 @@ export default function DriverHomePage() {
       return {
         id: currentBooking.id,
         fare: currentBooking.fare,
+        baseFare: currentBooking.baseFare,
+        platformFee: currentBooking.platformFee,
+        totalFare: currentBooking.totalFare,
         distance: currentBooking.distance
       };
     }
@@ -193,6 +204,9 @@ export default function DriverHomePage() {
       return {
         id: currentBooking.id,
         fare: currentBooking.fare,
+        baseFare: currentBooking.baseFare,
+        platformFee: currentBooking.platformFee,
+        totalFare: currentBooking.totalFare,
         distance: currentBooking.distance
       };
     }
@@ -633,17 +647,28 @@ export default function DriverHomePage() {
         {!currentBooking && isApproved && (
           <div className="flex flex-col gap-4">
             {/* Stats Row */}
-            <div className="grid grid-cols-2 gap-4">
-              <Card className="border-none bg-white/90 backdrop-blur-xl shadow-xl shadow-slate-200/40 rounded-[2rem] overflow-hidden">
-                <CardContent className="p-5 flex flex-col items-center text-center">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t("today_trips")}</p>
-                  <p className="text-3xl font-black text-primary">{stats.todayBookings}</p>
+            <div className="grid grid-cols-3 gap-3">
+              <Card className="border-none bg-white/90 backdrop-blur-xl shadow-lg shadow-slate-200/40 rounded-2xl overflow-hidden">
+                <CardContent className="p-3 flex flex-col items-center text-center">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight mb-1">{t("today_trips")}</p>
+                  <p className="text-xl font-black text-primary">{stats.todayBookings}</p>
                 </CardContent>
               </Card>
-              <Card className="border-none bg-white/90 backdrop-blur-xl shadow-xl shadow-slate-200/40 rounded-[2rem] overflow-hidden">
-                <CardContent className="p-5 flex flex-col items-center text-center">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t("today_cash")}</p>
-                  <p className="text-3xl font-black text-slate-800">{t("currency")}{stats.todayEarnings}</p>
+              <Card className="border-none bg-white/90 backdrop-blur-xl shadow-lg shadow-slate-200/40 rounded-2xl overflow-hidden">
+                <CardContent className="p-3 flex flex-col items-center text-center">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight mb-1">{t("today_cash")}</p>
+                  <p className="text-xl font-black text-slate-800">{t("currency")}{stats.todayEarnings}</p>
+                </CardContent>
+              </Card>
+              <Card 
+                className="border-none bg-white/90 backdrop-blur-xl shadow-lg shadow-slate-200/40 rounded-2xl overflow-hidden cursor-pointer hover:bg-slate-50 transition-colors"
+                onClick={() => window.location.href = "/driver/wallet"}
+              >
+                <CardContent className="p-3 flex flex-col items-center text-center">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight mb-1">{t("wallet_balance")}</p>
+                  <p className={`text-xl font-black ${(driver?.wallet?.balance || 0) < 0 ? "text-red-500" : "text-slate-800"}`}>
+                    {t("currency")}{driver?.wallet?.balance || 0}
+                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -682,6 +707,77 @@ export default function DriverHomePage() {
                 </AppButton>
               </CardContent>
             </Card>
+
+            {/* Performance Summary */}
+            <div className="flex flex-col gap-3 mt-2">
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">{t("performance")}</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <Card className="border-none bg-white/90 backdrop-blur-xl shadow-lg shadow-slate-200/40 rounded-2xl overflow-hidden">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center shrink-0">
+                      <TrendingUp className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight">{t("lifetime_earnings")}</p>
+                      <p className="text-lg font-black text-slate-800 leading-tight">{t("currency")}{stats.totalEarnings}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-none bg-white/90 backdrop-blur-xl shadow-lg shadow-slate-200/40 rounded-2xl overflow-hidden">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                      <Award className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight">{t("lifetime_trips")}</p>
+                      <p className="text-lg font-black text-slate-800 leading-tight">{stats.totalBookings}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-none bg-white/90 backdrop-blur-xl shadow-lg shadow-slate-200/40 rounded-2xl overflow-hidden">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                      <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight">{t("rating_score")}</p>
+                      <p className="text-lg font-black text-slate-800 leading-tight">
+                        {stats.avgRating > 0 ? stats.avgRating.toFixed(1) : "—"}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-none bg-white/90 backdrop-blur-xl shadow-lg shadow-slate-200/40 rounded-2xl overflow-hidden">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center shrink-0">
+                      <Info className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight">{t("total_ratings")}</p>
+                      <p className="text-lg font-black text-slate-800 leading-tight">{stats.totalRatings}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            {/* History Link */}
+            <Link href="/driver/history">
+              <Card className="border-none bg-white/90 backdrop-blur-xl shadow-lg shadow-slate-200/40 rounded-2xl overflow-hidden active:scale-[0.98] transition-transform cursor-pointer hover:bg-slate-50">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
+                      <History className="w-5 h-5 text-slate-600" />
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight">{t("full_history")}</p>
+                      <p className="text-sm font-black text-slate-800">{t("view_trips_reviews")}</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-slate-300" />
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         )}
         </>
@@ -767,14 +863,27 @@ export default function DriverHomePage() {
                   </div>
 
                   {/* Fare Section */}
-                  <div className="bg-slate-50 p-5 rounded-2xl flex justify-between items-center border border-slate-100">
-                    <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1 flex items-center gap-1">
-                        <Banknote size={12} /> {t("collect_cash")}
-                      </p>
-                      <p className="text-3xl font-black text-slate-800">{t("currency")}{currentBooking.fare}</p>
+                  <div className="bg-slate-50 p-5 rounded-2xl space-y-3 border border-slate-100">
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1 flex items-center gap-1">
+                          <Banknote size={12} /> {t("collect_cash")}
+                        </p>
+                        <p className="text-3xl font-black text-slate-800">{t("currency")}{currentBooking.totalFare || currentBooking.fare}</p>
+                      </div>
+                      <Badge variant="outline" className="h-8 border-primary/20 text-primary font-black text-[10px] uppercase px-3 bg-primary/5">{t("cash_only")}</Badge>
                     </div>
-                    <Badge variant="outline" className="h-8 border-primary/20 text-primary font-black text-[10px] uppercase px-3 bg-primary/5">{t("cash_only")}</Badge>
+                    
+                    <div className="pt-3 border-t border-slate-200 flex flex-col gap-2">
+                      <div className="flex justify-between items-center text-[11px] font-bold text-slate-500">
+                        <span>{t("fare")}</span>
+                        <span>{t("currency")}{currentBooking.baseFare || currentBooking.fare}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-[11px] font-bold text-slate-500">
+                        <span>{t("platform_fee")}</span>
+                        <span>{t("currency")}{currentBooking.platformFee || 0}</span>
+                      </div>
+                    </div>
                   </div>
 
                   {currentBooking.user?.phone && (
@@ -868,9 +977,20 @@ export default function DriverHomePage() {
                     <span className="text-xs font-black text-slate-500 uppercase tracking-widest">{t("distance")}</span>
                     <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5 px-2 font-black">{arrivedBooking.distance} {t("km_unit")}</Badge>
                   </div>
-                  <p className="text-5xl font-black text-slate-800 relative z-10">{t("currency")}{arrivedBooking.fare}</p>
-                  <div className="flex flex-col items-center gap-1 mt-3 relative z-10">
-                    <p className="text-[10px] font-black text-primary uppercase tracking-widest">{t("collect_cash")}</p>
+                  
+                  <div className="space-y-4 relative z-10">
+                    <div className="flex justify-between items-center text-sm font-bold text-slate-500">
+                      <span>{t("fare")}</span>
+                      <span>{t("currency")}{arrivedBooking.baseFare || arrivedBooking.fare}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm font-bold text-slate-500">
+                      <span>{t("platform_fee")}</span>
+                      <span>{t("currency")}{arrivedBooking.platformFee || 0}</span>
+                    </div>
+                    <div className="pt-4 border-t border-slate-200 flex justify-between items-center">
+                      <p className="text-[10px] font-black text-primary uppercase tracking-widest">{t("collect_cash")}</p>
+                      <p className="text-4xl font-black text-slate-800">{t("currency")}{arrivedBooking.totalFare || arrivedBooking.fare}</p>
+                    </div>
                   </div>
                 </div>
                 
@@ -907,7 +1027,11 @@ export default function DriverHomePage() {
                   <div className="flex justify-between items-start mb-6 pb-4 border-b border-slate-50">
                     <div>
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{t("fixed_fare")}</p>
-                      <p className="text-5xl font-black text-primary tracking-tighter">{t("currency")}{req.fare}</p>
+                      <p className="text-5xl font-black text-primary tracking-tighter">{t("currency")}{req.totalFare || req.fare}</p>
+                      <div className="flex gap-2 mt-1">
+                        <span className="text-[9px] font-bold text-slate-400">{t("fare")}: {t("currency")}{req.baseFare || req.fare}</span>
+                        <span className="text-[9px] font-bold text-slate-400">+ {t("platform_fee")}: {t("currency")}{req.platformFee || 0}</span>
+                      </div>
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{t("distance")}</p>

@@ -32,7 +32,9 @@ export interface BookingSession {
     label: string;
   };
   route: BookingSessionRoute;
-  fare: number;
+  fare: number; // Total fare
+  baseFare?: number;
+  platformFee?: number;
   lastUpdated: number; // Date.now()
 }
 

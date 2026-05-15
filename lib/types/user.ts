@@ -19,6 +19,11 @@ export interface User {
   nearbyBazar?: string | null;
   isOnline?: boolean;
   
+  // Wallet
+  wallet?: {
+    balance: number;
+  };
+  
   // Admin/Stats specific
   bookingCount?: number;
 }

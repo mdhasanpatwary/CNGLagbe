@@ -48,6 +48,7 @@ model Driver {
   nidFrontUrl     String
   bookings        Booking[]
   rejections      BookingRejection[]
+  wallet          DriverWallet?
 
   @@index([isOnline])
   @@index([isApproved])
@@ -67,6 +68,9 @@ model Booking {
   destAddress    String?
   distance       Float
   fare           Float
+  baseFare       Float              @default(0)
+  platformFee    Float              @default(0)
+  totalFare      Float              @default(0)
   status         String             @default("PENDING")
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
@@ -86,6 +90,7 @@ model Booking {
   offlineFeedback String?
   rejections     BookingRejection[]
   issueReports   IssueReport[]
+  walletTransaction WalletTransaction?
 
   @@index([status, createdAt])
   @@index([driverId, status])
@@ -95,6 +100,29 @@ model Booking {
   @@index([userId, status, cancelledAt])
   @@index([driverId, status, cancelledAt])
   @@index([driverId, status, createdAt])
+}
+
+model DriverWallet {
+  id           String              @id @default(cuid())
+  driverId     String              @unique
+  balance      Float               @default(0) // Platform fee debt (negative means owing)
+  updatedAt    DateTime            @updatedAt
+  driver       Driver              @relation(fields: [driverId], references: [id])
+  transactions WalletTransaction[]
+}
+
+model WalletTransaction {
+  id        String       @id @default(cuid())
+  walletId  String
+  amount    Float        // Negative for fees, positive for payments
+  type      String       // 'BOOKING_FEE', 'PAYMENT', 'ADJUSTMENT'
+  bookingId String?      @unique
+  details   String?
+  createdAt DateTime     @default(now())
+  wallet    DriverWallet @relation(fields: [walletId], references: [id])
+  booking   Booking?     @relation(fields: [bookingId], references: [id])
+
+  @@index([walletId])
 }
 
 model IssueReport {

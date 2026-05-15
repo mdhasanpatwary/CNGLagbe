@@ -20,11 +20,11 @@ export async function POST(request: Request) {
           Number(destLng)
         );
 
-    const fare = calculateFare(distance);
+    const fareBreakdown = calculateFare(distance);
 
     return NextResponse.json({
       distance,
-      fare,
+      ...fareBreakdown,
       currency: "BDT",
     });
   } catch (error) {

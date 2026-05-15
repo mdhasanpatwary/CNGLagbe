@@ -386,9 +386,12 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="rounded-2xl bg-slate-50 p-3 border border-slate-100">
+                  <div className="rounded-2xl bg-slate-50 p-3 border border-slate-100 col-span-1">
                     <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">{t("fare")}</span>
-                    <p className="text-sm font-black text-slate-900">{t("currency")}{booking.fare}</p>
+                    <p className="text-[10px] font-bold text-slate-500">{t("fare")}: {t("currency")}{booking.baseFare || booking.fare}</p>
+                    <p className="text-[10px] font-bold text-slate-500">{t("platform_fee")}: {t("currency")}{booking.platformFee || 0}</p>
+                    <div className="h-[1px] bg-slate-200 my-1" />
+                    <p className="text-sm font-black text-slate-900">{t("currency")}{booking.totalFare || booking.fare}</p>
                   </div>
                   <div className="rounded-2xl bg-slate-50 p-3 border border-slate-100">
                     <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">{t("time")}</span>
@@ -527,7 +530,11 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                 <div className="grid grid-cols-3 gap-3 border-t border-slate-100 pt-6">
                   <div className="flex flex-col">
                     <span className="text-[10px] font-bold text-slate-400 uppercase mb-1">{t("fare")}</span>
-                    <p className="text-base font-black text-slate-900">{t("currency")}{booking.fare}</p>
+                    <div className="space-y-0.5">
+                      <p className="text-[9px] font-bold text-slate-500 leading-tight">{t("fare")}: {t("currency")}{booking.baseFare || booking.fare}</p>
+                      <p className="text-[9px] font-bold text-slate-500 leading-tight">{t("platform_fee")}: {t("currency")}{booking.platformFee || 0}</p>
+                      <p className="text-base font-black text-slate-900">{t("currency")}{booking.totalFare || booking.fare}</p>
+                    </div>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[10px] font-bold text-slate-400 uppercase mb-1">{t("time")}</span>
@@ -625,7 +632,11 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
               <div className="grid grid-cols-3 gap-3 border-t border-slate-100 pt-6">
                 <div className="flex flex-col">
                   <span className="text-[10px] font-bold text-slate-400 uppercase mb-1">{t("fare")}</span>
-                  <p className="text-base font-black text-slate-900">{t("currency")}{booking.fare}</p>
+                  <div className="space-y-0.5">
+                    <p className="text-[9px] font-bold text-slate-500 leading-tight">{t("fare")}: {t("currency")}{booking.baseFare || booking.fare}</p>
+                    <p className="text-[9px] font-bold text-slate-500 leading-tight">{t("platform_fee")}: {t("currency")}{booking.platformFee || 0}</p>
+                    <p className="text-base font-black text-slate-900">{t("currency")}{booking.totalFare || booking.fare}</p>
+                  </div>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[10px] font-bold text-slate-400 uppercase mb-1">{t("time")}</span>
@@ -665,8 +676,13 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
               {/* Fare Summary */}
               <div className="grid grid-cols-2 gap-3 mb-8">
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">{t("fare")}</span>
-                  <p className="text-xl font-black text-emerald-600">{t("currency")}{booking.fare}</p>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">{t("total_fare")}</span>
+                  <div className="flex flex-col">
+                    <p className="text-[11px] font-bold text-slate-500">{t("fare")}: {t("currency")}{booking.baseFare || booking.fare}</p>
+                    <p className="text-[11px] font-bold text-slate-500">{t("platform_fee")}: {t("currency")}{booking.platformFee || 0}</p>
+                    <div className="h-[1px] bg-slate-200 my-1" />
+                    <p className="text-xl font-black text-emerald-600">{t("currency")}{booking.totalFare || booking.fare}</p>
+                  </div>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">{t("distance")}</span>

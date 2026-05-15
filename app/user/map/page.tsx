@@ -27,7 +27,9 @@ type Step = "BOOKING" | "CONFIRM";
 
 interface FareData {
   distance: number;
-  fare: number;
+  fare: number; // base fare
+  platformFee: number;
+  totalFare: number;
   currency: string;
 }
 
@@ -343,7 +345,9 @@ export default function UserMapPage() {
             setDestination(restoredDrop);
             setFareData({
               distance: session.route.distanceKm,
-              fare: session.fare,
+              fare: session.baseFare ?? session.fare,
+              platformFee: session.platformFee ?? 0,
+              totalFare: session.fare,
               currency: "BDT",
             });
             setRouteInfo({
@@ -1191,17 +1195,33 @@ export default function UserMapPage() {
 
               {/* Fare card */}
               <div className="bg-gradient-to-br from-primary to-primary-dark rounded-3xl px-5 pt-5 pb-4 mb-4 shadow-lg">
-                <div className="flex items-end justify-between mb-4">
-                  <div>
-                    <p className="text-primary-foreground/80 text-[11px] font-black uppercase tracking-wider mb-1">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <p className="text-primary-foreground/80 text-[11px] font-black uppercase tracking-wider mb-2">
                       {t("fixed_fare")}
                     </p>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-black text-white">{t("currency")}{fareData.fare}</span>
-                      <span className="text-primary-foreground/60 text-sm font-bold">{t("bdt")}</span>
+                    
+                    {/* Fare Breakdown */}
+                    <div className="space-y-1 mb-3">
+                      <div className="flex justify-between items-center text-xs font-bold text-primary-foreground/90">
+                        <span>{t("fare")}</span>
+                        <span>{t("currency")}{fareData.fare}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs font-bold text-primary-foreground/90">
+                        <span>{t("platform_fee")}</span>
+                        <span>{t("currency")}{fareData.platformFee}</span>
+                      </div>
+                      <div className="h-[1px] bg-white/20 my-1" />
+                      <div className="flex justify-between items-baseline">
+                        <span className="text-sm font-black text-white">{t("total_fare")}</span>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-3xl font-black text-white">{t("currency")}{fareData.totalFare}</span>
+                          <span className="text-primary-foreground/60 text-[10px] font-bold">{t("bdt")}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <Badge className="bg-white/20 text-white border-none font-black text-[11px] px-3 py-1 gap-1.5">
+                  <Badge className="bg-white/20 text-white border-none font-black text-[11px] px-3 py-1 gap-1.5 shrink-0 mt-1">
                     <Banknote size={13} /> {t("cash")}
                   </Badge>
                 </div>

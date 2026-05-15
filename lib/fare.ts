@@ -23,11 +23,19 @@ function deg2rad(deg: number): number {
  * MVP Fare Calculation Logic:
  * Base Fare: 100 BDT
  * Per KM Fare: 15 BDT
+ * Platform Fee: 5% of Fare (Min 10 BDT)
  */
-export function calculateFare(distanceKm: number): number {
+export function calculateFare(distanceKm: number) {
   const BASE_FARE = 100;
   const PER_KM_RATE = 15;
 
-  const fare = BASE_FARE + distanceKm * PER_KM_RATE;
-  return Math.round(fare); // Return rounded BDT amount
+  const fare = Math.round(BASE_FARE + distanceKm * PER_KM_RATE);
+  const platformFee = Math.max(10, Math.round(fare * 0.05));
+  const totalFare = fare + platformFee;
+
+  return {
+    fare,         // This is the base booking fare
+    platformFee,  // Added on top
+    totalFare     // Final amount passenger pays
+  };
 }

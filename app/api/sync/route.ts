@@ -94,6 +94,16 @@ export async function GET() {
         _count: { id: true },
       });
 
+      const lifetimeStatsPromise = prisma.booking.aggregate({
+        where: {
+          driverId: userId,
+          status: "COMPLETED",
+        },
+        _sum: { fare: true },
+        _count: { id: true, rating: true },
+        _avg: { rating: true },
+      });
+
       const currentBookingPromise = prisma.booking.findFirst({
         where: {
           driverId: userId,
@@ -109,6 +119,9 @@ export async function GET() {
           pickupAddress: true,
           destAddress: true,
           fare: true,
+          baseFare: true,
+          platformFee: true,
+          totalFare: true,
           distance: true,
           polyline: true,
           user: {
@@ -143,6 +156,9 @@ export async function GET() {
             b."destLng",
             b."distance",
             b."fare",
+            b."baseFare",
+            b."platformFee",
+            b."totalFare",
             b."pickupAddress",
             b."destAddress",
             b."createdAt",
@@ -169,17 +185,28 @@ export async function GET() {
         `;
       }
 
-      const [stats, currentBooking, rawRequests] = await Promise.all([
+      const walletPromise = prisma.driverWallet.findUnique({
+        where: { driverId: userId },
+        select: { balance: true }
+      });
+
+      const [stats, lifetimeStats, currentBooking, rawRequests, wallet] = await Promise.all([
         statsPromise,
+        lifetimeStatsPromise,
         currentBookingPromise,
-        requestsPromise
+        requestsPromise,
+        walletPromise
       ]);
       const requests = currentBooking ? [] : rawRequests;
 
-      responseData.driver = driver;
+      responseData.driver = { ...driver, wallet, role: "DRIVER" };
       responseData.stats = {
         todayEarnings: stats._sum.fare || 0,
         todayBookings: stats._count.id || 0,
+        totalEarnings: lifetimeStats._sum.fare || 0,
+        totalBookings: lifetimeStats._count.id || 0,
+        totalRatings: lifetimeStats._count.rating || 0,
+        avgRating: lifetimeStats._avg.rating || 0,
       };
       responseData.currentBooking = currentBooking;
       responseData.requests = requests;

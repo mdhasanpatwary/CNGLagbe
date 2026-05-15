@@ -9,7 +9,7 @@
  * Requirements: 15.5, 18.1-18.6
  */
 
-import { describe, it, expect } from 'vitest';
+// import { describe, it, expect } from 'vitest';
 
 describe('Scroll Progress Indicator - Performance Optimization', () => {
   describe('Spring Physics Configuration', () => {

@@ -104,7 +104,10 @@ export async function POST(request: Request) {
             destAddress,
             polyline,
             distance,
-            fare,
+            fare: fare.totalFare, // Total amount for compatibility
+            baseFare: fare.fare,
+            platformFee: fare.platformFee,
+            totalFare: fare.totalFare,
             userId: user.sub,
             status: "PENDING",
           },

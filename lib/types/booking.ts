@@ -36,6 +36,9 @@ export interface Booking {
   driverId?: string | null;
   status: BookingStatus;
   fare: number;
+  baseFare?: number;
+  platformFee?: number;
+  totalFare?: number;
   distance: number;
   polyline?: string | null;
   pickupLat: number;

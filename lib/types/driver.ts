@@ -4,6 +4,10 @@ import { Booking } from "./booking";
 export interface DriverStats {
   todayEarnings: number;
   todayBookings: number;
+  totalEarnings: number;
+  totalBookings: number;
+  totalRatings: number;
+  avgRating: number;
 }
 
 export interface DriverSyncData {
