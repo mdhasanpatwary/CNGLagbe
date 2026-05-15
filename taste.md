@@ -39,6 +39,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Consistent Spacing:** Always use design tokens for spacing; **no ad-hoc margins or paddings**.
 - **Design System Tokens:** Prioritize using design system tokens (e.g., `primary`, `secondary`, `primary-foreground`) over hardcoded Tailwind color classes (e.g., `emerald-500`). This ensures that if the brand color changes, it can be updated in a single place (`globals.css`) rather than across hundreds of files.
 - **Header Logo Purity:** The header logo should stand alone without additional identifying text (like "Admin Dashboard") next to it, maintaining a clean and minimalist brand presence across all panels.
+- **Bangladesh CNG Color Consistency:** Bangladesh CNGs are culturally and legally recognized by their green color. To maintain authenticity and trust, all CNG vehicle assets (icons, illustrations, 3D models) used in the application MUST be full-body green.
 - **UI Checklist:** Before implementing any UI, verify compliance with the checklist in [/docs/ui-rules.md](file:///Users/patwary/Projects/CNGLagbe/docs/ui-rules.md).
 
 ## ⚙️ Performance & Database

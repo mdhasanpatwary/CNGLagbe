@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   MapPin,
-  Navigation,
   History,
   ChevronRight,
   Banknote,
@@ -23,6 +22,8 @@ import { apiFetch } from "@/utils/api";
 import { useLang } from "@/hooks/useLang";
 import { User } from "@/lib/types/user";
 import { Booking } from "@/lib/types/booking";
+import { CngIcon } from "@/components/icons/CngIcon";
+
 
 interface HomeData {
   totalBookings: number;
@@ -109,8 +110,9 @@ export default function UserHomePage() {
         <div className="relative flex items-center justify-center mb-6">
           <div className="absolute w-20 h-20 rounded-full bg-primary/20 pulse-ring" />
           <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-lg">
-            <Navigation size={22} className="text-white" />
+            <CngIcon size={28} className="text-white" />
           </div>
+
         </div>
         <Loader2 className="w-5 h-5 animate-spin text-primary" />
       </div>
@@ -179,8 +181,9 @@ export default function UserHomePage() {
                   <div className="relative flex-shrink-0">
                     <div className="absolute inset-0 rounded-full bg-primary/30 animate-ping scale-125" />
                     <div className="w-14 h-14 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center backdrop-blur-sm">
-                      <Navigation size={24} className="text-primary" />
+                      <CngIcon size={24} className="text-primary" />
                     </div>
+
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -219,14 +222,9 @@ export default function UserHomePage() {
 
               <div className="relative p-6 flex items-center gap-5">
                 <div className="w-16 h-16 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center flex-shrink-0 shadow-inner">
-                  {/* CNG icon inline */}
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
-                    <circle cx="7" cy="17" r="2" />
-                    <path d="M9 17h6" />
-                    <circle cx="17" cy="17" r="2" />
-                  </svg>
+                  <CngIcon size={32} className="text-white" />
                 </div>
+
 
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70">

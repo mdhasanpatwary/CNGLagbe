@@ -11,6 +11,7 @@ CNGLagbe is an:
 - On-time CNG Booking Service
 - On-demand CNG Dispatch Network
 - CNG Availability Infrastructure
+- Bangladesh CNG Color: Always full-body green.
 
 Core Promise:
 “We ensure that a booked CNG reaches the passenger pickup location on time.”

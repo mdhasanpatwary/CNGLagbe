@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   Clock3,
   MapPin,
-  Navigation,
   Phone,
   Star,
   User as UserIcon,
@@ -24,6 +23,8 @@ import { COLORS } from "@/constants/colors";
 import { CancelModal } from "@/components/CancelModal";
 import { AppButton } from "@/components/ui/AppButton";
 import { Header } from "@/components/layout/Header";
+import { CngIcon } from "@/components/icons/CngIcon";
+
 import { PageHeading } from "@/components/ui/PageHeading";
 import { apiFetch } from "@/utils/api";
 import { useLang } from "@/hooks/useLang";
@@ -237,7 +238,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
           <div className="absolute w-24 h-24 rounded-full bg-primary/30 pulse-ring" />
           <div className="absolute w-24 h-24 rounded-full bg-primary/20 pulse-ring pulse-ring-delay-1" />
           <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center shadow-lg">
-            <Navigation size={24} className="text-white" />
+            <CngIcon size={24} className="text-white" />
           </div>
         </div>
         <p className="font-bold text-slate-500 relative z-10">{t("loading")}</p>
@@ -344,8 +345,9 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                 <div className="relative flex items-center justify-center mb-6">
                   <div className="absolute w-32 h-32 rounded-full bg-primary/20 pulse-ring" />
                   <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-light to-primary-dark shadow-2xl flex items-center justify-center relative z-10">
-                    <Navigation size={32} className="text-white" />
+                    <CngIcon size={32} className="text-white" />
                   </div>
+
                 </div>
                 <p className="text-sm font-medium text-slate-500 text-center">{t("search_timeout_help")}</p>
               </div>
@@ -476,13 +478,15 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                     </div>
                   </div>
                   <div className="absolute top-1/2 -translate-y-1/2 animate-drive-approach z-10">
-                    <div className="w-10 h-10 bg-white shadow-xl border-2 border-primary/20 rounded-full flex items-center justify-center">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary-dark">
-                        <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
-                        <circle cx="7" cy="17" r="2" />
-                        <path d="M9 17h6" />
-                        <circle cx="17" cy="17" r="2" />
-                      </svg>
+                    <div className="relative w-12 h-12">
+
+                      <Image 
+                        src="/cng_side.png" 
+                        alt="CNG" 
+                        fill 
+                        className="object-contain -scale-x-100" 
+                        priority 
+                      />
                     </div>
                   </div>
                   <div className="absolute top-1/2 -translate-y-1/2 right-4 z-0">
@@ -572,7 +576,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
             {/* Status Header */}
             <div className="bg-primary/10 px-6 py-4 border-b border-primary/10 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Navigation size={16} className="text-primary-dark" />
+                <CngIcon size={16} className="text-primary-dark" />
                 <span className="text-xs font-black text-primary-dark uppercase tracking-wider">{t("trip_active")}</span>
               </div>
               <span className="text-[10px] font-black text-slate-400">#{id.slice(-6).toUpperCase()}</span>
@@ -593,8 +597,9 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                   {/* Flat Animation Area (Center) */}
                   <div className="flex-1 relative h-20 flex flex-col items-center justify-center">
                     <div className="absolute bottom-4 left-0 right-0 h-[4px] animate-road-move opacity-20" />
-                    <div className="relative z-10 animate-cng-bounce flex flex-col items-center translate-y-2">
-                      <div className="relative w-[50px] h-[50px] mix-blend-multiply">
+                    <div className="relative z-10 flex flex-col items-center translate-y-2">
+
+                      <div className="relative w-[50px] h-[50px]">
                         <Image src="/cng_side.png" alt="CNG" fill className="object-contain -scale-x-100" priority />
                       </div>
                     </div>
@@ -738,7 +743,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                   fullWidth
                   onClick={() => router.push("/user/map")}
                   className="h-14 rounded-2xl bg-primary text-white hover:bg-primary-dark text-base font-black shadow-xl shadow-primary/20"
-                  leftIcon={<Navigation size={18} />}
+                  leftIcon={<CngIcon size={18} />}
                 >
                   {t("bk_another")}
                 </AppButton>
@@ -852,7 +857,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                   fullWidth
                   onClick={handleRequestAgain}
                   className="h-14 rounded-2xl bg-primary text-white hover:bg-primary-dark text-base font-black shadow-xl shadow-primary/20"
-                  leftIcon={<Navigation size={18} />}
+                  leftIcon={<CngIcon size={18} />}
                 >
                   {t("retry_booking")}
                 </AppButton>

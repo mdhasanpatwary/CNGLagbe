@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, Navigation, Pin, Banknote, Clock, Route, CheckCircle2, X, LocateFixed, ArrowLeft } from "lucide-react";
+import { MapPin, Pin, Banknote, Clock, Route, CheckCircle2, X, LocateFixed, ArrowLeft } from "lucide-react";
+
 import { toast } from "sonner";
 import { AppButton } from "@/components/ui/AppButton";
 import { Badge } from "@/components/ui/badge";
+import { CngIcon } from "@/components/icons/CngIcon";
 import { useLang } from "@/hooks/useLang";
 import { COLORS } from "@/constants/colors";
 import { cn } from "@/lib/utils";
@@ -1009,8 +1011,9 @@ export default function UserMapPage() {
             <div className="absolute w-32 h-32 rounded-full bg-primary/20 pulse-ring pulse-ring-delay-1" />
             <div className="absolute w-32 h-32 rounded-full bg-primary/10 pulse-ring pulse-ring-delay-2" />
             <div className="w-20 h-20 rounded-full bg-primary shadow-2xl flex items-center justify-center">
-              <Navigation size={32} className="text-primary-foreground" />
+              <CngIcon size={32} className="text-primary-foreground" />
             </div>
+
           </div>
           <div className="text-center">
             <p className="text-white text-xl font-black mb-2">{t("finding_nearby")}</p>
@@ -1107,7 +1110,7 @@ export default function UserMapPage() {
                       "absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors duration-300",
                       focusedInput === "DESTINATION" ? "text-red-500" : "text-slate-400"
                     )}>
-                      <Navigation size={18} />
+                      <MapPin size={18} />
                     </div>
                     <input
                       ref={destSearchRef}
@@ -1230,7 +1233,7 @@ export default function UserMapPage() {
                 className="w-full h-16 rounded-2xl shadow-xl text-lg font-black bounce-soft"
                 onClick={handleNextStep}
                 loading={isRequesting}
-                leftIcon={<Navigation size={22} />}
+                leftIcon={<CngIcon size={22} />}
               >
                 {t("confirm_find_driver")}
               </AppButton>
