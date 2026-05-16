@@ -1,6 +1,6 @@
 import React from "react";
 import Image from "next/image";
-import { Users, Search, Plus, Banknote, ShieldAlert, Edit2, Trash2, Star } from "lucide-react";
+import { Users, Search, Plus, Banknote, ShieldAlert, Edit2, Trash2, Star, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AppButton } from "@/components/ui/AppButton";
@@ -27,6 +27,8 @@ interface DriversTabProps {
   setIsRechargeModalOpen: (isOpen: boolean) => void;
   handleToggleSuspend: (driverId: string, currentlySuspended: boolean) => Promise<void>;
   handleDeleteDriver: (driverId: string) => Promise<void>;
+  setHistoryDriver: (driver: PendingDriver | null) => void;
+  setIsHistoryModalOpen: (isOpen: boolean) => void;
 }
 
 export const DriversTab: React.FC<DriversTabProps> = ({
@@ -47,6 +49,8 @@ export const DriversTab: React.FC<DriversTabProps> = ({
   setIsRechargeModalOpen,
   handleToggleSuspend,
   handleDeleteDriver,
+  setHistoryDriver,
+  setIsHistoryModalOpen,
 }) => {
   return (
     <div className="space-y-6">
@@ -227,6 +231,15 @@ export const DriversTab: React.FC<DriversTabProps> = ({
                           </AppButton>
                         </>
                       )}
+                      <AppButton
+                        onClick={() => {
+                          setHistoryDriver(driver);
+                          setIsHistoryModalOpen(true);
+                        }}
+                        variant="ghost"
+                        className="h-9 w-9 p-0 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-xl"
+                        leftIcon={<Clock size={16} />}
+                      />
                       <AppButton
                         onClick={() => {
                           setEditingDriverData(driver);

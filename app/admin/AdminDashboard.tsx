@@ -14,7 +14,8 @@ import {
   DriverManagementModal, 
   RechargeModal, 
   TabNavigation, 
-  AdminTab 
+  AdminTab,
+  DriverHistoryModal
 } from "./components/shared";
 import { Settings as SettingsIcon } from "lucide-react";
 
@@ -76,6 +77,10 @@ export default function AdminDashboard() {
     handleDeleteDriver,
     settings,
     handleUpdateSetting,
+    isHistoryModalOpen,
+    setIsHistoryModalOpen,
+    historyDriver,
+    setHistoryDriver,
   } = useAdminDashboard();
 
   const tabs = [
@@ -144,6 +149,8 @@ export default function AdminDashboard() {
             setIsRechargeModalOpen={setIsRechargeModalOpen}
             handleToggleSuspend={handleToggleSuspend}
             handleDeleteDriver={handleDeleteDriver}
+            setHistoryDriver={setHistoryDriver}
+            setIsHistoryModalOpen={setIsHistoryModalOpen}
             t={t}
           />
         )}
@@ -211,6 +218,11 @@ export default function AdminDashboard() {
         onSuccess={() => {
           fetchData({ showLoading: false });
         }}
+      />
+      <DriverHistoryModal
+        isOpen={isHistoryModalOpen}
+        onOpenChange={setIsHistoryModalOpen}
+        driver={historyDriver}
       />
     </div>
   );
