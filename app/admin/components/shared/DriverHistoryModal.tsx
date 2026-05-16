@@ -16,13 +16,8 @@ import {
   TrendingUp,
   Route,
   User,
+  X,
 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLang } from "@/hooks/useLang";
 import { AppButton } from "@/components/ui/AppButton";
@@ -127,26 +122,38 @@ export function DriverHistoryModal({
     ratingCount: 0,
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 border-none bg-slate-50/50 backdrop-blur-xl sm:rounded-3xl shadow-2xl">
-        <DialogHeader className="p-6 pb-2 bg-white sticky top-0 z-10 border-b border-slate-100">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
-              <User className="w-8 h-8 text-primary" />
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+      <div className="bg-slate-50 rounded-[2.5rem] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-300 flex flex-col">
+        {/* Header */}
+        <div className="bg-white p-6 border-b border-slate-100 sticky top-0 z-10">
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                <User className="w-8 h-8 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-slate-800 leading-tight">
+                  {driver?.name || t("driver_history")}
+                </h3>
+                <p className="text-sm font-bold text-slate-400 mt-0.5">
+                  {driver?.phone} • {driver?.vehicleNumber || "N/A"}
+                </p>
+              </div>
             </div>
-            <div>
-              <DialogTitle className="text-xl font-black text-slate-800 leading-tight">
-                {driver?.name || t("driver_history")}
-              </DialogTitle>
-              <p className="text-sm font-bold text-slate-400 mt-0.5">
-                {driver?.phone} • {driver?.vehicleNumber || "N/A"}
-              </p>
-            </div>
+            <AppButton
+              variant="ghost"
+              onClick={() => onOpenChange(false)}
+              className="w-10 h-10 p-0 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X size={18} />
+            </AppButton>
           </div>
 
           {/* Stats strip */}
-          <div className="grid grid-cols-3 gap-3 mb-2">
+          <div className="grid grid-cols-3 gap-3">
             <StatCard
               label={t("lifetime_trips")}
               value={stats.lifetimeTrips}
@@ -181,9 +188,10 @@ export function DriverHistoryModal({
               icon={<Star className="w-4 h-4" />}
             />
           </div>
-        </DialogHeader>
+        </div>
 
-        <div className="p-6 pt-4 flex flex-col gap-4">
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6 pt-4 flex flex-col gap-4">
           {/* Filters */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
@@ -347,7 +355,7 @@ export function DriverHistoryModal({
 
           {/* Pagination */}
           {meta && meta.totalPages > 1 && (
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex items-center justify-between pt-2 pb-4">
               <AppButton
                 variant="ghost"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -376,8 +384,8 @@ export function DriverHistoryModal({
             </div>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }
 
