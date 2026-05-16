@@ -23,6 +23,7 @@ import { PageHeading } from "@/components/ui/PageHeading";
 import { AppButton } from "@/components/ui/AppButton";
 import { DriverHistorySkeleton } from "@/components/ui/AppSkeletons";
 import { apiFetch } from "@/utils/api";
+import { formatDecimal } from "@/lib/utils";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -52,11 +53,12 @@ interface PaginationMeta {
   page: number;
   limit: number;
   totalPages: number;
-  stats: {
-    lifetimeTrips: number;
-    totalEarned: number;
-    avgRating: number;
-  };
+    stats: {
+      lifetimeTrips: number;
+      totalEarned: number;
+      avgRating: number;
+      ratingCount: number;
+    };
 }
 
 // ─── Star Rating ─────────────────────────────────────────────────────────────
@@ -261,7 +263,7 @@ export default function DriverHistoryPage() {
     setPage(p);
   };
 
-  const stats = meta?.stats || { lifetimeTrips: 0, totalEarned: 0, avgRating: 0 };
+  const stats = meta?.stats || { lifetimeTrips: 0, totalEarned: 0, avgRating: 0, ratingCount: 0 };
 
   const timeframeOptions = [
     { key: "all", label: t("all_time") },
@@ -308,7 +310,7 @@ export default function DriverHistoryPage() {
                 value={
                   <span className="text-base">
                     {t("currency")}
-                    {stats.totalEarned}
+                    {formatDecimal(stats.totalEarned)}
                   </span>
                 }
                 icon={<Banknote className="w-4 h-4" />}
@@ -316,11 +318,18 @@ export default function DriverHistoryPage() {
               <StatCard
                 label={t("rating_score")}
                 value={
-                  <div className="flex items-center justify-center gap-0.5">
-                    <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                    <span>
-                      {stats.avgRating > 0 ? stats.avgRating.toFixed(1) : "—"}
-                    </span>
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="flex items-center gap-0.5">
+                      <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                      <span>
+                        {stats.avgRating > 0 ? formatDecimal(stats.avgRating, 1) : "—"}
+                      </span>
+                    </div>
+                    {stats.ratingCount > 0 && (
+                      <span className="text-[10px] font-bold text-slate-400 mt-0.5">
+                        ({stats.ratingCount})
+                      </span>
+                    )}
                   </div>
                 }
                 icon={<Star className="w-4 h-4" />}
@@ -404,7 +413,7 @@ export default function DriverHistoryPage() {
                             </p>
                             <p className="text-sm font-black text-slate-800 tabular-nums">
                               {t("currency")}
-                              {trip.totalFare || trip.fare}
+                              {formatDecimal(trip.totalFare || trip.fare)}
                             </p>
                           </div>
                         </div>
@@ -417,14 +426,14 @@ export default function DriverHistoryPage() {
                               </p>
                               <p className="text-xs font-black text-red-500 tabular-nums">
                                 −{t("currency")}
-                                {trip.platformFee}
+                                {formatDecimal(trip.platformFee)}
                               </p>
                             </div>
                           )}
                           <div className="flex items-center gap-1 text-slate-400">
                             <Route className="w-3.5 h-3.5" />
                             <span className="text-xs font-bold tabular-nums">
-                              {trip.distance.toFixed(1)} km
+                              {formatDecimal(trip.distance, 1)} km
                             </span>
                           </div>
                         </div>

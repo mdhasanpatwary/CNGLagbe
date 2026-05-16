@@ -15,3 +15,12 @@ export function normalizePhone(phone: string): string {
   }
   return cleaned;
 }
+
+export function formatDecimal(value: number | string | undefined | null, maxDecimals = 2): string {
+  if (value === undefined || value === null) return "0";
+  const num = typeof value === "string" ? parseFloat(value) : value;
+  if (isNaN(num)) return "0";
+  
+  // Use Number.toLocaleString for cleaner formatting or just toFixed and parseFloat to remove trailing zeros
+  return parseFloat(num.toFixed(maxDecimals)).toString();
+}

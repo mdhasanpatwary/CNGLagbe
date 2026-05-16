@@ -9,6 +9,7 @@ import { AdminStats, PendingDriver } from "@/lib/types/admin";
 import { Booking } from "@/lib/types/booking";
 import { StatsCard, StatusBadge } from "../shared";
 import { formatDate } from "../../utils/format";
+import { formatDecimal } from "@/lib/utils";
 
 interface OverviewTabProps {
   t: (key: TextKey) => string;
@@ -119,8 +120,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                         <p className="text-xs text-slate-600 font-medium truncate max-w-[200px]">{b.pickupAddress || `${b.pickupLat}, ${b.pickupLng}`}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-sm text-slate-800">{t("currency")}{b.fare}</p>
-                        <p className="text-[10px] text-slate-400 uppercase font-black">{b.distance} {t("km_unit")}</p>
+                        <p className="font-bold text-sm text-slate-800">{t("currency")}{formatDecimal(b.fare)}</p>
+                        <p className="text-[10px] text-slate-400 uppercase font-black">{formatDecimal(b.distance)} {t("km_unit")}</p>
                       </div>
                     </div>
                   ))}
@@ -307,10 +308,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                         <TableCell>
                           <StatusBadge status={booking.status} />
                         </TableCell>
-                        <TableCell className="text-xs whitespace-nowrap">{booking.distance} {t("km_unit")}</TableCell>
-                        <TableCell className="font-bold text-xs text-slate-900 whitespace-nowrap">{t("currency")}{booking.fare}</TableCell>
-                        <TableCell className="text-xs whitespace-nowrap">{t("currency")}{Math.floor(booking.fare * 0.8)}</TableCell>
-                        <TableCell className="text-primary font-bold text-xs whitespace-nowrap">{t("currency")}{Math.ceil(booking.fare * 0.2)}</TableCell>
+                        <TableCell className="text-xs whitespace-nowrap">{formatDecimal(booking.distance)} {t("km_unit")}</TableCell>
+                        <TableCell className="font-bold text-xs text-slate-900 whitespace-nowrap">{t("currency")}{formatDecimal(booking.fare)}</TableCell>
+                        <TableCell className="text-xs whitespace-nowrap">{t("currency")}{formatDecimal(Math.floor(booking.fare * 0.8))}</TableCell>
+                        <TableCell className="text-primary font-bold text-xs whitespace-nowrap">{t("currency")}{formatDecimal(Math.ceil(booking.fare * 0.2))}</TableCell>
                         <TableCell className="text-right text-xs text-slate-500 whitespace-nowrap">{formatDate(booking.createdAt, t)}</TableCell>
                       </TableRow>
                     ))}

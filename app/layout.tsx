@@ -110,6 +110,7 @@ import { Providers } from "@/components/Providers";
 import { Toaster } from "sonner";
 import { Footer } from "@/components/layout/Footer";
 import { Analytics } from "@vercel/analytics/next";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 export default function RootLayout({
   children,
@@ -119,14 +120,16 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("antialiased", inter.variable, solaimanLipi.variable)}>
       <body className="min-h-screen bg-slate-50 pb-safe font-sans relative">
-        <Providers>
-          <div className="flex flex-col min-h-screen">
-            <div className="flex-1">
-              {children}
+        <NuqsAdapter>
+          <Providers>
+            <div className="flex flex-col min-h-screen">
+              <div className="flex-1">
+                {children}
+              </div>
+              <Footer />
             </div>
-            <Footer />
-          </div>
-        </Providers>
+          </Providers>
+        </NuqsAdapter>
         <Toaster richColors position="top-right" />
         <Analytics />
       </body>

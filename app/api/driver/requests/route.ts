@@ -35,12 +35,13 @@ export async function GET() {
       return NextResponse.json(cached);
     }
 
-    // Get driver location and check for active booking in single query
+    // Get driver location, active booking, and wallet in single query
     const driverWithActiveBooking = await prisma.driver.findUnique({
       where: { id: driverId },
       select: {
         currentLat: true,
         currentLng: true,
+        wallet: { select: { balance: true } },
         bookings: {
           where: { status: "ACCEPTED" },
           take: 1,
@@ -59,6 +60,19 @@ export async function GET() {
         requests: [],
         currentBooking: activeBookings[0],
       };
+      requestsCache.set(driverId, responseData);
+      return NextResponse.json(responseData);
+    }
+
+    // Check wallet balance
+    const minBalanceSetting = await prisma.systemSetting.findUnique({
+      where: { key: "MIN_WALLET_BALANCE_FOR_RIDE_REQUESTS" }
+    });
+    const minBalance = minBalanceSetting ? parseFloat(minBalanceSetting.value) : -100;
+
+    const walletBalance = driverWithActiveBooking.wallet?.balance || 0;
+    if (walletBalance <= minBalance) {
+      const responseData = { requests: [], currentBooking: null, isWalletSuspended: true };
       requestsCache.set(driverId, responseData);
       return NextResponse.json(responseData);
     }

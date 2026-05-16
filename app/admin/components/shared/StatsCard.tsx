@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LucideIcon } from "lucide-react";
 import { ReactNode } from "react";
+import { formatDecimal } from "@/lib/utils";
 
 interface StatsCardProps {
   title: string;
@@ -49,7 +50,7 @@ export const StatsCard = ({
       <CardContent>
         <div className="text-3xl font-black flex items-center gap-1.5 text-slate-900">
           {currency && <span className="text-sm font-black text-slate-400">{currency}</span>}
-          {value}
+          {typeof value === 'number' ? formatDecimal(value) : value}
         </div>
         {(desc || description) && (
           <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tight">

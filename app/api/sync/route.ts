@@ -15,7 +15,7 @@ export async function GET() {
     }
 
     const userId = session.sub;
-    
+
     // Check cache (BoundedCache handles TTL internally)
     const cached = syncCache.get(userId);
     if (cached) {
@@ -52,6 +52,8 @@ export async function GET() {
               name: true,
               phone: true,
               photoUrl: true,
+              averageRating: true,
+              ratingCount: true,
             }
           }
         },
@@ -65,11 +67,11 @@ export async function GET() {
       // 1. Get Driver Data and Stats in single query
       const driver = await prisma.driver.findUnique({
         where: { id: userId },
-        select: { 
-          id: true, 
-          name: true, 
-          photoUrl: true, 
-          isOnline: true, 
+        select: {
+          id: true,
+          name: true,
+          photoUrl: true,
+          isOnline: true,
           isApproved: true,
           currentLat: true,
           currentLng: true,
@@ -134,10 +136,30 @@ export async function GET() {
         }
       });
 
+      const walletPromise = prisma.driverWallet.findUnique({
+        where: { driverId: userId },
+        select: { balance: true }
+      });
+
+      const minBalanceSettingPromise = prisma.systemSetting.findUnique({
+        where: { key: "MIN_WALLET_BALANCE_FOR_RIDE_REQUESTS" }
+      });
+
+      const [stats, lifetimeStats, currentBooking, wallet, minBalanceSetting] = await Promise.all([
+        statsPromise,
+        lifetimeStatsPromise,
+        currentBookingPromise,
+        walletPromise,
+        minBalanceSettingPromise
+      ]);
+
+      const minBalance = minBalanceSetting ? parseFloat(minBalanceSetting.value) : -100;
+      const isWalletSuspended = (wallet?.balance || 0) <= minBalance;
+
       let requestsPromise: Promise<unknown[]> = Promise.resolve([]);
-      if (driver.isOnline && driver.isApproved && driver.currentLat && driver.currentLng) {
+      if (driver.isOnline && driver.isApproved && driver.currentLat && driver.currentLng && !isWalletSuspended) {
         const timeoutThreshold = getBookingRequestTimeoutThreshold();
-        
+
         // Bounding box for 3km (~0.027 degrees) to use B-Tree index
         const latDelta = 0.027;
         const lngDelta = 0.027;
@@ -185,18 +207,7 @@ export async function GET() {
         `;
       }
 
-      const walletPromise = prisma.driverWallet.findUnique({
-        where: { driverId: userId },
-        select: { balance: true }
-      });
-
-      const [stats, lifetimeStats, currentBooking, rawRequests, wallet] = await Promise.all([
-        statsPromise,
-        lifetimeStatsPromise,
-        currentBookingPromise,
-        requestsPromise,
-        walletPromise
-      ]);
+      const rawRequests = await requestsPromise;
       const requests = currentBooking ? [] : rawRequests;
 
       responseData.driver = { ...driver, wallet, role: "DRIVER" };
@@ -210,6 +221,7 @@ export async function GET() {
       };
       responseData.currentBooking = currentBooking;
       responseData.requests = requests;
+      responseData.isWalletSuspended = isWalletSuspended;
     }
 
     // Update cache

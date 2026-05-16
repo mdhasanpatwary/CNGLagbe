@@ -64,7 +64,7 @@ const DocUploadField = ({ field, label, description, icon: Icon, value, uploadin
             <Loader2 className="w-6 h-6 text-primary animate-spin" />
             <span className="text-[9px] font-bold text-primary animate-pulse">{t("loading")}</span>
           </div>
-        ) : value ? (
+        ) : value && value !== "N/A" && (value.startsWith('http') || value.startsWith('/')) ? (
           <div className="relative w-full h-full group/preview">
              <Image 
                src={value} 

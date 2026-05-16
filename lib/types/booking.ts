@@ -20,7 +20,8 @@ export interface BookingDriver {
   phone: string;
   photoUrl?: string | null;
   vehicleNumber?: string | null;
-  rating?: number;
+  averageRating?: number;
+  ratingCount?: number;
 }
 
 export interface BookingUser {

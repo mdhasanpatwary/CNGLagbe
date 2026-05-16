@@ -69,7 +69,11 @@ export async function POST(request: Request) {
           id: driverId,
           isSuspended: false
         },
-        data: { isOnline: true }
+        data: { 
+          isOnline: true,
+          totalRides: { increment: 1 },
+          totalIncome: { increment: booking.fare }
+        }
       });
 
       return bookingUpdate;

@@ -21,7 +21,32 @@ export async function POST(
         rating,
         feedback,
       },
+      include: {
+        driver: true
+      }
     });
+
+    if (booking.driverId) {
+      // Recalculate driver ratings
+      const ratedBookings = await prisma.booking.findMany({
+        where: {
+          driverId: booking.driverId,
+          rating: { not: null }
+        },
+        select: { rating: true }
+      });
+
+      const count = ratedBookings.length;
+      const avg = ratedBookings.reduce((sum, b) => sum + (b.rating || 0), 0) / count;
+
+      await prisma.driver.update({
+        where: { id: booking.driverId },
+        data: {
+          averageRating: avg,
+          ratingCount: count
+        }
+      });
+    }
 
     return NextResponse.json({ success: true, booking });
   } catch (error) {

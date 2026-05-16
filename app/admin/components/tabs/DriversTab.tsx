@@ -1,18 +1,23 @@
 import React from "react";
 import Image from "next/image";
-import { Users, Search, Plus, Banknote, ShieldAlert, Edit2, Trash2 } from "lucide-react";
+import { Users, Search, Plus, Banknote, ShieldAlert, Edit2, Trash2, Star } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AppButton } from "@/components/ui/AppButton";
 import { Badge } from "@/components/ui/badge";
 import { TextKey } from "@/constants/text";
 import { PendingDriver } from "@/lib/types/admin";
+import { formatDecimal } from "@/lib/utils";
 
 interface DriversTabProps {
   t: (key: TextKey) => string;
   driverMeta: { total: number; totalPages: number };
   driverSearch: string;
   setDriverSearch: (val: string) => void;
+  driverFilter: string;
+  setDriverFilter: (val: string) => void;
+  driverSort: string;
+  setDriverSort: (val: string) => void;
   setDriverPage: (page: number) => void;
   setEditingDriverData: (driver: PendingDriver | null) => void;
   setIsDriverModalOpen: (isOpen: boolean) => void;
@@ -29,6 +34,10 @@ export const DriversTab: React.FC<DriversTabProps> = ({
   driverMeta,
   driverSearch,
   setDriverSearch,
+  driverFilter,
+  setDriverFilter,
+  driverSort,
+  setDriverSort,
   setDriverPage,
   setEditingDriverData,
   setIsDriverModalOpen,
@@ -65,9 +74,36 @@ export const DriversTab: React.FC<DriversTabProps> = ({
                     setDriverSearch(e.target.value);
                     setDriverPage(1);
                   }}
-                  className="h-11 pl-12 pr-4 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-w-[240px]"
+                  className="h-11 pl-12 pr-4 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-w-[200px]"
                 />
               </div>
+
+              <select
+                value={driverFilter}
+                onChange={(e) => {
+                  setDriverFilter(e.target.value);
+                  setDriverPage(1);
+                }}
+                className="h-11 px-4 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+              >
+                <option value="all">{t("all_drivers")}</option>
+                <option value="suspended">{t("suspended")}</option>
+                <option value="minus_balance">{t("minus_balance")}</option>
+              </select>
+
+              <select
+                value={driverSort}
+                onChange={(e) => {
+                  setDriverSort(e.target.value);
+                  setDriverPage(1);
+                }}
+                className="h-11 px-4 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+              >
+                <option value="newest">{t("newest")}</option>
+                <option value="top_rated">{t("top_rated")}</option>
+                <option value="top_income">{t("top_income")}</option>
+                <option value="top_ride">{t("top_rides")}</option>
+              </select>
 
               <AppButton
                 onClick={() => {
@@ -88,7 +124,7 @@ export const DriversTab: React.FC<DriversTabProps> = ({
               <TableRow className="hover:bg-transparent border-none">
                 <TableHead className="px-8 py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("driver")}</TableHead>
                 <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("identity_vehicle")}</TableHead>
-                <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("status")}</TableHead>
+                <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("rating")}</TableHead>
                 <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("current_balance")}</TableHead>
                 <TableHead className="px-8 py-5 text-right text-xs font-black uppercase tracking-widest text-slate-400">{t("actions")}</TableHead>
               </TableRow>
@@ -99,7 +135,7 @@ export const DriversTab: React.FC<DriversTabProps> = ({
                   <TableCell className="px-8 py-6">
                     <div className="flex items-center gap-4">
                       <div className="relative w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                        {driver.photoUrl ? (
+                        {driver.photoUrl && driver.photoUrl !== "N/A" && (driver.photoUrl.startsWith("http") || driver.photoUrl.startsWith("/")) ? (
                           <Image
                             src={driver.photoUrl}
                             alt={driver.name}
@@ -113,6 +149,13 @@ export const DriversTab: React.FC<DriversTabProps> = ({
                       <div>
                         <p className="font-black text-slate-900 group-hover:text-blue-600 transition-colors">{driver.name}</p>
                         <p className="text-xs font-medium text-slate-400">{driver.phone}</p>
+                        {driver.isSuspended && (
+                          <div className="flex items-center gap-1.5 mt-1.5">
+                            <Badge className="text-[8px] font-black uppercase px-1.5 py-0 bg-error-light text-error-dark border-none shadow-sm">
+                              {t("suspended")}
+                            </Badge>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </TableCell>
@@ -124,23 +167,24 @@ export const DriversTab: React.FC<DriversTabProps> = ({
                       </Badge>
                     </div>
                   </TableCell>
+
                   <TableCell>
-                    <div className="flex flex-col gap-1.5">
-                      <Badge className={`w-fit text-[9px] font-black uppercase px-2 py-0.5 border-none shadow-sm ${driver.isApproved ? "bg-primary/10 text-primary-dark" : "bg-warning text-warning-dark"
-                        }`}>
-                        {driver.isApproved ? t("approved") : t("pending")}
-                      </Badge>
-                      {driver.isSuspended && (
-                        <Badge className="w-fit text-[9px] font-black uppercase px-2 py-0.5 bg-error-light text-error-dark border-none shadow-sm">
-                          {t("suspended")}
-                        </Badge>
-                      )}
+                    <div className="flex items-center gap-1.5">
+                      <Star className={`w-4 h-4 ${driver.averageRating && Number(driver.averageRating) > 0 ? "text-amber-400 fill-amber-400" : "text-slate-300 fill-slate-200"}`} />
+                      <div className="flex flex-col">
+                        <span className="font-black text-slate-700 leading-none">
+                          {driver.averageRating ? Number(driver.averageRating).toFixed(1) : "0.0"}
+                          <span className="text-[10px] font-bold text-slate-400 ml-1">
+                            ({driver.ratingCount ?? 0})
+                          </span>
+                        </span>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
                       <p className={`font-black text-sm ${driver.wallet?.balance && driver.wallet.balance < 0 ? "text-red-600" : "text-primary"}`}>
-                        {t("currency")}{driver.wallet?.balance ?? 0}
+                        {t("currency")}{formatDecimal(driver.wallet?.balance ?? 0)}
                       </p>
                       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
                         {driver.wallet?.balance && driver.wallet.balance < 0 ? t("debt") : t("credit")}
@@ -157,28 +201,32 @@ export const DriversTab: React.FC<DriversTabProps> = ({
                           {t("approve_btn")}
                         </AppButton>
                       )}
-                      <AppButton
-                        onClick={() => {
-                          setSelectedDriver(driver);
-                          setIsRechargeModalOpen(true);
-                        }}
-                        variant="ghost"
-                        className="h-9 px-4 text-[10px] font-black rounded-xl uppercase tracking-widest border border-primary/20 text-primary hover:bg-primary/5"
-                        leftIcon={<Banknote size={12} />}
-                      >
-                        {t("add_money")}
-                      </AppButton>
-                      <AppButton
-                        variant={driver.isSuspended ? "primary" : "ghost"}
-                        onClick={() => handleToggleSuspend(driver.id, !!driver.isSuspended)}
-                        className={`h-9 px-4 text-[10px] font-black rounded-xl uppercase tracking-widest transition-all duration-300 ${driver.isSuspended
-                          ? "bg-slate-900 hover:bg-slate-800 text-white"
-                          : "border border-red-100 text-red-600 hover:bg-red-50 hover:border-red-200"
-                          }`}
-                        leftIcon={<ShieldAlert size={12} />}
-                      >
-                        {driver.isSuspended ? t("lift_suspension") : t("suspend")}
-                      </AppButton>
+                      {driver.isApproved && (
+                        <>
+                          <AppButton
+                            onClick={() => {
+                              setSelectedDriver(driver);
+                              setIsRechargeModalOpen(true);
+                            }}
+                            variant="ghost"
+                            className="h-9 px-4 text-[10px] font-black rounded-xl uppercase tracking-widest border border-primary/20 text-primary hover:bg-primary/5"
+                            leftIcon={<Banknote size={12} />}
+                          >
+                            {t("add_money")}
+                          </AppButton>
+                          <AppButton
+                            variant={driver.isSuspended ? "primary" : "ghost"}
+                            onClick={() => handleToggleSuspend(driver.id, !!driver.isSuspended)}
+                            className={`h-9 px-4 text-[10px] font-black rounded-xl uppercase tracking-widest transition-all duration-300 ${driver.isSuspended
+                              ? "bg-slate-900 hover:bg-slate-800 text-white"
+                              : "border border-red-100 text-red-600 hover:bg-red-50 hover:border-red-200"
+                              }`}
+                            leftIcon={<ShieldAlert size={12} />}
+                          >
+                            {driver.isSuspended ? t("lift_suspension") : t("suspend")}
+                          </AppButton>
+                        </>
+                      )}
                       <AppButton
                         onClick={() => {
                           setEditingDriverData(driver);

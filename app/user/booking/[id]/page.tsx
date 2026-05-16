@@ -23,6 +23,7 @@ import { COLORS } from "@/constants/colors";
 import { CancelModal } from "@/components/CancelModal";
 import { AppButton } from "@/components/ui/AppButton";
 import { Header } from "@/components/layout/Header";
+import { formatDecimal } from "@/lib/utils";
 import { CngIcon } from "@/components/icons/CngIcon";
 
 import { PageHeading } from "@/components/ui/PageHeading";
@@ -399,7 +400,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                   </div>
                   <div className="rounded-2xl bg-slate-50 p-3 border border-slate-100">
                     <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">{t("distance")}</span>
-                    <p className="text-sm font-black text-slate-900">{booking.distance.toFixed(1)}{t("km_unit")}</p>
+                    <p className="text-sm font-black text-slate-900">{formatDecimal(booking.distance, 1)}{t("km_unit")}</p>
                   </div>
                 </div>
               </div>
@@ -446,10 +447,13 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                     <span className="text-[9px] font-black bg-primary/20 text-primary-light px-2 py-0.5 rounded uppercase tracking-tighter">
                       {t("top_rated")}
                     </span>
-                    {booking.driver.rating && (
+                    {booking.driver.averageRating && (
                       <span className="text-[11px] font-black text-amber-500 flex items-center gap-0.5">
                         <Star size={10} fill="currentColor" />
-                        {booking.driver.rating.toFixed(1)}
+                        {formatDecimal(booking.driver.averageRating, 1)}
+                        {booking.driver.ratingCount !== undefined && booking.driver.ratingCount > 0 && (
+                          <span className="text-slate-400 font-bold ml-0.5">({booking.driver.ratingCount})</span>
+                        )}
                       </span>
                     )}
                   </div>
@@ -531,9 +535,9 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                   <div className="flex flex-col">
                     <span className="text-[10px] font-bold text-slate-400 uppercase mb-1">{t("fare")}</span>
                     <div className="space-y-0.5">
-                      <p className="text-[9px] font-bold text-slate-500 leading-tight">{t("fare")}: {t("currency")}{booking.baseFare || booking.fare}</p>
-                      <p className="text-[9px] font-bold text-slate-500 leading-tight">{t("platform_fee")}: {t("currency")}{booking.platformFee || 0}</p>
-                      <p className="text-base font-black text-slate-900">{t("currency")}{booking.totalFare || booking.fare}</p>
+                      <p className="text-[9px] font-bold text-slate-500 leading-tight">{t("fare")}: {t("currency")}{formatDecimal(booking.baseFare || booking.fare)}</p>
+                      <p className="text-[9px] font-bold text-slate-500 leading-tight">{t("platform_fee")}: {t("currency")}{formatDecimal(booking.platformFee || 0)}</p>
+                      <p className="text-base font-black text-slate-900">{t("currency")}{formatDecimal(booking.totalFare || booking.fare)}</p>
                     </div>
                   </div>
                   <div className="flex flex-col">

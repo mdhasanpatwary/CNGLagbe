@@ -17,6 +17,8 @@ export async function GET(request: Request) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
     const search = searchParams.get("search") || "";
+    const filter = searchParams.get("filter") || "all";
+    const sort = searchParams.get("sort") || "latest";
     const skip = (page - 1) * limit;
 
     const where: Prisma.DriverWhereInput = {};
@@ -27,6 +29,23 @@ export async function GET(request: Request) {
       ];
     }
 
+    if (filter === "suspended") {
+      where.isSuspended = true;
+    } else if (filter === "minus_balance") {
+      where.wallet = {
+        balance: { lt: 0 }
+      };
+    }
+
+    let orderBy: Prisma.DriverOrderByWithRelationInput = { createdAt: "desc" };
+    if (sort === "top_rated") {
+      orderBy = { averageRating: "desc" };
+    } else if (sort === "top_income") {
+      orderBy = { totalIncome: "desc" };
+    } else if (sort === "top_ride") {
+      orderBy = { totalRides: "desc" };
+    }
+
     // Run findMany and count in parallel instead of sequentially.
     // Use select to avoid returning sensitive fields (passwordHash, document URLs).
     const [drivers, total] = await Promise.all([
@@ -34,7 +53,7 @@ export async function GET(request: Request) {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: "desc" },
+        orderBy,
         select: {
           id: true,
           name: true,
@@ -45,6 +64,8 @@ export async function GET(request: Request) {
           vehicleNumber: true,
           vehicleType: true,
           nearbyBazar: true,
+          averageRating: true,
+          ratingCount: true,
           createdAt: true,
           updatedAt: true,
           photoUrl: true,

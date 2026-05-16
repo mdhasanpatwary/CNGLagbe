@@ -38,6 +38,10 @@ model Driver {
   photoUrl        String
   vehicleType     String?
   isSuspended     Boolean            @default(false)
+  averageRating   Float              @default(0)
+  ratingCount     Int                @default(0)
+  totalIncome     Float              @default(0)
+  totalRides      Int                @default(0)
   updatedAt       DateTime           @updatedAt
   birthday        DateTime?
   address         String?
@@ -197,4 +201,12 @@ model spatial_ref_sys {
   auth_srid Int?
   srtext    String? @db.VarChar(2048)
   proj4text String? @db.VarChar(2048)
+}
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

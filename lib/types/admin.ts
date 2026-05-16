@@ -40,5 +40,7 @@ export interface PendingDriver {
   wallet?: {
     balance: number;
   } | null;
+  averageRating?: number | null;
+  ratingCount?: number;
 }
 

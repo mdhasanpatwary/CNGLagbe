@@ -18,6 +18,8 @@ export async function GET(
             phone: true,
             vehicleNumber: true,
             photoUrl: true,
+            averageRating: true,
+            ratingCount: true,
           },
         },
       },

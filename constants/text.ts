@@ -624,6 +624,17 @@ export const TEXT = {
   nid_info: { en: "NID Info", bn: "এনআইডি তথ্য" },
   vehicle_info: { en: "Vehicle Info", bn: "গাড়ির তথ্য" },
   license_info: { en: "License Info", bn: "লাইসেন্স তথ্য" },
+  low_balance: { en: "Low Balance", bn: "লো ব্যালেন্স" },
+  low_balance_desc: { en: "Your wallet balance is too low to receive new ride requests. Please add funds to your wallet to continue receiving rides.", bn: "আপনার ওয়ালেটের ব্যালেন্স খুব কম, তাই নতুন রাইড রিকোয়েস্ট পাচ্ছেন না। রিকোয়েস্ট পেতে ওয়ালেটে টাকা যোগ করুন।" },
+  add_funds: { en: "Add Funds", bn: "ফান্ড যোগ করুন" },
+  sort_by: { en: "Sort By", bn: "সাজান" },
+  top_income: { en: "Top Income", bn: "সর্বোচ্চ আয়" },
+  top_rides: { en: "Top Rides", bn: "সর্বোচ্চ রাইড" },
+  rating: { en: "Rating", bn: "রেটিং" },
+  newest: { en: "Newest", bn: "নতুন" },
+  filter_by: { en: "Filter By", bn: "ফিল্টার করুন" },
+  all_drivers: { en: "All Drivers", bn: "সব ড্রাইভার" },
+  minus_balance: { en: "Minus Balance", bn: "নেগেটিভ ব্যালেন্স" },
 } as const;
 
 

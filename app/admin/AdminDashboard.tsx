@@ -9,12 +9,14 @@ import { DriversTab } from "./components/tabs/DriversTab";
 import { UsersTab } from "./components/tabs/UsersTab";
 import { LogsTab } from "./components/tabs/LogsTab";
 import { BazarsTab } from "./components/tabs/BazarsTab";
+import { SettingsTab } from "./components/tabs/SettingsTab";
 import { 
   DriverManagementModal, 
   RechargeModal, 
   TabNavigation, 
   AdminTab 
 } from "./components/shared";
+import { Settings as SettingsIcon } from "lucide-react";
 
 export default function AdminDashboard() {
   const {
@@ -59,6 +61,10 @@ export default function AdminDashboard() {
     pendingDrivers,
     onlineDrivers,
     allDrivers,
+    driverFilter,
+    setDriverFilter,
+    driverSort,
+    setDriverSort,
     fetchData,
     fetchBookings,
     handleApprove,
@@ -68,6 +74,8 @@ export default function AdminDashboard() {
     handleUpdateBazar,
     handleRecharge,
     handleDeleteDriver,
+    settings,
+    handleUpdateSetting,
   } = useAdminDashboard();
 
   const tabs = [
@@ -76,6 +84,7 @@ export default function AdminDashboard() {
     { id: "users" as const, label: t("users"), icon: UserCheck },
     { id: "bazars" as const, label: t("bazars"), icon: Store },
     { id: "logs" as const, label: t("logs"), icon: History },
+    { id: "settings" as const, label: t("settings") || "Settings", icon: SettingsIcon },
   ];
 
   return (
@@ -123,6 +132,10 @@ export default function AdminDashboard() {
             driverMeta={driverMeta}
             driverSearch={driverSearch}
             setDriverSearch={setDriverSearch}
+            driverFilter={driverFilter}
+            setDriverFilter={setDriverFilter}
+            driverSort={driverSort}
+            setDriverSort={setDriverSort}
             setDriverPage={setDriverPage}
             setEditingDriverData={setEditingDriverData}
             setIsDriverModalOpen={setIsDriverModalOpen}
@@ -164,6 +177,14 @@ export default function AdminDashboard() {
             handleAddBazar={handleAddBazar}
             handleDeleteBazar={handleDeleteBazar}
             handleUpdateBazar={handleUpdateBazar}
+            t={t}
+          />
+        )}
+
+        {activeTab === "settings" && (
+          <SettingsTab
+            settings={settings}
+            handleUpdateSetting={handleUpdateSetting}
             t={t}
           />
         )}

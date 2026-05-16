@@ -23,6 +23,7 @@ import { apiFetch } from "@/utils/api";
 
 import { Booking } from "@/lib/types/booking";
 import { User } from "@/lib/types/user";
+import { formatDecimal } from "@/lib/utils";
 
 
 // ─── Status Badge ────────────────────────────────────────────────────────────
@@ -272,7 +273,7 @@ export default function BookingHistoryPage() {
                         </div>
                         <span className="text-sm font-black text-slate-800 tabular-nums">
                           {t("currency")}
-                          {booking.fare}
+                          {formatDecimal(booking.fare)}
                         </span>
                       </div>
                       <span className="flex items-center gap-0.5 text-[10px] font-black text-slate-300 group-hover:text-primary transition-colors uppercase tracking-widest">

@@ -21,6 +21,7 @@ import {
 import { User as UserType } from "@/lib/types/user";
 import { WalletSkeleton } from "@/components/ui/AppSkeletons";
 import { apiFetch } from "@/utils/api";
+import { formatDecimal } from "@/lib/utils";
 
 interface Transaction {
   id: string;
@@ -147,7 +148,7 @@ export default function DriverWalletPage() {
                 {isDebt ? t("total_debt") : t("wallet_balance")}
               </p>
               <h2 className={`text-5xl font-black tracking-tight ${isDebt ? "text-red-400" : "text-white"}`}>
-                {t("currency")}{Math.abs(balance)}
+                {t("currency")}{formatDecimal(Math.abs(balance))}
               </h2>
             </div>
 
@@ -227,7 +228,7 @@ export default function DriverWalletPage() {
                           )}
                         </div>
                         <p className={`text-lg font-black ${tx.amount < 0 ? "text-red-500" : "text-emerald-500"}`}>
-                          {tx.amount < 0 ? "-" : "+"}{t("currency")}{Math.abs(tx.amount)}
+                          {tx.amount < 0 ? "-" : "+"}{t("currency")}{formatDecimal(Math.abs(tx.amount))}
                         </p>
                       </div>
                     </div>

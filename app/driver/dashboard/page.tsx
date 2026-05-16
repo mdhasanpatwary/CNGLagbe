@@ -20,6 +20,7 @@ import { Booking } from "@/lib/types/booking";
 import { DriverSyncData } from "@/lib/types/driver";
 import { PageHeading } from "@/components/ui/PageHeading";
 import { DriverDashboardSkeleton } from "@/components/ui/AppSkeletons";
+import { formatDecimal } from "@/lib/utils";
 
 // Internal types for location tracking
 interface DriverLocationPoint {
@@ -183,6 +184,7 @@ export default function DriverHomePage() {
 
   const isOnline = isOnlineOverride ?? syncData?.driver?.isOnline ?? false;
   const loading = !syncData && isInitialLoading;
+  const isWalletSuspended = syncData?.isWalletSuspended ?? false;
 
   const driver = syncData?.driver;
   const isApproved = driver?.isApproved ?? true;
@@ -624,6 +626,38 @@ export default function DriverHomePage() {
           className="mb-6"
         />
 
+        {/* Low Balance Suspension Modal */}
+        {isWalletSuspended && isOnline && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-white rounded-[2rem] p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center animate-in zoom-in-95 duration-500 delay-150">
+              <div className="w-20 h-20 bg-red-50 rounded-[2rem] flex items-center justify-center mb-6 shadow-inner shadow-red-100">
+                <Banknote className="w-10 h-10 text-red-500" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-3">
+                {t("low_balance") || "Low Balance"}
+              </h3>
+              <p className="text-slate-500 text-sm font-bold opacity-80 leading-relaxed mb-8">
+                {t("low_balance_desc") || "Your wallet balance is too low to receive new ride requests. Please add funds to your wallet to continue receiving rides."}
+              </p>
+              <div className="flex flex-col w-full gap-3">
+                <AppButton 
+                  className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-lg shadow-lg shadow-primary/20"
+                  onClick={() => router.push("/driver/wallet")}
+                >
+                  {t("add_funds") || "Add Funds"}
+                </AppButton>
+                <AppButton 
+                  variant="outline" 
+                  className="w-full h-14 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 border-slate-200"
+                  onClick={() => toggleOnline()}
+                >
+                  {t("go_offline") || "Go Offline"}
+                </AppButton>
+              </div>
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <DriverDashboardSkeleton />
         ) : !isApproved ? (
@@ -752,18 +786,12 @@ export default function DriverHomePage() {
                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight">{t("rating_score")}</p>
                       <p className="text-lg font-black text-slate-800 leading-tight">
                         {stats.avgRating > 0 ? stats.avgRating.toFixed(1) : "—"}
+                        {stats.totalRatings > 0 && (
+                          <span className="text-xs font-bold text-slate-400 ml-1">
+                            ({stats.totalRatings})
+                          </span>
+                        )}
                       </p>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="border-none bg-white/90 backdrop-blur-xl shadow-lg shadow-slate-200/40 rounded-2xl overflow-hidden">
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center shrink-0">
-                      <Info className="w-5 h-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight">{t("total_ratings")}</p>
-                      <p className="text-lg font-black text-slate-800 leading-tight">{stats.totalRatings}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -878,7 +906,7 @@ export default function DriverHomePage() {
                         <p className="text-[10px] font-black text-slate-400 uppercase mb-1 flex items-center gap-1">
                           <Banknote size={12} /> {t("collect_cash")}
                         </p>
-                        <p className="text-3xl font-black text-slate-800">{t("currency")}{currentBooking.totalFare || currentBooking.fare}</p>
+                        <p className="text-3xl font-black text-slate-800">{t("currency")}{formatDecimal(currentBooking.totalFare || currentBooking.fare)}</p>
                       </div>
                       <Badge variant="outline" className="h-8 border-primary/20 text-primary font-black text-[10px] uppercase px-3 bg-primary/5">{t("cash_only")}</Badge>
                     </div>
@@ -886,11 +914,11 @@ export default function DriverHomePage() {
                     <div className="pt-3 border-t border-slate-200 flex flex-col gap-2">
                       <div className="flex justify-between items-center text-[11px] font-bold text-slate-500">
                         <span>{t("fare")}</span>
-                        <span>{t("currency")}{currentBooking.baseFare || currentBooking.fare}</span>
+                        <span>{t("currency")}{formatDecimal(currentBooking.baseFare || currentBooking.fare)}</span>
                       </div>
                       <div className="flex justify-between items-center text-[11px] font-bold text-slate-500">
                         <span>{t("platform_fee")}</span>
-                        <span>{t("currency")}{currentBooking.platformFee || 0}</span>
+                        <span>{t("currency")}{formatDecimal(currentBooking.platformFee || 0)}</span>
                       </div>
                     </div>
                   </div>
@@ -984,21 +1012,21 @@ export default function DriverHomePage() {
                   <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full pointer-events-none" />
                   <div className="flex justify-center items-center gap-2 mb-4 relative z-10 border-b border-primary/10 pb-4">
                     <span className="text-xs font-black text-slate-500 uppercase tracking-widest">{t("distance")}</span>
-                    <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5 px-2 font-black">{arrivedBooking.distance} {t("km_unit")}</Badge>
+                    <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5 px-2 font-black">{formatDecimal(arrivedBooking.distance, 1)} {t("km_unit")}</Badge>
                   </div>
                   
                   <div className="space-y-4 relative z-10">
                     <div className="flex justify-between items-center text-sm font-bold text-slate-500">
                       <span>{t("fare")}</span>
-                      <span>{t("currency")}{arrivedBooking.baseFare || arrivedBooking.fare}</span>
+                      <span>{t("currency")}{formatDecimal(arrivedBooking.baseFare || arrivedBooking.fare)}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm font-bold text-slate-500">
                       <span>{t("platform_fee")}</span>
-                      <span>{t("currency")}{arrivedBooking.platformFee || 0}</span>
+                      <span>{t("currency")}{formatDecimal(arrivedBooking.platformFee || 0)}</span>
                     </div>
                     <div className="pt-4 border-t border-slate-200 flex justify-between items-center">
                       <p className="text-[10px] font-black text-primary uppercase tracking-widest">{t("collect_cash")}</p>
-                      <p className="text-4xl font-black text-slate-800">{t("currency")}{arrivedBooking.totalFare || arrivedBooking.fare}</p>
+                      <p className="text-4xl font-black text-slate-800">{t("currency")}{formatDecimal(arrivedBooking.totalFare || arrivedBooking.fare)}</p>
                     </div>
                   </div>
                 </div>
@@ -1036,15 +1064,15 @@ export default function DriverHomePage() {
                   <div className="flex justify-between items-start mb-6 pb-4 border-b border-slate-50">
                     <div>
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{t("fixed_fare")}</p>
-                      <p className="text-5xl font-black text-primary tracking-tighter">{t("currency")}{req.totalFare || req.fare}</p>
+                      <p className="text-5xl font-black text-primary tracking-tighter">{t("currency")}{formatDecimal(req.totalFare || req.fare)}</p>
                       <div className="flex gap-2 mt-1">
-                        <span className="text-[9px] font-bold text-slate-400">{t("fare")}: {t("currency")}{req.baseFare || req.fare}</span>
-                        <span className="text-[9px] font-bold text-slate-400">+ {t("platform_fee")}: {t("currency")}{req.platformFee || 0}</span>
+                        <span className="text-[9px] font-bold text-slate-400">{t("fare")}: {t("currency")}{formatDecimal(req.baseFare || req.fare)}</span>
+                        <span className="text-[9px] font-bold text-slate-400">+ {t("platform_fee")}: {t("currency")}{formatDecimal(req.platformFee || 0)}</span>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{t("distance")}</p>
-                      <p className="text-2xl font-black text-slate-700">{req.distance} <span className="text-sm text-slate-400 opacity-60">{t("km_unit")}</span></p>
+                      <p className="text-2xl font-black text-slate-700">{formatDecimal(req.distance, 1)} <span className="text-sm text-slate-400 opacity-60">{t("km_unit")}</span></p>
                     </div>
                   </div>
                   

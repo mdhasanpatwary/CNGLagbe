@@ -9,6 +9,7 @@ import { formatDate } from "../../utils/format";
 import { TextKey } from "@/constants/text";
 import { AdminStats } from "@/lib/types/admin";
 import { Booking } from "@/lib/types/booking";
+import { formatDecimal } from "@/lib/utils";
 
 interface LogsTabProps {
   stats: AdminStats | null;
@@ -146,16 +147,16 @@ export function LogsTab({
                     )}
                   </TableCell>
                   <TableCell className="text-xs font-medium text-slate-600">
-                    {booking.distance} {t("km_unit")}
+                    {formatDecimal(booking.distance)} {t("km_unit")}
                   </TableCell>
                   <TableCell className="font-black text-xs text-slate-900">
-                    {t("currency")}{booking.fare}
+                    {t("currency")}{formatDecimal(booking.fare)}
                   </TableCell>
                   <TableCell className="text-xs font-medium text-slate-600">
-                    {t("currency")}{Math.floor(booking.fare * 0.8)}
+                    {t("currency")}{formatDecimal(Math.floor(booking.fare * 0.8))}
                   </TableCell>
                   <TableCell className="text-xs font-bold text-primary">
-                    {t("currency")}{Math.ceil(booking.fare * 0.2)}
+                    {t("currency")}{formatDecimal(Math.ceil(booking.fare * 0.2))}
                   </TableCell>
                   <TableCell>
                     <StatusBadge status={booking.status} />

@@ -80,6 +80,7 @@ export async function GET(request: Request) {
         },
         _count: {
           id: true,
+          rating: true,
         },
         _avg: {
           rating: true,
@@ -98,6 +99,7 @@ export async function GET(request: Request) {
           lifetimeTrips: stats._count.id,
           totalEarned: (stats._sum.totalFare || stats._sum.fare || 0),
           avgRating: stats._avg.rating || 0,
+          ratingCount: stats._count.rating || 0,
         }
       },
     });
