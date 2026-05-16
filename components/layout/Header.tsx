@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { LogOut, User, ChevronLeft, RefreshCcw, Navigation, Settings, UserCircle, History, Wallet } from "lucide-react";
+import { LogOut, User, ChevronLeft, RefreshCcw, Navigation, Settings, UserCircle, History, Wallet, LayoutDashboard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppButton } from "@/components/ui/AppButton";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -197,16 +197,16 @@ export function Header({
 
                   {/* Menu Items */}
                   <div className="p-1.5">
-                    {!isDriver && !isAdmin && (
+                    {(isDriver || (!isDriver && !isAdmin)) && (
                       <Link
-                        href="/user"
+                        href={isDriver ? "/driver" : "/user"}
                         onClick={() => setIsMenuOpen(false)}
                         className={cn(
                           "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-colors group text-primary min-h-[44px]",
                           effectiveTheme === "primary" || effectiveTheme === "dark" ? "hover:bg-white/10" : "hover:bg-primary/5"
                         )}
                       >
-                        <User size={18} className="opacity-100" />
+                        <LayoutDashboard size={18} className="opacity-100" />
                         <span>{t("dashboard")}</span>
                       </Link>
                     )}

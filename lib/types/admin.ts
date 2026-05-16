@@ -24,10 +24,21 @@ export interface PendingDriver {
   nidNumber?: string | null;
   licenseNumber?: string | null;
   vehicleNumber?: string | null;
+  vehicleType?: string | null;
   photoUrl?: string | null;
+  nidFrontUrl?: string | null;
+  nidBackUrl?: string | null;
+  licenseFrontUrl?: string | null;
+  licenseBackUrl?: string | null;
+  address?: string | null;
+  nearbyBazar?: string | null;
   isApproved: boolean;
   isSuspended?: boolean;
+  isOnline?: boolean;
   createdAt: string;
   updatedAt?: string;
+  wallet?: {
+    balance: number;
+  } | null;
 }
 

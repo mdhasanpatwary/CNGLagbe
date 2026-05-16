@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Users, UserCheck, TrendingUp, HandCoins, Banknote, Route, MapPin, Activity, ShieldAlert, History, Filter, ChevronLeft, ChevronRight, Store, Plus, Trash2, Edit2 } from "lucide-react";
+import Image from "next/image";
+import { Users, UserCheck, TrendingUp, HandCoins, Banknote, Route, MapPin, Activity, ShieldAlert, History, Filter, ChevronLeft, ChevronRight, Store, Plus, Trash2, Edit2, Search } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AppButton } from "@/components/ui/AppButton";
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/layout/Header";
 import { useLang } from "@/hooks/useLang";
@@ -14,6 +14,7 @@ import { Booking } from "@/lib/types/booking";
 import { AdminStats, PendingDriver } from "@/lib/types/admin";
 import { type TextKey } from "@/constants/text";
 import { PageHeading } from "@/components/ui/PageHeading";
+import { DriverManagementModal } from "./components/DriverManagementModal";
 
 const formatDate = (date: string | Date | undefined, t: (key: TextKey) => string, includeDate = false) => {
    if (!date) return t("just_now");
@@ -63,6 +64,18 @@ export default function AdminDashboard() {
    const [currentPage, setCurrentPage] = useState(1);
    const itemsPerPage = 20;
 
+   // Wallet Recharge State
+   const [selectedDriver, setSelectedDriver] = useState<PendingDriver | null>(null);
+   const [isRechargeModalOpen, setIsRechargeModalOpen] = useState(false);
+   const [rechargeAmount, setRechargeAmount] = useState("");
+   const [rechargeNote, setRechargeNote] = useState("");
+   const [isRecharging, setIsRecharging] = useState(false);
+   const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
+   const [editingDriverData, setEditingDriverData] = useState<PendingDriver | null>(null);
+   const [driverSearch, setDriverSearch] = useState("");
+   const [driverPage, setDriverPage] = useState(1);
+   const [driverMeta, setDriverMeta] = useState({ total: 0, totalPages: 0 });
+
    const handleSort = (key: keyof Booking | "fee" | "driver_payout") => {
       let direction: "asc" | "desc" = "asc";
       if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
@@ -104,6 +117,20 @@ export default function AdminDashboard() {
    const [onlineDrivers, setOnlineDrivers] = useState<PendingDriver[]>([]);
    const [allDrivers, setAllDrivers] = useState<PendingDriver[]>([]);
 
+   const fetchDrivers = async (page = 1, search = "") => {
+      try {
+         const res = await fetch(`/api/admin/drivers?page=${page}&limit=20&search=${search}`);
+         const data = await res.json();
+         setAllDrivers(Array.isArray(data?.drivers) ? data.drivers : []);
+         setDriverMeta({
+            total: data?.meta?.total || 0,
+            totalPages: data?.meta?.totalPages || 0
+         });
+      } catch (e) {
+         console.error("Fetch drivers error:", e);
+      }
+   };
+
    const fetchData = async (options?: { showLoading?: boolean }) => {
       if (options?.showLoading) setIsRefreshing(true);
       try {
@@ -111,13 +138,12 @@ export default function AdminDashboard() {
             ? "/api/admin/bookings?limit=100"
             : `/api/admin/bookings?limit=100&status=${logFilter}`;
 
-         const [resStats, resBookings, resDrivers, resActive, resOnline, resAllDrivers, resAllUsers, resBazars] = await Promise.all([
+         const [resStats, resBookings, resDrivers, resActive, resOnline, resAllUsers, resBazars] = await Promise.all([
             fetch("/api/admin/stats"),
             fetch(url),
             fetch("/api/admin/drivers/approve"),
             fetch("/api/admin/bookings?type=active"),
             fetch("/api/admin/drivers/online"),
-            fetch("/api/admin/drivers?limit=100"),
             fetch("/api/admin/users?limit=100"),
             fetch("/api/bazars")
          ]);
@@ -127,7 +153,6 @@ export default function AdminDashboard() {
          const dataDrivers = await resDrivers.json().catch(() => ({}));
          const dataActive = await resActive.json().catch(() => ({}));
          const dataOnline = await resOnline.json().catch(() => ({}));
-         const dataAllDrivers = await resAllDrivers.json().catch(() => ({}));
          const dataAllUsers = await resAllUsers.json().catch(() => ({}));
          const dataBazars = await resBazars.json().catch(() => ([]));
 
@@ -136,8 +161,12 @@ export default function AdminDashboard() {
          setPendingDrivers(Array.isArray(dataDrivers?.drivers) ? dataDrivers.drivers : []);
          setActiveBookings(Array.isArray(dataActive?.bookings) ? dataActive.bookings : []);
          setOnlineDrivers(Array.isArray(dataOnline?.drivers) ? dataOnline.drivers : []);
-         setAllDrivers(Array.isArray(dataAllDrivers?.drivers) ? dataAllDrivers.drivers : []);
          setAllUsers(Array.isArray(dataAllUsers?.users) ? dataAllUsers.users : []);
+         
+         // Trigger driver refresh if on driver tab
+         if (activeTab === "drivers") {
+             fetchDrivers(driverPage, driverSearch);
+         }
 
          // Explicitly handle bazars array detection
          if (Array.isArray(dataBazars)) {
@@ -159,6 +188,13 @@ export default function AdminDashboard() {
       Promise.resolve().then(() => fetchData({ showLoading: false }));
       // eslint-disable-next-line react-hooks/exhaustive-deps
    }, []);
+
+   // Fetch drivers when search or page changes
+   useEffect(() => {
+      if (activeTab === "drivers") {
+         Promise.resolve().then(() => fetchDrivers(driverPage, driverSearch));
+      }
+   }, [driverPage, driverSearch, activeTab]);
 
    const fetchBookings = async (status: string) => {
       setIsRefreshing(true);
@@ -256,6 +292,47 @@ export default function AdminDashboard() {
          }
       } catch (e) {
          console.error(e);
+      }
+   };
+
+   const handleRecharge = async () => {
+      if (!selectedDriver || !rechargeAmount || isNaN(Number(rechargeAmount))) return;
+      setIsRecharging(true);
+      try {
+         const res = await fetch("/api/admin/drivers/wallet", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+               driverId: selectedDriver.id,
+               amount: Number(rechargeAmount),
+               note: rechargeNote || t("payment_collected")
+            })
+         });
+         if (res.ok) {
+            setIsRechargeModalOpen(false);
+            setRechargeAmount("");
+            setRechargeNote("");
+            setSelectedDriver(null);
+            fetchData({ showLoading: false });
+         }
+      } catch (e) {
+         console.error(e);
+      } finally {
+         setIsRecharging(false);
+      }
+   };
+
+   const handleDeleteDriver = async (driverId: string) => {
+      if (!confirm(t("delete_warning"))) return;
+      try {
+         const res = await fetch(`/api/admin/drivers/${driverId}`, {
+            method: "DELETE"
+         });
+         if (res.ok) {
+            fetchDrivers(driverPage, driverSearch);
+         }
+      } catch (e) {
+         console.error("Delete driver error:", e);
       }
    };
 
@@ -654,14 +731,43 @@ export default function AdminDashboard() {
                <div className="space-y-6">
                   <Card className="border-none shadow-xl rounded-[2rem] overflow-hidden">
                      <CardHeader className="bg-slate-50 border-b border-slate-100 p-8">
-                        <div className="flex items-center justify-between">
-                           <CardTitle className="text-2xl font-black text-slate-800 uppercase tracking-tighter flex items-center gap-3">
-                              <Users className="text-blue-600" />
-                              {t("driver_management")}
-                           </CardTitle>
-                           <Badge variant="outline" className="font-black px-4 py-1.5 rounded-lg border-2">
-                              {t("total")}: {allDrivers.length}
-                           </Badge>
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                           <div className="flex items-center gap-4">
+                              <CardTitle className="text-2xl font-black text-slate-800 uppercase tracking-tighter flex items-center gap-3">
+                                 <Users className="text-blue-600" />
+                                 {t("driver_management")}
+                              </CardTitle>
+                              <Badge variant="outline" className="font-black px-4 py-1.5 rounded-lg border-2">
+                                 {t("total")}: {driverMeta.total}
+                              </Badge>
+                           </div>
+
+                           <div className="flex flex-wrap items-center gap-3">
+                              <div className="relative">
+                                 <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                 <input
+                                    type="text"
+                                    placeholder={t("search_drivers") as string}
+                                    value={driverSearch}
+                                    onChange={(e) => {
+                                       setDriverSearch(e.target.value);
+                                       setDriverPage(1);
+                                    }}
+                                    className="h-11 pl-12 pr-4 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-w-[240px]"
+                                 />
+                              </div>
+
+                              <AppButton
+                                 onClick={() => {
+                                    setEditingDriverData(null);
+                                    setIsDriverModalOpen(true);
+                                 }}
+                                 className="h-11 px-6 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black rounded-xl uppercase tracking-widest shadow-lg shadow-slate-900/10"
+                                 leftIcon={<Plus size={18} />}
+                              >
+                                 {t("add_driver")}
+                              </AppButton>
+                           </div>
                         </div>
                      </CardHeader>
                      <CardContent className="p-0">
@@ -671,6 +777,7 @@ export default function AdminDashboard() {
                                  <TableHead className="px-8 py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("driver")}</TableHead>
                                  <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("identity_vehicle")}</TableHead>
                                  <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("status")}</TableHead>
+                                 <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("current_balance")}</TableHead>
                                  <TableHead className="px-8 py-5 text-right text-xs font-black uppercase tracking-widest text-slate-400">{t("actions")}</TableHead>
                               </TableRow>
                            </TableHeader>
@@ -679,9 +786,14 @@ export default function AdminDashboard() {
                                  <TableRow key={driver.id} className="group hover:bg-slate-50/50 transition-colors border-b border-slate-50">
                                     <TableCell className="px-8 py-6">
                                        <div className="flex items-center gap-4">
-                                          <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                                          <div className="relative w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
                                              {driver.photoUrl ? (
-                                                <Image src={driver.photoUrl} alt={driver.name} width={48} height={48} className="w-full h-full object-cover rounded-2xl object-top transition-all duration-500" />
+                                                <Image 
+                                                   src={driver.photoUrl} 
+                                                   alt={driver.name} 
+                                                   fill 
+                                                   className="object-cover rounded-2xl object-top transition-all duration-500" 
+                                                />
                                              ) : (
                                                 driver.name.slice(0, 2).toUpperCase()
                                              )}
@@ -713,6 +825,16 @@ export default function AdminDashboard() {
                                           )}
                                        </div>
                                     </TableCell>
+                                    <TableCell>
+                                       <div className="flex flex-col">
+                                          <p className={`font-black text-sm ${driver.wallet?.balance && driver.wallet.balance < 0 ? "text-red-600" : "text-primary"}`}>
+                                             {t("currency")}{driver.wallet?.balance ?? 0}
+                                          </p>
+                                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
+                                             {driver.wallet?.balance && driver.wallet.balance < 0 ? t("debt") : t("credit")}
+                                          </p>
+                                       </div>
+                                    </TableCell>
                                     <TableCell className="px-8 text-right">
                                        <div className="flex items-center justify-end gap-2">
                                           {!driver.isApproved && (
@@ -724,6 +846,17 @@ export default function AdminDashboard() {
                                              </AppButton>
                                           )}
                                           <AppButton
+                                             onClick={() => {
+                                                setSelectedDriver(driver);
+                                                setIsRechargeModalOpen(true);
+                                             }}
+                                             variant="ghost"
+                                             className="h-9 px-4 text-[10px] font-black rounded-xl uppercase tracking-widest border border-primary/20 text-primary hover:bg-primary/5"
+                                             leftIcon={<Banknote size={12} />}
+                                          >
+                                             {t("add_money")}
+                                          </AppButton>
+                                          <AppButton
                                              variant={driver.isSuspended ? "primary" : "ghost"}
                                              onClick={() => handleToggleSuspend(driver.id, !!driver.isSuspended)}
                                              className={`h-9 px-4 text-[10px] font-black rounded-xl uppercase tracking-widest transition-all duration-300 ${driver.isSuspended
@@ -734,6 +867,21 @@ export default function AdminDashboard() {
                                           >
                                              {driver.isSuspended ? t("lift_suspension") : t("suspend")}
                                           </AppButton>
+                                          <AppButton
+                                             onClick={() => {
+                                                setEditingDriverData(driver);
+                                                setIsDriverModalOpen(true);
+                                             }}
+                                             variant="ghost"
+                                             className="h-9 w-9 p-0 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl"
+                                             leftIcon={<Edit2 size={16} />}
+                                          />
+                                          <AppButton
+                                             onClick={() => handleDeleteDriver(driver.id)}
+                                             variant="ghost"
+                                             className="h-9 w-9 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
+                                             leftIcon={<Trash2 size={16} />}
+                                          />
                                        </div>
                                     </TableCell>
                                  </TableRow>
@@ -1110,6 +1258,70 @@ export default function AdminDashboard() {
             )}
 
          </main>
+
+         {/* Recharge Modal */}
+         {isRechargeModalOpen && selectedDriver && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+               <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
+                  <div className="bg-slate-50 p-8 border-b border-slate-100 flex justify-between items-center">
+                     <div>
+                        <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">{t("wallet_recharge")}</h3>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{selectedDriver.name}</p>
+                     </div>
+                     <AppButton
+                        variant="ghost"
+                        onClick={() => setIsRechargeModalOpen(false)}
+                        className="w-10 h-10 p-0 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
+                     >
+                        <Trash2 size={18} className="rotate-45" />
+                     </AppButton>
+                  </div>
+                  <div className="p-8 space-y-6">
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t("recharge_amount")}</label>
+                        <div className="relative">
+                           <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-primary">{t("currency")}</span>
+                           <input
+                              type="number"
+                              value={rechargeAmount}
+                              onChange={(e) => setRechargeAmount(e.target.value)}
+                              placeholder="0.00"
+                              className="w-full h-14 pl-12 pr-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-black text-lg focus:outline-none focus:border-primary/30 transition-all"
+                           />
+                        </div>
+                     </div>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t("recharge_details")}</label>
+                        <textarea
+                           value={rechargeNote}
+                           onChange={(e) => setRechargeNote(e.target.value)}
+                           placeholder={t("payment_collected") as string}
+                           className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-sm focus:outline-none focus:border-primary/30 transition-all min-h-[100px] resize-none"
+                        />
+                     </div>
+                     <AppButton
+                        onClick={handleRecharge}
+                        disabled={isRecharging || !rechargeAmount || isNaN(Number(rechargeAmount))}
+                        loading={isRecharging}
+                        className="w-full h-14 bg-primary hover:bg-primary-dark text-white font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98]"
+                     >
+                        {t("recharge_btn")}
+                     </AppButton>
+                  </div>
+               </div>
+            </div>
+         )}
+         {/* Driver Management Modal */}
+         <DriverManagementModal
+            isOpen={isDriverModalOpen}
+            onClose={() => setIsDriverModalOpen(false)}
+            driver={editingDriverData}
+            bazars={bazars.map(b => b.name)}
+            onSuccess={() => {
+               fetchDrivers(driverPage, driverSearch);
+               fetchData({ showLoading: false });
+            }}
+         />
       </div>
    );
 }

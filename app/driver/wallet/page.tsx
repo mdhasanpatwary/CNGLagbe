@@ -50,7 +50,23 @@ export default function DriverWalletPage() {
   const router = useRouter();
   const { t } = useLang();
   const [data, setData] = useState<WalletData | null>(null);
+  const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const res = await apiFetch("/api/auth/me");
+        if (res.ok) {
+          const userData = await res.json();
+          setUser(userData.user);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+      }
+    }
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     async function fetchWallet() {
@@ -82,9 +98,9 @@ export default function DriverWalletPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center">
-        <Header role="driver" />
+        <Header role="driver" user={user} onLogout={logout} />
         <main className="relative p-6 w-full max-w-md flex flex-col gap-6 flex-1">
-          <PageHeading title={t("wallet")} subtitle={t("my_earnings")} />
+          <PageHeading title={t("wallet")} subtitle={t("my_earnings")} backHref="/driver" />
           <WalletSkeleton />
         </main>
       </div>
@@ -100,7 +116,7 @@ export default function DriverWalletPage() {
 
       <Header 
         role="driver" 
-        user={data?.driver as unknown as UserType} 
+        user={user || data?.driver as unknown as UserType} 
         onLogout={logout} 
       />
 
@@ -108,6 +124,7 @@ export default function DriverWalletPage() {
         <PageHeading 
           title={t("wallet") as string} 
           subtitle={t("my_earnings") as string}
+          backHref="/driver"
         />
 
         {/* Balance Card */}
