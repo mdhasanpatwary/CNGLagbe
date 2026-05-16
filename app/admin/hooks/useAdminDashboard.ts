@@ -45,6 +45,8 @@ export function useAdminDashboard() {
   const [driverSearch, setDriverSearch] = useState("");
   const [debouncedDriverSearch, setDebouncedDriverSearch] = useState("");
   const [driverFilter, setDriverFilter] = useState("all");
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [historyDriver, setHistoryDriver] = useState<PendingDriver | null>(null);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -398,6 +400,10 @@ export function useAdminDashboard() {
     handleRecharge,
     handleDeleteDriver,
     settings,
-    handleUpdateSetting
+    handleUpdateSetting,
+    isHistoryModalOpen,
+    setIsHistoryModalOpen,
+    historyDriver,
+    setHistoryDriver
   };
 }
