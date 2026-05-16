@@ -19,6 +19,7 @@ import {
   Info
 } from "lucide-react";
 import { User as UserType } from "@/lib/types/user";
+import { WalletSkeleton } from "@/components/ui/AppSkeletons";
 import { apiFetch } from "@/utils/api";
 
 interface Transaction {
@@ -80,8 +81,12 @@ export default function DriverWalletPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center">
+        <Header role="driver" />
+        <main className="relative p-6 w-full max-w-md flex flex-col gap-6 flex-1">
+          <PageHeading title={t("wallet")} subtitle={t("my_earnings")} />
+          <WalletSkeleton />
+        </main>
       </div>
     );
   }

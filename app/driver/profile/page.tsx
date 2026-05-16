@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { User, Calendar, Save, Loader2, CheckCircle2, CreditCard, Hash, BadgeCheck, MapPin, Lock, AlertCircle } from "lucide-react";
+import { User, Calendar, Save, CheckCircle2, CreditCard, Hash, BadgeCheck, MapPin, Lock, AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
@@ -18,6 +18,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { driverProfileSchema, type DriverProfileInput } from "@/lib/schemas/driver-profile";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { Controller } from "react-hook-form";
+import { ProfileSkeleton } from "@/components/ui/AppSkeletons";
 
 export default function DriverProfilePage() {
   const router = useRouter();
@@ -125,8 +126,16 @@ export default function DriverProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center">
+        <Header role="driver" user={null} />
+        <main className="p-6 w-full max-w-md">
+          <PageHeading title={t("profile")} subtitle={t("driver_portal")} />
+          <Card className="border-none rounded-3xl overflow-hidden mb-8 bg-white/50 backdrop-blur-sm">
+            <CardContent className="p-8">
+              <ProfileSkeleton />
+            </CardContent>
+          </Card>
+        </main>
       </div>
     );
   }

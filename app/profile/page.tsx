@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { profileSchema, type ProfileInput } from "@/lib/schemas/profile";
+import { ProfileSkeleton } from "@/components/ui/AppSkeletons";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -125,8 +126,16 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      <div className="min-h-screen premium-bg-surface flex flex-col items-center relative overflow-hidden">
+        <Header role="user" user={null} />
+        <main className="p-6 w-full max-w-md">
+          <PageHeading title={t("profile")} subtitle={t("app_name")} />
+          <Card className="border-none rounded-3xl overflow-hidden mb-8 bg-white/50 backdrop-blur-sm">
+            <CardContent className="p-8">
+              <ProfileSkeleton />
+            </CardContent>
+          </Card>
+        </main>
       </div>
     );
   }

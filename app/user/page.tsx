@@ -11,7 +11,6 @@ import {
   Route,
   CheckCircle2,
   Clock3,
-  Loader2,
   ArrowRight,
   TrendingUp,
   AlertCircle,
@@ -23,6 +22,7 @@ import { useLang } from "@/hooks/useLang";
 import { User } from "@/lib/types/user";
 import { Booking } from "@/lib/types/booking";
 import { CngIcon } from "@/components/icons/CngIcon";
+import { UserDashboardSkeleton } from "@/components/ui/AppSkeletons";
 
 
 interface HomeData {
@@ -104,17 +104,15 @@ export default function UserHomePage() {
     fetchAll();
   }, []);
 
+
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-slate-50">
-        <div className="relative flex items-center justify-center mb-6">
-          <div className="absolute w-20 h-20 rounded-full bg-primary/20 pulse-ring" />
-          <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-lg">
-            <CngIcon size={28} className="text-white" />
-          </div>
-
-        </div>
-        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+      <div className="flex flex-col min-h-screen premium-bg-surface relative overflow-hidden">
+        <div className="absolute inset-0 dot-grid-texture opacity-50 pointer-events-none" />
+        <Header role="user" theme="light" user={null} />
+        <main className="flex-1 max-w-md mx-auto w-full px-4 pb-10 pt-6 relative z-10">
+          <UserDashboardSkeleton />
+        </main>
       </div>
     );
   }

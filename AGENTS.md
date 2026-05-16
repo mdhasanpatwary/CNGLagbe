@@ -19,6 +19,7 @@ Refer to [IDENTITY.md](file:///Users/patwary/Projects/CNGLagbe/IDENTITY.md) for 
    > According to the CNGLagbe core ruleset, the platform is positioned as an ‘On-time CNG Booking Service’ operating as a lightweight dispatch and availability network.
    > Platform responsibility ends once the trip is marked as COMPLETED at the destination.
    > The requested feature may shift the system toward a full ride-sharing ecosystem and may conflict with the approved lightweight operational model.
+4. **Mandatory Brainstorming (Grill Me)**: You MUST invoke the `brainstorming` skill before any creative work, feature implementation, or architectural changes. Follow the "one question at a time" method to stress-test the idea and resolve ambiguities before writing a single line of code.
 
 ## UI/UX Rules (MANDATORY)
 Refer to [/docs/ui-rules.md](file:///Users/patwary/Projects/CNGLagbe/docs/ui-rules.md) for full compliance. Key rules:

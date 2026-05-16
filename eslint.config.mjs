@@ -30,6 +30,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "public/**",
     "scratch/**",
+    ".agent/**",
   ]),
 ]);
 

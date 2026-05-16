@@ -19,6 +19,7 @@ import { simplifyAddress } from "@/utils/address";
 import { Booking } from "@/lib/types/booking";
 import { DriverSyncData } from "@/lib/types/driver";
 import { PageHeading } from "@/components/ui/PageHeading";
+import { DriverDashboardSkeleton } from "@/components/ui/AppSkeletons";
 
 // Internal types for location tracking
 interface DriverLocationPoint {
@@ -624,10 +625,7 @@ export default function DriverHomePage() {
         />
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4 animate-in fade-in duration-500">
-            <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">{t("loading")}</p>
-          </div>
+          <DriverDashboardSkeleton />
         ) : !isApproved ? (
           <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in-95 duration-700">
              <div className="w-24 h-24 bg-amber-100 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl shadow-amber-200/50">
