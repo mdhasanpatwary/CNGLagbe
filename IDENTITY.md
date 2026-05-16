@@ -173,6 +173,13 @@ The fare is calculated immediately after:
 - **Maps:** Google Maps Platform
 - **UI:** Shadcn/ui + Lucide icons + Vanilla CSS
 
+### Logic & UI Separation
+- **Strict Separation:** Business logic MUST be separated from UI components.
+- **Custom Hooks:** All complex state, data fetching, and business logic must live in custom hooks (e.g., `useBooking`, `useDriverStats`).
+- **Presentational Components:** Components should focus on UI rendering and interaction, receiving data and callbacks via props.
+- **Improved Testability:** Logic is easier to unit test when isolated from the React lifecycle and UI rendering.
+- **Scalability:** Modular hooks allow logic to be reused across different UI views.
+
 ---
 
 ## What CNGLagbe IS

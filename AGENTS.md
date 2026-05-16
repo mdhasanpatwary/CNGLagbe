@@ -34,6 +34,13 @@ Refer to [/docs/ui-rules.md](file:///Users/patwary/Projects/CNGLagbe/docs/ui-rul
 11. **Enforce Checklist**: Before adding any UI, verify against the checklist in `/docs/ui-rules.md`.
 12. **On-time Identity**: Ensure all UI reinforces the "On-time CNG Booking Service" identity.
 
+## Architecture & Code Structure (MANDATORY)
+1. **Logic/UI Separation**: ALL business logic, data fetching, and complex state management MUST be extracted into custom hooks.
+2. **Presentational Components**: Keep components "dumb" where possible. They should receive data and event handlers via props.
+3. **Hook Naming**: Use descriptive names like `useAdminDrivers`, `useWalletBalance`.
+4. **Context for Global State**: Use React Context only for truly global state (auth, theme, active booking). Avoid prop drilling by using hooks that interface with context.
+5. **No Logic in Components**: Avoid heavy `useEffect` or complex calculations directly inside the component body. Delegate to a hook.
+
 ## Form Validation & State Management
 1. **Schemas First**: All forms MUST have a Zod schema defined in `lib/schemas/`.
 2. **Unified State**: Use `react-hook-form` for all form state management. Avoid local `useState` for individual fields.
