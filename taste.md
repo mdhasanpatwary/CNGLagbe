@@ -160,3 +160,9 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Fare Breakdown Visibility:** The driver dashboard and active booking views must always display a granular fare breakdown: **Base Fare**, **Platform Fee**, and **Collect Amount** (Total). This ensures the driver knows exactly how much to collect from the passenger and why their wallet balance decreased.
 - **Transaction History Context:** Every transaction in the driver's wallet history should include pickup and drop-off location names (where applicable) to help drivers cross-reference fees with specific trips.
 - **Automated Fee Deduction:** Platform fees are automatically calculated and deducted from the driver's wallet balance within the same database transaction that marks a ride as `COMPLETED`. (Added 2026-05-15)
+
+## 🏗️ Admin Dashboard Architecture
+- **Hyper-Granular Refactor:** The Admin Dashboard follows a strict separation of concerns. All business logic, data fetching, and state management live in the [useAdminDashboard](file:///Users/patwary/Projects/CNGLagbe/app/admin/hooks/useAdminDashboard.ts) custom hook. Presentational logic is split into individual tab components under `app/admin/components/tabs/`.
+- **Shared Component Directory:** Common UI elements (badges, cards, modals) are centralized in `app/admin/components/shared/` and exposed via an `index.ts` file to ensure consistent styling and simplified imports across the dashboard.
+- **TabNavigation Standardization:** The dashboard uses a unified `TabNavigation` component to handle tab switching, ensuring a consistent UI and reducing redundant navigation logic in the main entry point.
+- **Type Safety Over `any`:** All component props in the admin dashboard use explicit TypeScript interfaces. The use of the `any` type is strictly avoided to ensure production stability.
