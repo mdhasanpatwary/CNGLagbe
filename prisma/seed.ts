@@ -54,7 +54,10 @@ async function main() {
         pickupAddress: 'Dhanmondi 32',
         destAddress: 'Banani 11',
         distance: 5.2,
-        fare: 150,
+        fare: 178,
+        baseFare: 178,
+        platformFee: 10,
+        totalFare: 188,
         status: 'PENDING',
       },
       {
@@ -66,7 +69,10 @@ async function main() {
         pickupAddress: 'Farmgate',
         destAddress: 'Gulshan 1',
         distance: 3.5,
-        fare: 120,
+        fare: 153,
+        baseFare: 153,
+        platformFee: 10,
+        totalFare: 163,
         status: 'PENDING',
       }
     ]
@@ -84,7 +90,10 @@ async function main() {
       pickupAddress: 'Uttara Sector 7',
       destAddress: 'Airport',
       distance: 2.1,
-      fare: 80,
+      fare: 132,
+      baseFare: 132,
+      platformFee: 10,
+      totalFare: 142,
       status: 'ACCEPTED',
     }
   })

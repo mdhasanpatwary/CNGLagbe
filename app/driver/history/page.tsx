@@ -12,12 +12,15 @@ import {
   MessageSquare,
   Clock,
   Route,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLang } from "@/hooks/useLang";
 import { Header } from "@/components/layout/Header";
 import { PageHeading } from "@/components/ui/PageHeading";
+import { AppButton } from "@/components/ui/AppButton";
 import { apiFetch } from "@/utils/api";
 
 interface TripRecord {
@@ -69,20 +72,75 @@ function formatDate(dateStr: string) {
   }).format(new Date(dateStr));
 }
 
+interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  stats: {
+    lifetimeTrips: number;
+    totalEarned: number;
+    avgRating: number;
+  };
+}
+
 export default function DriverHistoryPage() {
   const { t } = useLang();
   const [trips, setTrips] = useState<TripRecord[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [timeframe, setTimeframe] = useState<string>("all");
 
   useEffect(() => {
-    apiFetch("/api/driver/history")
-      .then((res) => res.json())
-      .then((data) => setTrips(data.bookings ?? []))
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+    let active = true;
+    const query = new URLSearchParams({
+      page: page.toString(),
+      limit: "10",
+      timeframe: timeframe,
+    });
+    if (statusFilter !== "ALL") {
+      query.append("status", statusFilter);
+    }
 
-  if (loading) {
+    apiFetch(`/api/driver/history?${query.toString()}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (active) {
+          setTrips(data.bookings ?? []);
+          setMeta(data.meta ?? null);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch history:", err);
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [page, statusFilter, timeframe]);
+
+  const handleStatusChange = (status: string) => {
+    setLoading(true);
+    setStatusFilter(status);
+    setPage(1);
+  };
+
+  const handleTimeframeChange = (tf: string) => {
+    setLoading(true);
+    setTimeframe(tf);
+    setPage(1);
+  };
+
+  const handlePageChange = (p: number) => {
+    setLoading(true);
+    setPage(p);
+  };
+
+  if (loading && page === 1 && !trips.length) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-slate-50">
         <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
@@ -93,16 +151,10 @@ export default function DriverHistoryPage() {
     );
   }
 
-  const completed = trips.filter((t) => t.status === "COMPLETED");
-  const totalEarned = completed.reduce((sum, t) => sum + (t.totalFare ?? t.fare), 0);
-  const ratedTrips = completed.filter((t) => t.rating != null);
-  const avgRating =
-    ratedTrips.length > 0
-      ? ratedTrips.reduce((sum, t) => sum + (t.rating ?? 0), 0) / ratedTrips.length
-      : 0;
+  const stats = meta?.stats || { lifetimeTrips: 0, totalEarned: 0, avgRating: 0 };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-24">
       {/* Background gradient */}
       <div className="fixed inset-0 bg-gradient-to-b from-primary/8 via-transparent to-transparent pointer-events-none" />
 
@@ -116,44 +168,75 @@ export default function DriverHistoryPage() {
         />
 
         {/* Summary strip */}
-        {trips.length > 0 && (
-          <div className="grid grid-cols-3 gap-3">
-            <Card className="border-none bg-white/90 backdrop-blur-xl shadow-md rounded-2xl">
-              <CardContent className="p-3 text-center">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight mb-1">
-                  {t("lifetime_trips")}
-                </p>
-                <p className="text-xl font-black text-primary">{completed.length}</p>
-              </CardContent>
-            </Card>
-            <Card className="border-none bg-white/90 backdrop-blur-xl shadow-md rounded-2xl">
-              <CardContent className="p-3 text-center">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight mb-1">
-                  {t("total_earned")}
-                </p>
+        <div className="grid grid-cols-3 gap-3">
+          <Card className="border-none bg-white/90 backdrop-blur-xl shadow-md rounded-2xl">
+            <CardContent className="p-3 text-center">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight mb-1">
+                {t("lifetime_trips")}
+              </p>
+              <p className="text-xl font-black text-primary">{stats.lifetimeTrips}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-none bg-white/90 backdrop-blur-xl shadow-md rounded-2xl">
+            <CardContent className="p-3 text-center">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight mb-1">
+                {t("total_earned")}
+              </p>
+              <p className="text-xl font-black text-slate-800">
+                {t("currency")}{stats.totalEarned}
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-none bg-white/90 backdrop-blur-xl shadow-md rounded-2xl">
+            <CardContent className="p-3 text-center">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight mb-1">
+                {t("rating_score")}
+              </p>
+              <div className="flex items-center justify-center gap-1">
+                <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
                 <p className="text-xl font-black text-slate-800">
-                  {t("currency")}{totalEarned}
+                  {stats.avgRating > 0 ? stats.avgRating.toFixed(1) : "—"}
                 </p>
-              </CardContent>
-            </Card>
-            <Card className="border-none bg-white/90 backdrop-blur-xl shadow-md rounded-2xl">
-              <CardContent className="p-3 text-center">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight mb-1">
-                  {t("rating_score")}
-                </p>
-                <div className="flex items-center justify-center gap-1">
-                  <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                  <p className="text-xl font-black text-slate-800">
-                    {avgRating > 0 ? avgRating.toFixed(1) : "—"}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+            {["all", "today", "weekly", "monthly"].map((tf) => (
+              <AppButton
+                key={tf}
+                variant={timeframe === tf ? "primary" : "ghost"}
+                onClick={() => handleTimeframeChange(tf)}
+                className="whitespace-nowrap h-9 !rounded-xl !text-[10px] !font-black !px-4"
+              >
+                {tf === "all" ? t("all_time") : tf === "today" ? t("today") : tf === "weekly" ? t("last_7_days") : t("this_month")}
+              </AppButton>
+            ))}
           </div>
-        )}
+
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+            {["ALL", "COMPLETED", "CANCELLED"].map((f) => (
+              <AppButton
+                key={f}
+                variant={statusFilter === f ? "primary" : "ghost"}
+                onClick={() => handleStatusChange(f)}
+                className="whitespace-nowrap h-9 !rounded-xl !text-[10px] !font-black !px-4"
+              >
+                {f === "ALL" ? t("all") : f === "COMPLETED" ? t("completed") : t("cancelled")}
+              </AppButton>
+            ))}
+          </div>
+        </div>
 
         {/* Trip list */}
-        {trips.length === 0 ? (
+        {loading && page === 1 ? (
+           <div className="flex flex-col items-center justify-center py-24 text-center">
+             <Loader2 className="w-8 h-8 animate-spin text-slate-200" />
+           </div>
+        ) : trips.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center text-slate-400">
             <Navigation size={48} className="mb-4 opacity-10" />
             <p className="font-bold uppercase tracking-widest text-xs">
@@ -222,7 +305,7 @@ export default function DriverHistoryPage() {
                           {trip.platformFee ? t("total_payable") : t("fare")}
                         </p>
                         <p className="text-sm font-black text-slate-800">
-                          {t("currency")}{trip.totalFare ?? trip.fare}
+                          {t("currency")}{trip.totalFare || trip.fare}
                         </p>
                       </div>
                     </div>
@@ -285,6 +368,39 @@ export default function DriverHistoryPage() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {meta && meta.totalPages > 1 && (
+          <div className="flex items-center justify-between pt-4 pb-8">
+            <AppButton
+              variant="ghost"
+              onClick={() => handlePageChange(Math.max(1, page - 1))}
+              disabled={page === 1 || loading}
+              className="!h-10 !rounded-xl !text-[10px] !font-black !px-4"
+            >
+              <div className="flex items-center gap-1">
+                <ChevronLeft className="w-4 h-4" />
+                {t("prev")}
+              </div>
+            </AppButton>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                {t("page")} {page} / {meta.totalPages}
+              </span>
+            </div>
+            <AppButton
+              variant="ghost"
+              onClick={() => handlePageChange(Math.min(meta.totalPages, page + 1))}
+              disabled={page === meta.totalPages || loading}
+              className="!h-10 !rounded-xl !text-[10px] !font-black !px-4"
+            >
+              <div className="flex items-center gap-1">
+                {t("next")}
+                <ChevronRight className="w-4 h-4" />
+              </div>
+            </AppButton>
           </div>
         )}
       </main>

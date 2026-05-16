@@ -78,7 +78,10 @@ export async function GET() {
         pickupAddress: "Dhanmondi 32, Dhaka",
         destAddress: "Banani 11 Shopping Center",
         distance: 5.2,
-        fare: 150,
+        fare: 178,
+        baseFare: 178,
+        platformFee: 10,
+        totalFare: 188,
         status: "PENDING",
       },
       {
@@ -90,7 +93,10 @@ export async function GET() {
         pickupAddress: "Farmgate Bus Stand",
         destAddress: "Gulshan 1 Circle",
         distance: 3.5,
-        fare: 120,
+        fare: 153,
+        baseFare: 153,
+        platformFee: 10,
+        totalFare: 163,
         status: "PENDING",
       },
       {
@@ -102,7 +108,10 @@ export async function GET() {
         pickupAddress: "Mirpur 10 Circle",
         destAddress: "Gabtoli Terminal",
         distance: 4.1,
-        fare: 140,
+        fare: 162,
+        baseFare: 162,
+        platformFee: 10,
+        totalFare: 172,
         status: "PENDING",
       }
     ];
@@ -121,7 +130,10 @@ export async function GET() {
         pickupAddress: "Uttara Sector 7, Lake View",
         destAddress: "Hazrat Shahjalal International Airport",
         distance: 2.1,
-        fare: 80,
+        fare: 132,
+        baseFare: 132,
+        platformFee: 10,
+        totalFare: 142,
         status: "ACCEPTED",
       },
     });

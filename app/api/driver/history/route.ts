@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma, BookingStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -13,15 +14,32 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 50);
+    const limit = Math.min(parseInt(searchParams.get("limit") || "10"), 50);
+    const status = searchParams.get("status"); // COMPLETED or CANCELLED
+    const timeframe = searchParams.get("timeframe") || "all";
     const skip = (page - 1) * limit;
 
-    const [bookings, total] = await Promise.all([
+    const whereClause: Prisma.BookingWhereInput = {
+      driverId: session.sub,
+      status: status ? (status as BookingStatus) : { in: ["COMPLETED", "CANCELLED"] as BookingStatus[] },
+    };
+
+    if (timeframe !== "all") {
+      const now = new Date();
+      const start = new Date(now);
+      if (timeframe === "today") {
+        start.setHours(0, 0, 0, 0);
+      } else if (timeframe === "weekly") {
+        start.setDate(now.getDate() - 7);
+      } else if (timeframe === "monthly") {
+        start.setDate(now.getDate() - 30);
+      }
+      whereClause.createdAt = { gte: start };
+    }
+
+    const [bookings, totalFiltered, stats] = await Promise.all([
       prisma.booking.findMany({
-        where: {
-          driverId: session.sub,
-          status: { in: ["COMPLETED", "CANCELLED"] },
-        },
+        where: whereClause,
         select: {
           id: true,
           status: true,
@@ -48,10 +66,22 @@ export async function GET(request: Request) {
         skip,
         take: limit,
       }),
-      prisma.booking.count({
+      prisma.booking.count({ where: whereClause }),
+      // Fetch all-time stats for the summary cards
+      prisma.booking.aggregate({
         where: {
           driverId: session.sub,
-          status: { in: ["COMPLETED", "CANCELLED"] },
+          status: "COMPLETED",
+        },
+        _sum: {
+          totalFare: true,
+          fare: true,
+        },
+        _count: {
+          id: true,
+        },
+        _avg: {
+          rating: true,
         },
       }),
     ]);
@@ -59,10 +89,15 @@ export async function GET(request: Request) {
     return NextResponse.json({
       bookings,
       meta: {
-        total,
+        total: totalFiltered,
         page,
         limit,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(totalFiltered / limit),
+        stats: {
+          lifetimeTrips: stats._count.id,
+          totalEarned: (stats._sum.totalFare || stats._sum.fare || 0),
+          avgRating: stats._avg.rating || 0,
+        }
       },
     });
   } catch (error) {

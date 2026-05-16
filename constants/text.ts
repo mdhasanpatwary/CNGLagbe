@@ -598,6 +598,10 @@ export const TEXT = {
   no_trips_yet: { en: "No trips yet", bn: "এখনো কোনো ট্রিপ নেই" },
   full_history: { en: "Trip History & Reviews", bn: "ট্রিপ ও রিভিউ" },
   view_trips_reviews: { en: "View all trips & reviews", bn: "সব ট্রিপ ও রিভিউ দেখুন" },
+  today: { en: "Today", bn: "আজ" },
+  last_7_days: { en: "7 Days", bn: "৭ দিন" },
+  this_month: { en: "30 Days", bn: "৩০ দিন" },
+  all_time: { en: "All", bn: "সব সময়" },
 } as const;
 
 
