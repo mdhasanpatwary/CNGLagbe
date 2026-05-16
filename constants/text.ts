@@ -164,6 +164,7 @@ export const TEXT = {
   finding_driver: { en: "Finding Driver", bn: "ড্রাইভার খুঁজছি" },
   restored_msg: { en: "Route Restored", bn: "আগের ম্যাপ" },
   back: { en: "Back", bn: "পিছনে" },
+  prev: { en: "Prev", bn: "পিছনে" },
   recenter: { en: "Recenter", bn: "মাঝখানে" },
   search: { en: "Search", bn: "কোথায় যাবেন?" },
   pickup: { en: "Pickup", bn: "পিকআপ" },
@@ -218,6 +219,7 @@ export const TEXT = {
   driver_signup: { en: "Join as Driver", bn: "ড্রাইভার হিসেবে যোগ দিন" },
   signup_btn: { en: "Sign Up", bn: "যোগ দিন" },
   next: { en: "Next", bn: "পরবর্তী" },
+  page: { en: "Page", bn: "পৃষ্ঠা" },
   submit: { en: "Submit", bn: "জমা দিন" },
   step_basic: { en: "Basic Info", bn: "প্রাথমিক তথ্য" },
   step_identity: { en: "Identity", bn: "পরিচয়" },
@@ -602,6 +604,7 @@ export const TEXT = {
   last_7_days: { en: "7 Days", bn: "৭ দিন" },
   this_month: { en: "30 Days", bn: "৩০ দিন" },
   all_time: { en: "All", bn: "সব সময়" },
+  no_bookings_found: { en: "No bookings", bn: "কোনো বুকিং নেই" },
 } as const;
 
 

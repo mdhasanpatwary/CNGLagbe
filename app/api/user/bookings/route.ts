@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
+import { BookingStatus } from "@/lib/types/booking";
 
 export const dynamic = 'force-dynamic';
 
@@ -13,16 +15,33 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 50); // cap at 50
+    const limit = Math.min(parseInt(searchParams.get("limit") || "10"), 50);
+    const status = searchParams.get("status");
+    const timeframe = searchParams.get("timeframe") || "all";
     const skip = (page - 1) * limit;
+
+    const whereClause: Prisma.BookingWhereInput = {
+      userId: session.sub,
+      status: status ? (status as BookingStatus) : { in: ["COMPLETED", "CANCELLED"] as BookingStatus[] },
+    };
+
+    if (timeframe !== "all") {
+      const now = new Date();
+      const start = new Date(now);
+      if (timeframe === "today") {
+        start.setHours(0, 0, 0, 0);
+      } else if (timeframe === "weekly") {
+        start.setDate(now.getDate() - 7);
+      } else if (timeframe === "monthly") {
+        start.setDate(now.getDate() - 30);
+      }
+      whereClause.createdAt = { gte: start };
+    }
 
     // Run findMany and count in parallel with pagination
     const [bookings, total] = await Promise.all([
       prisma.booking.findMany({
-        where: { 
-          userId: session.sub,
-          status: { not: "TIMED_OUT" }
-        },
+        where: whereClause,
         select: {
           id: true,
           status: true,
@@ -44,12 +63,7 @@ export async function GET(request: Request) {
         skip,
         take: limit,
       }),
-      prisma.booking.count({ 
-        where: { 
-          userId: session.sub,
-          status: { not: "TIMED_OUT" }
-        } 
-      }),
+      prisma.booking.count({ where: whereClause }),
     ]);
 
     return NextResponse.json({

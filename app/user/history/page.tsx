@@ -1,63 +1,123 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronRight, Calendar, Banknote, Navigation, Loader2 } from "lucide-react";
+import { ChevronRight, Calendar, Banknote, Navigation, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLang } from "@/hooks/useLang";
 import { Header } from "@/components/layout/Header";
 import { PageHeading } from "@/components/ui/PageHeading";
+import { AppButton } from "@/components/ui/AppButton";
+import { Skeleton } from "@/components/ui/skeleton";
 import { apiFetch } from "@/utils/api";
 
 import { Booking } from "@/lib/types/booking";
 import { User } from "@/lib/types/user";
+
+const HistorySkeleton = () => (
+  <div className="space-y-4">
+    {[1, 2, 3].map((i) => (
+      <Card key={i} className="overflow-hidden border-none shadow-md rounded-[2rem]">
+        <CardContent className="p-5">
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex items-center gap-2">
+              <Skeleton className="w-8 h-8 rounded-xl" />
+              <Skeleton className="w-24 h-3 rounded-full" />
+            </div>
+            <Skeleton className="w-16 h-4 rounded-md" />
+          </div>
+          <div className="space-y-3 mb-4">
+            <div className="flex items-start gap-3">
+              <Skeleton className="w-1.5 h-1.5 rounded-full mt-1.5" />
+              <Skeleton className="w-3/4 h-3 rounded-full" />
+            </div>
+            <div className="flex items-start gap-3">
+              <Skeleton className="w-1.5 h-1.5 rounded-full mt-1.5" />
+              <Skeleton className="w-1/2 h-3 rounded-full" />
+            </div>
+          </div>
+          <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+            <Skeleton className="w-20 h-5 rounded-lg" />
+            <Skeleton className="w-24 h-4 rounded-full" />
+          </div>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
 
 export default function BookingHistoryPage() {
   const { t } = useLang();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [page, setPage] = useState(1);
+  const [meta, setMeta] = useState<{ totalPages: number } | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [timeframe, setTimeframe] = useState<string>("all");
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [historyRes, userRes] = await Promise.all([
-          apiFetch("/api/user/bookings"),
-          apiFetch("/api/auth/me")
-        ]);
-
-        if (historyRes.ok) {
-          const data = await historyRes.json();
-          setBookings(data.bookings);
-        } else {
-          console.error("Failed to fetch bookings:", historyRes.status, await historyRes.text());
-        }
-
-        if (userRes.ok) {
-          const data = await userRes.json();
+    let active = true;
+    apiFetch("/api/auth/me")
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (active && data) {
           setUser(data.user);
-        } else {
-          console.error("Failed to fetch user:", userRes.status, await userRes.text());
         }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+      })
+      .catch(err => console.error("Failed to fetch user:", err));
+    
+    return () => { active = false; };
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen premium-bg-surface relative overflow-hidden">
-        <div className="absolute inset-0 dot-grid-texture opacity-50 pointer-events-none" />
-        <Loader2 className="w-10 h-10 animate-spin text-primary mb-4 relative z-10" />
-        <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] relative z-10">{t("loading")}</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    let active = true;
+    const query = new URLSearchParams({
+      page: page.toString(),
+      limit: "10",
+      timeframe: timeframe,
+    });
+    if (statusFilter !== "ALL") {
+      query.append("status", statusFilter);
+    }
+
+    apiFetch(`/api/user/bookings?${query.toString()}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (active) {
+          setBookings(data.bookings ?? []);
+          setMeta(data.meta ?? null);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch bookings:", err);
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [page, statusFilter, timeframe]);
+
+  const handleStatusChange = (status: string) => {
+    setLoading(true);
+    setStatusFilter(status);
+    setPage(1);
+  };
+
+  const handleTimeframeChange = (tf: string) => {
+    setLoading(true);
+    setTimeframe(tf);
+    setPage(1);
+  };
+
+  const handlePageChange = (p: number) => {
+    setLoading(true);
+    setPage(p);
+  };
+
 
   return (
     <div className="flex flex-col min-h-screen premium-bg-surface relative overflow-hidden">
@@ -68,16 +128,48 @@ export default function BookingHistoryPage() {
         user={user}
       />
 
-      <main className="flex-1 p-6 max-w-md mx-auto w-full space-y-6 relative z-10">
+      <main className="flex-1 p-5 pt-2 max-w-md mx-auto w-full relative z-10">
         <PageHeading 
           title={t("booking_history")} 
           subtitle={t("user_portal")}
           backHref="/user"
         />
-        {bookings.length === 0 ? (
+
+        {/* Filters */}
+        <div className="flex flex-col gap-3 mb-6">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+            {["all", "today", "weekly", "monthly"].map((tf) => (
+              <AppButton
+                key={tf}
+                variant={timeframe === tf ? "primary" : "ghost"}
+                onClick={() => handleTimeframeChange(tf)}
+                className="whitespace-nowrap h-9 !rounded-xl !text-[10px] !font-black !px-4"
+              >
+                {tf === "all" ? t("all_time") : tf === "today" ? t("today") : tf === "weekly" ? t("last_7_days") : t("this_month")}
+              </AppButton>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+            {["ALL", "COMPLETED", "CANCELLED"].map((f) => (
+              <AppButton
+                key={f}
+                variant={statusFilter === f ? "primary" : "ghost"}
+                onClick={() => handleStatusChange(f)}
+                className="whitespace-nowrap h-9 !rounded-xl !text-[10px] !font-black !px-4"
+              >
+                {f === "ALL" ? t("all") : f === "COMPLETED" ? t("completed") : t("cancelled")}
+              </AppButton>
+            ))}
+          </div>
+        </div>
+
+        {loading ? (
+          <HistorySkeleton />
+        ) : bookings.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center text-slate-400">
             <Navigation size={48} className="mb-4 opacity-10" />
-            <p className="font-bold uppercase tracking-widest text-xs">{t("no_bookings")}</p>
+            <p className="text-xs font-bold uppercase tracking-widest">{t("no_bookings_found")}</p>
           </div>
         ) : (
           bookings.map((booking) => (
@@ -131,11 +223,40 @@ export default function BookingHistoryPage() {
             </Link>
           ))
         )}
-      </main>
 
-      <footer className="p-8 text-center opacity-30">
-        <p className="text-[10px] font-black uppercase tracking-[0.3em]">{t("app_name")}</p>
-      </footer>
+        {/* Pagination Controls */}
+        {meta && meta.totalPages > 1 && (
+          <div className="flex items-center justify-between pt-4 pb-8">
+            <AppButton
+              variant="ghost"
+              onClick={() => handlePageChange(Math.max(1, page - 1))}
+              disabled={page === 1 || loading}
+              className="!h-10 !rounded-xl !text-[10px] !font-black !px-4"
+            >
+              <div className="flex items-center gap-1">
+                <ChevronLeft className="w-4 h-4" />
+                {t("prev")}
+              </div>
+            </AppButton>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                {t("page")} {page} / {meta.totalPages}
+              </span>
+            </div>
+            <AppButton
+              variant="ghost"
+              onClick={() => handlePageChange(Math.min(meta.totalPages, page + 1))}
+              disabled={page === meta.totalPages || loading}
+              className="!h-10 !rounded-xl !text-[10px] !font-black !px-4"
+            >
+              <div className="flex items-center gap-1">
+                {t("next")}
+                <ChevronRight className="w-4 h-4" />
+              </div>
+            </AppButton>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

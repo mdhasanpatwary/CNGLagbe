@@ -5,7 +5,6 @@ import {
   Calendar,
   Banknote,
   Navigation,
-  Loader2,
   Star,
   CheckCircle2,
   XCircle,
@@ -21,6 +20,7 @@ import { useLang } from "@/hooks/useLang";
 import { Header } from "@/components/layout/Header";
 import { PageHeading } from "@/components/ui/PageHeading";
 import { AppButton } from "@/components/ui/AppButton";
+import { Skeleton } from "@/components/ui/skeleton";
 import { apiFetch } from "@/utils/api";
 
 interface TripRecord {
@@ -84,6 +84,47 @@ interface PaginationMeta {
   };
 }
 
+const HistorySkeleton = () => (
+  <div className="flex flex-col gap-5">
+    {/* Stats Skeleton */}
+    <div className="grid grid-cols-3 gap-3">
+      {[1, 2, 3].map((i) => (
+        <Card key={i} className="border-none bg-white/90 shadow-md rounded-2xl">
+          <CardContent className="p-3 text-center">
+            <Skeleton className="w-16 h-2 mx-auto mb-2" />
+            <Skeleton className="w-10 h-6 mx-auto" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+
+    {/* Trips Skeleton */}
+    <div className="flex flex-col gap-4">
+      {[1, 2, 3].map((i) => (
+        <Card key={i} className="overflow-hidden border-none shadow-md rounded-[2rem]">
+          <CardContent className="p-5">
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex items-center gap-2">
+                <Skeleton className="w-8 h-8 rounded-xl" />
+                <Skeleton className="w-32 h-3 rounded-full" />
+              </div>
+              <Skeleton className="w-16 h-4 rounded-md" />
+            </div>
+            <div className="space-y-3 mb-4">
+              <Skeleton className="w-full h-3 rounded-full" />
+              <Skeleton className="w-2/3 h-3 rounded-full" />
+            </div>
+            <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+              <Skeleton className="w-20 h-5 rounded-lg" />
+              <Skeleton className="w-24 h-4 rounded-full" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  </div>
+);
+
 export default function DriverHistoryPage() {
   const { t } = useLang();
   const [trips, setTrips] = useState<TripRecord[]>([]);
@@ -140,16 +181,6 @@ export default function DriverHistoryPage() {
     setPage(p);
   };
 
-  if (loading && page === 1 && !trips.length) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-slate-50">
-        <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
-        <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">
-          {t("loading")}
-        </p>
-      </div>
-    );
-  }
 
   const stats = meta?.stats || { lifetimeTrips: 0, totalEarned: 0, avgRating: 0 };
 
@@ -233,9 +264,7 @@ export default function DriverHistoryPage() {
 
         {/* Trip list */}
         {loading && page === 1 ? (
-           <div className="flex flex-col items-center justify-center py-24 text-center">
-             <Loader2 className="w-8 h-8 animate-spin text-slate-200" />
-           </div>
+           <HistorySkeleton />
         ) : trips.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center text-slate-400">
             <Navigation size={48} className="mb-4 opacity-10" />
@@ -404,10 +433,6 @@ export default function DriverHistoryPage() {
           </div>
         )}
       </main>
-
-      <footer className="p-8 text-center opacity-30">
-        <p className="text-[10px] font-black uppercase tracking-[0.3em]">{t("app_name")}</p>
-      </footer>
     </div>
   );
 }
