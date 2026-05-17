@@ -3,9 +3,7 @@ import {
   AlertOctagon, 
   Search, 
   Eye, 
-  CheckCircle2, 
   MapPin, 
-  Calendar, 
   User, 
   Navigation,
   MessageSquare,
@@ -179,7 +177,7 @@ export const IssuesTab: React.FC<IssuesTabProps> = ({
                       </p>
                       {issue.details && (
                         <p className="text-xs font-medium text-slate-500 truncate mt-1">
-                          "{issue.details}"
+                          &ldquo;{issue.details}&rdquo;
                         </p>
                       )}
                     </div>
@@ -235,10 +233,13 @@ export const IssuesTab: React.FC<IssuesTabProps> = ({
                       <p className="text-[10px] font-semibold text-slate-400">
                         {new Date(issue.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
-                      <button className="text-primary hover:text-primary-dark text-xs font-black uppercase flex items-center gap-1.5 mt-1 transition-all group">
+                      <AppButton 
+                        variant="ghost"
+                        className="!p-0 !h-auto text-primary hover:text-primary-dark text-xs font-black uppercase flex items-center gap-1.5 mt-1 transition-all group hover:bg-transparent"
+                      >
                         {t("view_details") || "Details"}
                         <Eye size={12} className="group-hover:translate-x-0.5 transition-transform" />
-                      </button>
+                      </AppButton>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -318,15 +319,16 @@ export const IssuesTab: React.FC<IssuesTabProps> = ({
                   </div>
                 </div>
               </div>
-              <button 
+              <AppButton 
+                variant="ghost"
                 onClick={() => {
                   setSelectedIssue(null);
                   setResolutionNote("");
                 }}
-                className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100/80 p-2.5 rounded-full transition-all text-xs font-black uppercase"
+                className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100/80 !p-2.5 !h-auto rounded-full transition-all text-xs font-black uppercase"
               >
                 {t("close_btn") || "Close"}
-              </button>
+              </AppButton>
             </div>
 
             {/* Trip Context Card */}

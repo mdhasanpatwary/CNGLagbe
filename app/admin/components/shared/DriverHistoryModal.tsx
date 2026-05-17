@@ -61,6 +61,25 @@ interface PaginationMeta {
   };
 }
 
+interface LedgerTransaction {
+  id: string;
+  amount: number;
+  type: string;
+  details?: string | null;
+  createdAt: string;
+  booking?: {
+    pickupAddress?: string | null;
+    destAddress?: string | null;
+  } | null;
+}
+
+interface LedgerPaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 interface DriverHistoryModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -82,8 +101,8 @@ export function DriverHistoryModal({
 
   // Ledger States
   const [activeTab, setActiveTab] = useState<"trips" | "ledger">("trips");
-  const [ledgerTransactions, setLedgerTransactions] = useState<any[]>([]);
-  const [ledgerMeta, setLedgerMeta] = useState<any | null>(null);
+  const [ledgerTransactions, setLedgerTransactions] = useState<LedgerTransaction[]>([]);
+  const [ledgerMeta, setLedgerMeta] = useState<LedgerPaginationMeta | null>(null);
   const [ledgerLoading, setLedgerLoading] = useState(false);
   const [ledgerPage, setLedgerPage] = useState(1);
   const [ledgerTimeframe, setLedgerTimeframe] = useState<string>("all");
@@ -238,26 +257,28 @@ export function DriverHistoryModal({
         <div className="flex-1 overflow-y-auto p-6 pt-4 flex flex-col gap-4">
           {/* Tab Selector */}
           <div className="flex border-b border-slate-100 bg-white gap-8 -mx-6 -mt-4 px-6 mb-2 sticky top-0 z-10">
-            <button
+            <AppButton
+              variant="ghost"
               onClick={() => handleTabChange("trips")}
-              className={`py-3 font-black uppercase text-[11px] tracking-widest border-b-2 transition-all ${
+              className={`!py-3 !px-0 !h-auto font-black uppercase text-[11px] tracking-widest border-b-2 transition-all rounded-none hover:bg-transparent ${
                 activeTab === "trips"
                   ? "border-primary text-primary"
                   : "border-transparent text-slate-400 hover:text-slate-600"
               }`}
             >
               {t("trip_history")}
-            </button>
-            <button
+            </AppButton>
+            <AppButton
+              variant="ghost"
               onClick={() => handleTabChange("ledger")}
-              className={`py-3 font-black uppercase text-[11px] tracking-widest border-b-2 transition-all ${
+              className={`!py-3 !px-0 !h-auto font-black uppercase text-[11px] tracking-widest border-b-2 transition-all rounded-none hover:bg-transparent ${
                 activeTab === "ledger"
                   ? "border-primary text-primary"
                   : "border-transparent text-slate-400 hover:text-slate-600"
               }`}
             >
               {t("wallet")} {t("wallet_history")}
-            </button>
+            </AppButton>
           </div>
 
           {activeTab === "trips" ? (

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedAdmin } from "@/lib/auth";
+import { Prisma } from "@prisma/client";
 
 export async function GET(request: Request) {
   try {
@@ -18,7 +19,7 @@ export async function GET(request: Request) {
     const skip = (page - 1) * limit;
 
     // Build filter query
-    const where: any = {};
+    const where: Prisma.IssueReportWhereInput = {};
 
     if (status !== "ALL") {
       where.status = status;

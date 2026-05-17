@@ -65,16 +65,17 @@ function FilterPill({
   onClick: () => void;
 }) {
   return (
-    <button
+    <AppButton
+      variant="ghost"
       onClick={onClick}
-      className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all duration-200 shrink-0 select-none ${
+      className={`!px-4 !py-1.5 !h-auto rounded-full text-[10px] font-black uppercase tracking-wider transition-all duration-200 shrink-0 select-none ${
         active
-          ? "bg-slate-900 text-white shadow-sm"
-          : "bg-white text-slate-400 hover:text-slate-600 hover:bg-slate-50 border border-slate-100"
+          ? "!bg-slate-900 !text-white shadow-sm hover:!bg-slate-900 hover:!text-white"
+          : "!bg-white !text-slate-400 hover:!text-slate-600 hover:!bg-slate-50 border border-slate-100"
       }`}
     >
       {label}
-    </button>
+    </AppButton>
   );
 }
 
@@ -134,6 +135,7 @@ export default function DriverWalletPage() {
     }
 
     fetchWallet();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeframe, type, page]);
 
   const logout = async () => {

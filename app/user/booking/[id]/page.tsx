@@ -986,22 +986,25 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                     { key: "LOST_ITEMS_IN_VEHICLE", labelKey: "reason_lost_items" },
                     { key: "OTHER", labelKey: "reason_other" },
                   ].map((option) => (
-                    <button
+                    <AppButton
                       key={option.key}
+                      variant="ghost"
                       onClick={() => setSelectedReason(option.key)}
-                      className={`w-full text-left p-3.5 rounded-2xl border text-xs font-bold transition-all flex items-center justify-between ${
+                      className={`w-full !p-3.5 !h-auto rounded-2xl border text-xs font-bold transition-all flex items-center justify-between hover:bg-transparent ${
                         selectedReason === option.key
-                          ? "bg-red-50/50 border-red-500 text-red-600 shadow-sm"
-                          : "bg-slate-50 border-slate-100 text-slate-700 hover:border-slate-200"
+                          ? "!bg-red-50/50 border-red-500 !text-red-600 shadow-sm"
+                          : "!bg-slate-50 border-slate-100 !text-slate-700 hover:border-slate-200"
                       }`}
                     >
-                      <span>{t(option.labelKey as TextKey)}</span>
-                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                        selectedReason === option.key ? "border-red-500 bg-red-500 text-white" : "border-slate-300 bg-white"
-                      }`}>
-                        {selectedReason === option.key && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                      <div className="flex items-center justify-between w-full">
+                        <span>{t(option.labelKey as TextKey)}</span>
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                          selectedReason === option.key ? "border-red-500 bg-red-500 text-white" : "border-slate-300 bg-white"
+                        }`}>
+                          {selectedReason === option.key && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                        </div>
                       </div>
-                    </button>
+                    </AppButton>
                   ))}
                 </div>
 

@@ -78,7 +78,7 @@ The fare is calculated immediately after:
 | Component | Description |
 |-----------|-------------|
 | **Base Fare** | Distance-based calculated fare |
-| **Platform Fee** | 5% of base fare, minimum **10 BDT** |
+| **Platform Fee** | Database-configurable percentage of base fare (default **5%**), minimum **10 BDT** |
 | **Collect Amount (Total)** | Base Fare + Platform Fee — what passenger pays in cash |
 
 - Passenger sees full breakdown before confirming
@@ -93,21 +93,25 @@ The fare is calculated immediately after:
 ## Platform Fee & Driver Wallet Model
 
 ### Fee Model
-- **5% platform fee** on every completed ride
-- **Minimum floor: 10 BDT**
-- Fee is added to the passenger's total fare (not subtracted from it)
-- Driver collects the total, owes the platform fee
+- **Dynamic platform fee percentage** configured dynamically via Database settings (from the Admin Settings Tab), with a default fallback of **5%**.
+- **Minimum floor: 10 BDT**.
+- Fee is added to the passenger's total fare (not subtracted from it).
+- Driver collects the total, owes the platform fee.
 
 ### Wallet as Debt Tracker
-- Driver's wallet tracks **debt owed to the platform**
-- Each completed ride creates a **negative transaction** (e.g., −10 BDT)
-- Debt is manually settled with the admin (cash or bank)
-- Payment reconciliation is a **manual process** — no automated payment gateway
+- Driver's wallet tracks **debt owed to the platform**.
+- Each completed ride creates a **negative transaction** matching the dynamic fee percentage calculation (minimum 10 BDT floor).
+- Debt is manually settled with the admin (cash or bank).
+- Payment reconciliation is a **manual process** — no automated payment gateway.
 
 ### Implemented Wallet Features
-- Real-time wallet balance visible on driver dashboard
-- Full transaction history with trip context (pickup, drop, date)
-- Negative balance shown in red with explicit debt warning
+- Real-time wallet balance visible on driver dashboard.
+- Full wallet transactions history ledger with:
+  - Timeframe filtering (All, Today, Last Week, Last Month).
+  - Debit/Credit type filtering (All, Debit, Credit).
+  - High-end visual balance card (no redundant running balance columns).
+  - Highly contextual trip info (pickup, drop, date, and time).
+- Negative balance shown in red with explicit debt warning.
 - "Pay Now" button (links to admin contact — manual settlement)
 
 ---
@@ -139,13 +143,15 @@ The fare is calculated immediately after:
   - Passenger feedback text
   - Fare breakdown (base + platform fee)
   - Distance and timestamp
-- **Driver Wallet** (`/driver/wallet`) — debt balance, full transaction history
-- **Driver Profile** (`/driver/profile`) — personal info, vehicle details
+- **Driver Wallet** (`/driver/wallet`) — debt balance, full transactions ledger with time-frame (All, Today, Last Week, Last Month) and debit/credit type filtering.
+- **Driver Profile** (`/driver/profile`) — personal info, vehicle details.
 
 ### Admin Panel
-- Driver approval / rejection
-- Active booking visibility
-- Driver list management
+- Driver approval / rejection.
+- Active booking visibility.
+- Driver list management with performance metrics (average ratings).
+- **Driver Transactions History Ledger Modal** — Admin can view drivers' trip history as well as a dedicated, fully filterable "Wallet Transactions" ledger inside the Driver Details modal.
+- **Dynamic Configuration Settings Tab** — Admin can view and dynamically edit the platform fee percentage parameter, which updates the fee calculation system in real-time.
 - *(Full admin analytics — future requirement)*
 
 ---

@@ -209,6 +209,7 @@ export function useAdminDashboard() {
 
   useEffect(() => {
     if (activeTab === "issues") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchIssues(issuePage, debouncedIssueSearch, issueFilter);
     }
   }, [issuePage, debouncedIssueSearch, issueFilter, activeTab]);
