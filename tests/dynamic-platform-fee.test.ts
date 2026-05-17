@@ -13,7 +13,6 @@ describe("Dynamic Platform Fee Calculations", () => {
   it("should calculate correct platform fee with custom 20% platform fee percentage", () => {
     // 10km distance = 250 BDT base fare
     // 20% of 250 is 50 BDT platform fee
-    // @ts-expect-error - testing the new parameter before it is officially added to signature
     const result = calculateFare(10, 20);
     expect(result.fare).toBe(250);
     expect(result.platformFee).toBe(50);

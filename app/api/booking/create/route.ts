@@ -76,7 +76,13 @@ export async function POST(request: Request) {
             Number(destLng)
           );
 
-      const fare = calculateFare(distance);
+      // Fetch dynamic platform fee setting
+      const feeSetting = await prisma.systemSetting.findUnique({
+        where: { key: "PLATFORM_FEE_PERCENTAGE" },
+      });
+      const platformFeePercentage = feeSetting ? Number(feeSetting.value) : 5;
+
+      const fare = calculateFare(distance, platformFeePercentage);
 
       const result = await prisma.$transaction(async (tx) => {
         // Row-level lock on the User to prevent double-booking race condition

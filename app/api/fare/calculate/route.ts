@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { calculateDistance, calculateFare } from "@/lib/fare";
 
 export async function POST(request: Request) {
@@ -20,7 +21,13 @@ export async function POST(request: Request) {
           Number(destLng)
         );
 
-    const fareBreakdown = calculateFare(distance);
+    // Fetch dynamic platform fee setting
+    const feeSetting = await prisma.systemSetting.findUnique({
+      where: { key: "PLATFORM_FEE_PERCENTAGE" },
+    });
+    const platformFeePercentage = feeSetting ? Number(feeSetting.value) : 5;
+
+    const fareBreakdown = calculateFare(distance, platformFeePercentage);
 
     return NextResponse.json({
       distance,
