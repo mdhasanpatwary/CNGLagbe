@@ -1,11 +1,9 @@
-# Tasks Tracker
+# Tasks Tracker: Dynamic Search Radius
 
 | Task ID | Description | Status |
 |---|---|---|
-| Task-1 | Update Agent Rules & System Identity Documentation | [ ] |
-| Task-2 | Create Reusable UI Design System Components | [ ] |
-| Task-3 | Standardize central TypeScript Types | [ ] |
-| Task-4 | Implement Custom Hook for Driver History Modal | [ ] |
-| Task-5 | Implement Custom Hook for Driver Portal History Page | [ ] |
-| Task-6 | Refactor Admin DriverHistoryModal UI | [ ] |
-| Task-7 | Refactor Driver Portal History Page UI | [ ] |
+| Task-1 | Add Translation Keys for Settings | [x] |
+| Task-2 | Implement Utility `lib/radius.ts` and Test | [x] |
+| Task-3 | Integrate Dynamic Search Radius in Sync API | [x] |
+| Task-4 | Add Seeding Configuration | [x] |
+| Task-5 | Add Control Card to SettingsTab Component | [x] |
