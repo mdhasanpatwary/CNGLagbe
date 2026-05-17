@@ -46,3 +46,31 @@ export interface PendingDriver {
   ratingCount?: number;
 }
 
+export interface IssueReportType {
+  id: string;
+  bookingId: string;
+  userId: string;
+  reason: string;
+  details: string | null;
+  status: "OPEN" | "RESOLVED";
+  resolutionNote: string | null;
+  resolvedAt: string | null;
+  createdAt: string;
+  booking: {
+    id: string;
+    status: string;
+    fare: number;
+    pickupAddress: string;
+    destinationAddress: string;
+    user?: {
+      name: string;
+      phone: string;
+    } | null;
+    driver?: {
+      name: string;
+      phone: string;
+    } | null;
+  };
+}
+
+
