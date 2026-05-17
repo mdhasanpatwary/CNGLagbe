@@ -3,6 +3,7 @@ import { getAuthUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { BookingStatus } from "@/lib/types/booking";
+import { buildDriverHistoryWhere } from "@/lib/history";
 
 export const dynamic = "force-dynamic";
 
@@ -18,25 +19,14 @@ export async function GET(request: Request) {
     const limit = Math.min(parseInt(searchParams.get("limit") || "10"), 50);
     const status = searchParams.get("status"); // COMPLETED or CANCELLED
     const timeframe = searchParams.get("timeframe") || "all";
+    const search = searchParams.get("search");
     const skip = (page - 1) * limit;
 
-    const whereClause: Prisma.BookingWhereInput = {
-      driverId: session.sub,
-      status: status ? (status as BookingStatus) : { in: ["COMPLETED", "CANCELLED"] as BookingStatus[] },
-    };
-
-    if (timeframe !== "all") {
-      const now = new Date();
-      const start = new Date(now);
-      if (timeframe === "today") {
-        start.setHours(0, 0, 0, 0);
-      } else if (timeframe === "weekly") {
-        start.setDate(now.getDate() - 7);
-      } else if (timeframe === "monthly") {
-        start.setDate(now.getDate() - 30);
-      }
-      whereClause.createdAt = { gte: start };
-    }
+    const whereClause = buildDriverHistoryWhere(session.sub, {
+      status,
+      timeframe,
+      search,
+    });
 
     const [bookings, totalFiltered, stats] = await Promise.all([
       prisma.booking.findMany({
