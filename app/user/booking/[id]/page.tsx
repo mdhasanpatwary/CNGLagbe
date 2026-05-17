@@ -56,6 +56,39 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
   const [isSubmittingOfflineFeedback, setIsSubmittingOfflineFeedback] = useState(false);
   const [offlineFeedbackSubmitted, setOfflineFeedbackSubmitted] = useState(false);
 
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [selectedReason, setSelectedReason] = useState("");
+  const [reportDetails, setReportDetails] = useState("");
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [reportSubmitted, setReportSubmitted] = useState(false);
+
+  const handleSubmitReport = async () => {
+    if (!selectedReason) return;
+    if (selectedReason === "OTHER" && (!reportDetails || !reportDetails.trim())) {
+      return;
+    }
+    
+    setIsSubmittingReport(true);
+    try {
+      const res = await apiFetch(`/api/booking/${id}/report`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reason: selectedReason,
+          details: reportDetails,
+        }),
+      });
+      
+      if (res.ok) {
+        setReportSubmitted(true);
+      }
+    } catch (err) {
+      console.error("Submit report error:", err);
+    } finally {
+      setIsSubmittingReport(false);
+    }
+  };
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -767,6 +800,18 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                 >
                   {t("bk_another")}
                 </AppButton>
+
+                {booking.driver && (
+                  <AppButton
+                    fullWidth
+                    variant="secondary"
+                    onClick={() => setShowReportModal(true)}
+                    className="h-14 rounded-2xl bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 font-black uppercase text-sm"
+                    leftIcon={<AlertTriangle size={16} />}
+                  >
+                    {t("report_driver")}
+                  </AppButton>
+                )}
               </div>
             </div>
           </div>
@@ -881,6 +926,18 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                 >
                   {t("retry_booking")}
                 </AppButton>
+
+                {booking.driver && (
+                  <AppButton
+                    fullWidth
+                    variant="secondary"
+                    onClick={() => setShowReportModal(true)}
+                    className="h-14 rounded-2xl bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 font-black uppercase text-sm"
+                    leftIcon={<AlertTriangle size={16} />}
+                  >
+                    {t("report_driver")}
+                  </AppButton>
+                )}
               </div>
             </div>
           </div>
@@ -903,6 +960,110 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
           onClose={() => setShowCancel(false)}
           onSuccess={() => { setShowCancel(false); void fetchBooking(); }}
         />
+      )}
+
+      {showReportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-white rounded-[2rem] border border-slate-100 shadow-2xl p-6 relative overflow-hidden animate-in zoom-in-95 duration-200">
+            {!reportSubmitted ? (
+              <>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center text-red-500 shrink-0">
+                    <AlertTriangle size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">{t("report_driver")}</h3>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">#{id.slice(-6).toUpperCase()}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 mb-6 max-h-[250px] overflow-y-auto pr-1">
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">{t("select_reason")}</p>
+                  {[
+                    { key: "DRIVER_DEMANDED_EXTRA_MONEY", labelKey: "reason_extra_money" },
+                    { key: "DRIVER_BEHAVED_POORLY", labelKey: "reason_poor_behavior" },
+                    { key: "DRIVER_DID_NOT_ARRIVE", labelKey: "reason_no_arrive" },
+                    { key: "LOST_ITEMS_IN_VEHICLE", labelKey: "reason_lost_items" },
+                    { key: "OTHER", labelKey: "reason_other" },
+                  ].map((option) => (
+                    <button
+                      key={option.key}
+                      onClick={() => setSelectedReason(option.key)}
+                      className={`w-full text-left p-3.5 rounded-2xl border text-xs font-bold transition-all flex items-center justify-between ${
+                        selectedReason === option.key
+                          ? "bg-red-50/50 border-red-500 text-red-600 shadow-sm"
+                          : "bg-slate-50 border-slate-100 text-slate-700 hover:border-slate-200"
+                      }`}
+                    >
+                      <span>{t(option.labelKey as TextKey)}</span>
+                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                        selectedReason === option.key ? "border-red-500 bg-red-500 text-white" : "border-slate-300 bg-white"
+                      }`}>
+                        {selectedReason === option.key && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                {selectedReason && (
+                  <div className="space-y-2 mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-wider block">
+                      {t("details_label")}
+                      {selectedReason === "OTHER" && <span className="text-red-500 ml-1">*</span>}
+                    </label>
+                    <textarea
+                      value={reportDetails}
+                      onChange={(e) => setReportDetails(e.target.value)}
+                      placeholder={t("report_details_ph")}
+                      className="w-full rounded-2xl bg-slate-50 border border-slate-200 p-3.5 text-xs font-bold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 transition-all min-h-[90px] resize-none"
+                    />
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <AppButton
+                    className="flex-1 h-14 rounded-2xl border-2 border-slate-100 text-slate-500 hover:bg-slate-50 font-black uppercase tracking-widest text-xs"
+                    onClick={() => {
+                      setShowReportModal(false);
+                      setSelectedReason("");
+                      setReportDetails("");
+                    }}
+                  >
+                    {t("close_btn")}
+                  </AppButton>
+                  <AppButton
+                    className="flex-1 h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-xs"
+                    onClick={handleSubmitReport}
+                    loading={isSubmittingReport}
+                    disabled={!selectedReason || (selectedReason === "OTHER" && (!reportDetails || !reportDetails.trim()))}
+                  >
+                    {t("submit_report")}
+                  </AppButton>
+                </div>
+              </>
+            ) : (
+              <div className="py-6 text-center">
+                <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 mx-auto mb-4 animate-bounce">
+                  <CheckCircle2 size={32} />
+                </div>
+                <h3 className="text-lg font-black text-slate-900 mb-2">{t("report_success")}</h3>
+                <p className="text-sm font-medium text-slate-500 px-4 mb-6">{t("report_submitted_success")}</p>
+                <AppButton
+                  fullWidth
+                  className="h-14 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 font-black uppercase tracking-widest text-xs"
+                  onClick={() => {
+                    setShowReportModal(false);
+                    setReportSubmitted(false);
+                    setSelectedReason("");
+                    setReportDetails("");
+                  }}
+                >
+                  {t("close_btn")}
+                </AppButton>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
     </div>

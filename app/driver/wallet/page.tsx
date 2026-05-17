@@ -16,7 +16,9 @@ import {
   Banknote,
   Clock,
   Navigation,
-  Info
+  Info,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { User as UserType } from "@/lib/types/user";
 import { WalletSkeleton } from "@/components/ui/AppSkeletons";
@@ -45,6 +47,35 @@ interface WalletData {
   balance: number;
   transactions: Transaction[];
   driver: DriverInfo;
+  meta?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+function FilterPill({
+  active,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all duration-200 shrink-0 select-none ${
+        active
+          ? "bg-slate-900 text-white shadow-sm"
+          : "bg-white text-slate-400 hover:text-slate-600 hover:bg-slate-50 border border-slate-100"
+      }`}
+    >
+      {label}
+    </button>
+  );
 }
 
 export default function DriverWalletPage() {
@@ -53,6 +84,12 @@ export default function DriverWalletPage() {
   const [data, setData] = useState<WalletData | null>(null);
   const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Filter & Pagination states
+  const [timeframe, setTimeframe] = useState<string>("all");
+  const [type, setType] = useState<string>("ALL");
+  const [page, setPage] = useState<number>(1);
+  const [fetchingTransactions, setFetchingTransactions] = useState<boolean>(false);
 
   useEffect(() => {
     async function fetchUser() {
@@ -71,8 +108,19 @@ export default function DriverWalletPage() {
 
   useEffect(() => {
     async function fetchWallet() {
+      if (data === null) {
+        setLoading(true);
+      } else {
+        setFetchingTransactions(true);
+      }
       try {
-        const res = await apiFetch("/api/driver/wallet");
+        const query = new URLSearchParams({
+          page: page.toString(),
+          limit: "10",
+          timeframe,
+          type,
+        });
+        const res = await apiFetch(`/api/driver/wallet?${query.toString()}`);
         if (res.ok) {
           const walletData = await res.json();
           setData(walletData);
@@ -81,11 +129,12 @@ export default function DriverWalletPage() {
         console.error("Failed to fetch wallet:", error);
       } finally {
         setLoading(false);
+        setFetchingTransactions(false);
       }
     }
 
     fetchWallet();
-  }, []);
+  }, [timeframe, type, page]);
 
   const logout = async () => {
     try {
@@ -181,6 +230,45 @@ export default function DriverWalletPage() {
           </div>
         </div>
 
+        {/* Filters */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+            {[
+              { key: "all", label: t("all_time") },
+              { key: "today", label: t("today") },
+              { key: "weekly", label: t("last_7_days") },
+              { key: "monthly", label: t("this_month") },
+            ].map(({ key, label }) => (
+              <FilterPill
+                key={key}
+                active={timeframe === key}
+                label={label}
+                onClick={() => {
+                  setTimeframe(key);
+                  setPage(1);
+                }}
+              />
+            ))}
+          </div>
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+            {[
+              { key: "ALL", label: t("all") },
+              { key: "DEBIT", label: t("platform_fee") },
+              { key: "CREDIT", label: t("wallet_recharge") },
+            ].map(({ key, label }) => (
+              <FilterPill
+                key={key}
+                active={type === key}
+                label={label}
+                onClick={() => {
+                  setType(key);
+                  setPage(1);
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
         {/* Transaction History */}
         <div className="space-y-4">
           <div className="flex items-center justify-between px-2">
@@ -188,16 +276,20 @@ export default function DriverWalletPage() {
               <History size={14} className="text-primary" />
               {t("wallet_history")}
             </h3>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{data?.transactions.length || 0} Total</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{data?.meta?.total ?? data?.transactions.length ?? 0} Total</span>
           </div>
 
-          <div className="flex flex-col gap-3 pb-10">
-            {data?.transactions.length === 0 ? (
+          <div className="flex flex-col gap-3">
+            {fetchingTransactions ? (
+              [1, 2, 3].map((i) => (
+                <div key={i} className="h-20 w-full bg-slate-200/50 animate-pulse rounded-3xl" />
+              ))
+            ) : data?.transactions.length === 0 ? (
               <div className="py-20 text-center space-y-4">
                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto opacity-50">
                   <Clock className="w-8 h-8 text-slate-400" />
                 </div>
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{t("no_bookings")}</p>
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{t("no_bookings") || "No transactions"}</p>
               </div>
             ) : (
               data?.transactions.map((tx) => (
@@ -238,6 +330,37 @@ export default function DriverWalletPage() {
             )}
           </div>
         </div>
+
+        {/* Pagination */}
+        {data?.meta && data.meta.totalPages > 1 && (
+          <div className="flex items-center justify-between pt-2 pb-10">
+            <AppButton
+              variant="ghost"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1 || fetchingTransactions}
+              className="!h-9 !rounded-xl !text-[10px] !font-black !px-4"
+            >
+              <div className="flex items-center gap-1">
+                <ChevronLeft className="w-4 h-4" />
+                {t("prev")}
+              </div>
+            </AppButton>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              {t("page")} {page} / {data?.meta?.totalPages || 1}
+            </span>
+            <AppButton
+              variant="ghost"
+              onClick={() => setPage((p) => Math.min(data?.meta?.totalPages || 1, p + 1))}
+              disabled={page === (data?.meta?.totalPages || 1) || fetchingTransactions}
+              className="!h-9 !rounded-xl !text-[10px] !font-black !px-4"
+            >
+              <div className="flex items-center gap-1">
+                {t("next")}
+                <ChevronRight className="w-4 h-4" />
+              </div>
+            </AppButton>
+          </div>
+        )}
       </main>
     </div>
   );

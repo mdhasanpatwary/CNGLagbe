@@ -1,13 +1,8 @@
-# Task Tracker: Issue Reports Feature
+# Tasks Tracker
 
-| Task | Description | Status |
+| Task ID | Description | Status |
 |---|---|---|
-| Task 1 | Database Migration & Schema Update (resolutionNote, resolvedAt) | `[x]` Completed |
-| Task 2 | TypeScript Type Definitions Update (`IssueReportType`) | `[x]` Completed |
-| Task 3 | API Route for Passenger Submission (`POST /api/booking/[id]/report`) | `[x]` Completed |
-| Task 4 | API Route for Admin Issues Fetching (`GET /api/admin/issues`) | `[x]` Completed |
-| Task 5 | API Route for Admin Resolution (`POST /api/admin/issues/[id]/resolve`) | `[x]` Completed |
-| Task 6 | Passenger UI - Submission Button & Modal in Booking Details page | `[/]` In Progress |
-| Task 7 | Admin UI Hook State Integration in `useAdminDashboard.ts` | `[ ]` Not Started |
-| Task 8 | Admin Panel Navigation & Tab Routing Integration | `[ ]` Not Started |
-| Task 9 | Admin Issues Tab View & Resolution Modal Component | `[ ]` Not Started |
+| Task 1 | Create Admin Wallet History API | [x] |
+| Task 2 | Enhance Driver Wallet API | [x] |
+| Task 3 | Integrate Tab & Ledger View in Admin DriverHistoryModal | [ ] |
+| Task 4 | Upgrade Driver Portal Wallet UI | [ ] |

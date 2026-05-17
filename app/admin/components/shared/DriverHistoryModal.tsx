@@ -16,6 +16,9 @@ import {
   Route,
   User,
   X,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Clock,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLang } from "@/hooks/useLang";
@@ -76,6 +79,48 @@ export function DriverHistoryModal({
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [timeframe, setTimeframe] = useState<string>("all");
+
+  // Ledger States
+  const [activeTab, setActiveTab] = useState<"trips" | "ledger">("trips");
+  const [ledgerTransactions, setLedgerTransactions] = useState<any[]>([]);
+  const [ledgerMeta, setLedgerMeta] = useState<any | null>(null);
+  const [ledgerLoading, setLedgerLoading] = useState(false);
+  const [ledgerPage, setLedgerPage] = useState(1);
+  const [ledgerTimeframe, setLedgerTimeframe] = useState<string>("all");
+  const [ledgerType, setLedgerType] = useState<string>("ALL");
+
+  useEffect(() => {
+    if (!isOpen || !driver || activeTab !== "ledger") return;
+
+    const fetchLedger = async () => {
+      setLedgerLoading(true);
+      try {
+        const query = new URLSearchParams({
+          page: ledgerPage.toString(),
+          limit: "10",
+          timeframe: ledgerTimeframe,
+          type: ledgerType,
+        });
+
+        const res = await fetch(`/api/admin/drivers/${driver.id}/wallet?${query.toString()}`);
+        const data = await res.json();
+        setLedgerTransactions(data.transactions ?? []);
+        setLedgerMeta(data.meta ?? null);
+      } catch (err) {
+        console.error("Failed to fetch wallet ledger:", err);
+      } finally {
+        setLedgerLoading(false);
+      }
+    };
+
+    fetchLedger();
+  }, [isOpen, driver, activeTab, ledgerPage, ledgerTimeframe, ledgerType]);
+
+  const handleTabChange = (tab: "trips" | "ledger") => {
+    setActiveTab(tab);
+    setPage(1);
+    setLedgerPage(1);
+  };
 
   useEffect(() => {
     if (!isOpen || !driver) return;
@@ -191,195 +236,379 @@ export function DriverHistoryModal({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 pt-4 flex flex-col gap-4">
-          {/* Filters */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-              {[
-                { key: "all", label: t("all_time") },
-                { key: "today", label: t("today") },
-                { key: "weekly", label: t("last_7_days") },
-                { key: "monthly", label: t("this_month") },
-              ].map(({ key, label }) => (
-                <FilterPill
-                  key={key}
-                  active={timeframe === key}
-                  label={label}
-                  onClick={() => handleTimeframeChange(key)}
-                />
-              ))}
-            </div>
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-              {[
-                { key: "ALL", label: t("all") },
-                { key: "COMPLETED", label: t("completed") },
-                { key: "CANCELLED", label: t("cancelled") },
-              ].map(({ key, label }) => (
-                <FilterPill
-                  key={key}
-                  active={statusFilter === key}
-                  label={label}
-                  onClick={() => handleStatusChange(key)}
-                />
-              ))}
-            </div>
+          {/* Tab Selector */}
+          <div className="flex border-b border-slate-100 bg-white gap-8 -mx-6 -mt-4 px-6 mb-2 sticky top-0 z-10">
+            <button
+              onClick={() => handleTabChange("trips")}
+              className={`py-3 font-black uppercase text-[11px] tracking-widest border-b-2 transition-all ${
+                activeTab === "trips"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              {t("trip_history")}
+            </button>
+            <button
+              onClick={() => handleTabChange("ledger")}
+              className={`py-3 font-black uppercase text-[11px] tracking-widest border-b-2 transition-all ${
+                activeTab === "ledger"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              {t("wallet")} {t("wallet_history")}
+            </button>
           </div>
 
-          {/* Trip list */}
-          {loading ? (
-            <div className="flex flex-col gap-3">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-40 w-full rounded-2xl" />
-              ))}
-            </div>
-          ) : trips.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-3xl border border-dashed border-slate-200">
-              <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mb-4">
-                <Navigation size={28} className="text-slate-200" />
+          {activeTab === "trips" ? (
+            <>
+              {/* Filters */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                  {[
+                    { key: "all", label: t("all_time") },
+                    { key: "today", label: t("today") },
+                    { key: "weekly", label: t("last_7_days") },
+                    { key: "monthly", label: t("this_month") },
+                  ].map(({ key, label }) => (
+                    <FilterPill
+                      key={key}
+                      active={timeframe === key}
+                      label={label}
+                      onClick={() => handleTimeframeChange(key)}
+                    />
+                  ))}
+                </div>
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                  {[
+                    { key: "ALL", label: t("all") },
+                    { key: "COMPLETED", label: t("completed") },
+                    { key: "CANCELLED", label: t("cancelled") },
+                  ].map(({ key, label }) => (
+                    <FilterPill
+                      key={key}
+                      active={statusFilter === key}
+                      label={label}
+                      onClick={() => handleStatusChange(key)}
+                    />
+                  ))}
+                </div>
               </div>
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                {t("no_trips_found")}
-              </p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {trips.map((trip) => (
-                <Card
-                  key={trip.id}
-                  className="border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 rounded-2xl overflow-hidden bg-white"
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-xl bg-slate-50 flex items-center justify-center shrink-0">
-                          <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                        </div>
-                        <span className="text-[11px] font-bold text-slate-400 tabular-nums">
-                          {new Intl.DateTimeFormat("en-BD", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          }).format(new Date(trip.createdAt))}
-                        </span>
-                      </div>
-                      <StatusBadge status={trip.status} />
-                    </div>
 
-                    <div className="relative flex flex-col gap-1 mb-3 pl-2">
-                      <div className="absolute left-[5px] top-[14px] bottom-[14px] w-px bg-slate-100" />
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-2.5 h-2.5 rounded-full bg-primary shrink-0 ring-4 ring-primary/10 z-10" />
-                        <p className="text-xs font-semibold text-slate-700 line-clamp-1">
-                          {trip.pickupAddress || t("pickup_point")}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2.5">
-                        <MapPin className="w-2.5 h-2.5 text-slate-300 shrink-0 z-10" />
-                        <p className="text-xs text-slate-400 line-clamp-1">
-                          {trip.destAddress || t("drop_point")}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between py-2.5 border-t border-slate-50 mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-lg bg-primary/5 flex items-center justify-center">
-                          <Banknote className="w-3.5 h-3.5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-[9px] font-black text-slate-300 uppercase leading-none mb-0.5">
-                            {t("fare")}
-                          </p>
-                          <p className="text-sm font-black text-slate-800 tabular-nums">
-                            {t("currency")}
-                            {formatDecimal(trip.totalFare || trip.fare)}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1 text-slate-300">
-                          <Route className="w-3.5 h-3.5" />
-                          <span className="text-xs font-bold tabular-nums">
-                            {formatDecimal(trip.distance, 1)} km
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {trip.status === "COMPLETED" && trip.rating != null ? (
-                      <div className="bg-amber-50/50 rounded-xl p-3 border border-amber-100/50">
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-0.5">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={`w-3 h-3 ${star <= trip.rating!
-                                    ? "text-amber-400 fill-amber-400"
-                                    : "text-slate-200 fill-slate-200"
-                                  }`}
-                              />
-                            ))}
-                          </div>
-                          {trip.user && (
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">
-                              {trip.user.name}
+              {/* Trip list */}
+              {loading ? (
+                <div className="flex flex-col gap-3">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-40 w-full rounded-2xl" />
+                  ))}
+                </div>
+              ) : trips.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-3xl border border-dashed border-slate-200">
+                  <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mb-4">
+                    <Navigation size={28} className="text-slate-200" />
+                  </div>
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                    {t("no_trips_found")}
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {trips.map((trip) => (
+                    <Card
+                      key={trip.id}
+                      className="border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 rounded-2xl overflow-hidden bg-white"
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-xl bg-slate-50 flex items-center justify-center shrink-0">
+                              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                            </div>
+                            <span className="text-[11px] font-bold text-slate-400 tabular-nums">
+                              {new Intl.DateTimeFormat("en-BD", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }).format(new Date(trip.createdAt))}
                             </span>
-                          )}
+                          </div>
+                          <StatusBadge status={trip.status} />
                         </div>
-                        {trip.feedback && (
-                          <div className="flex items-start gap-1.5 mt-1.5">
-                            <MessageSquare className="w-3 h-3 text-amber-300 shrink-0 mt-0.5" />
-                            <p className="text-[11px] text-slate-500 italic">
-                              &ldquo;{trip.feedback}&rdquo;
+
+                        <div className="relative flex flex-col gap-1 mb-3 pl-2">
+                          <div className="absolute left-[5px] top-[14px] bottom-[14px] w-px bg-slate-100" />
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-2.5 h-2.5 rounded-full bg-primary shrink-0 ring-4 ring-primary/10 z-10" />
+                            <p className="text-xs font-semibold text-slate-700 line-clamp-1">
+                              {trip.pickupAddress || t("pickup_point")}
                             </p>
                           </div>
-                        )}
-                      </div>
-                    ) : trip.status === "COMPLETED" ? (
-                      <div className="flex items-center gap-1.5 text-slate-200 py-1">
-                        <Star className="w-3 h-3" />
-                        <p className="text-[10px] font-bold uppercase tracking-wider">
-                          {t("not_rated")}
-                        </p>
-                      </div>
-                    ) : null}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+                          <div className="flex items-center gap-2.5">
+                            <MapPin className="w-2.5 h-2.5 text-slate-300 shrink-0 z-10" />
+                            <p className="text-xs text-slate-400 line-clamp-1">
+                              {trip.destAddress || t("drop_point")}
+                            </p>
+                          </div>
+                        </div>
 
-          {/* Pagination */}
-          {meta && meta.totalPages > 1 && (
-            <div className="flex items-center justify-between pt-2 pb-4">
-              <AppButton
-                variant="ghost"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1 || loading}
-                className="!h-9 !rounded-xl !text-[10px] !font-black !px-4"
-              >
-                <div className="flex items-center gap-1">
-                  <ChevronLeft className="w-4 h-4" />
-                  {t("prev")}
+                        <div className="flex items-center justify-between py-2.5 border-t border-slate-50 mb-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-lg bg-primary/5 flex items-center justify-center">
+                              <Banknote className="w-3.5 h-3.5 text-primary" />
+                            </div>
+                            <div>
+                              <p className="text-[9px] font-black text-slate-300 uppercase leading-none mb-0.5">
+                                {t("fare")}
+                              </p>
+                              <p className="text-sm font-black text-slate-800 tabular-nums">
+                                {t("currency")}
+                                {formatDecimal(trip.totalFare || trip.fare)}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1 text-slate-300">
+                              <Route className="w-3.5 h-3.5" />
+                              <span className="text-xs font-bold tabular-nums">
+                                {formatDecimal(trip.distance, 1)} km
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {trip.status === "COMPLETED" && trip.rating != null ? (
+                          <div className="bg-amber-50/50 rounded-xl p-3 border border-amber-100/50">
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-0.5">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <Star
+                                    key={star}
+                                    className={`w-3 h-3 ${star <= trip.rating!
+                                        ? "text-amber-400 fill-amber-400"
+                                        : "text-slate-200 fill-slate-200"
+                                      }`}
+                                  />
+                                ))}
+                              </div>
+                              {trip.user && (
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">
+                                  {trip.user.name}
+                                </span>
+                              )}
+                            </div>
+                            {trip.feedback && (
+                              <div className="flex items-start gap-1.5 mt-1.5">
+                                <MessageSquare className="w-3 h-3 text-amber-300 shrink-0 mt-0.5" />
+                                <p className="text-[11px] text-slate-500 italic">
+                                  &ldquo;{trip.feedback}&rdquo;
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        ) : trip.status === "COMPLETED" ? (
+                          <div className="flex items-center gap-1.5 text-slate-200 py-1">
+                            <Star className="w-3 h-3" />
+                            <p className="text-[10px] font-bold uppercase tracking-wider">
+                              {t("not_rated")}
+                            </p>
+                          </div>
+                        ) : null}
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-              </AppButton>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                {t("page")} {page} / {meta.totalPages}
-              </span>
-              <AppButton
-                variant="ghost"
-                onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
-                disabled={page === meta.totalPages || loading}
-                className="!h-9 !rounded-xl !text-[10px] !font-black !px-4"
-              >
-                <div className="flex items-center gap-1">
-                  {t("next")}
-                  <ChevronRight className="w-4 h-4" />
+              )}
+
+              {/* Trip Pagination */}
+              {meta && meta.totalPages > 1 && (
+                <div className="flex items-center justify-between pt-2 pb-4">
+                  <AppButton
+                    variant="ghost"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page === 1 || loading}
+                    className="!h-9 !rounded-xl !text-[10px] !font-black !px-4"
+                  >
+                    <div className="flex items-center gap-1">
+                      <ChevronLeft className="w-4 h-4" />
+                      {t("prev")}
+                    </div>
+                  </AppButton>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    {t("page")} {page} / {meta.totalPages}
+                  </span>
+                  <AppButton
+                    variant="ghost"
+                    onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
+                    disabled={page === meta.totalPages || loading}
+                    className="!h-9 !rounded-xl !text-[10px] !font-black !px-4"
+                  >
+                    <div className="flex items-center gap-1">
+                      {t("next")}
+                      <ChevronRight className="w-4 h-4" />
+                    </div>
+                  </AppButton>
                 </div>
-              </AppButton>
-            </div>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Ledger Filters */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                  {[
+                    { key: "all", label: t("all_time") },
+                    { key: "today", label: t("today") },
+                    { key: "weekly", label: t("last_7_days") },
+                    { key: "monthly", label: t("this_month") },
+                  ].map(({ key, label }) => (
+                    <FilterPill
+                      key={key}
+                      active={ledgerTimeframe === key}
+                      label={label}
+                      onClick={() => {
+                        setLedgerTimeframe(key);
+                        setLedgerPage(1);
+                      }}
+                    />
+                  ))}
+                </div>
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                  {[
+                    { key: "ALL", label: t("all") },
+                    { key: "DEBIT", label: t("platform_fee") },
+                    { key: "CREDIT", label: t("wallet_recharge") },
+                  ].map(({ key, label }) => (
+                    <FilterPill
+                      key={key}
+                      active={ledgerType === key}
+                      label={label}
+                      onClick={() => {
+                        setLedgerType(key);
+                        setLedgerPage(1);
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Ledger List */}
+              {ledgerLoading ? (
+                <div className="flex flex-col gap-3">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-28 w-full rounded-2xl" />
+                  ))}
+                </div>
+              ) : ledgerTransactions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-3xl border border-dashed border-slate-200">
+                  <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mb-4">
+                    <Clock size={28} className="text-slate-200" />
+                  </div>
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                    {t("no_bookings_found") || "No transactions found"}
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {ledgerTransactions.map((tx) => (
+                    <Card
+                      key={tx.id}
+                      className="border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 rounded-2xl overflow-hidden bg-white"
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-xl bg-slate-50 flex items-center justify-center shrink-0">
+                              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                            </div>
+                            <span className="text-[11px] font-bold text-slate-400 tabular-nums">
+                              {new Intl.DateTimeFormat("en-BD", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }).format(new Date(tx.createdAt))}
+                            </span>
+                          </div>
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                            tx.amount < 0 
+                              ? "bg-red-50 text-red-700" 
+                              : "bg-emerald-50 text-emerald-700"
+                          }`}>
+                            {tx.amount < 0 ? (
+                              <div className="flex items-center gap-1">
+                                <ArrowUpRight className="w-3 h-3 text-red-500" />
+                                <span>{t("wallet_debt")}</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1">
+                                <ArrowDownLeft className="w-3 h-3 text-emerald-500" />
+                                <span>{t("wallet_recharge")}</span>
+                              </div>
+                            )}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-black text-slate-800 leading-tight">
+                              {tx.details || (tx.type === "BOOKING_FEE" ? t("booking_fee") : tx.type)}
+                            </h4>
+                            {tx.booking && (
+                              <p className="text-[10px] text-slate-400 font-medium truncate mt-1 flex items-center gap-1">
+                                <Navigation size={8} /> {tx.booking.pickupAddress?.split(",")[0]} → {tx.booking.destAddress?.split(",")[0]}
+                              </p>
+                            )}
+                          </div>
+                          
+                          <div className="text-right shrink-0">
+                            <p className={`text-lg font-black ${
+                              tx.amount < 0 ? "text-red-500" : "text-emerald-500"
+                            }`}>
+                              {tx.amount < 0 ? "-" : "+"}{t("currency")}{formatDecimal(Math.abs(tx.amount))}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {/* Ledger Pagination */}
+              {ledgerMeta && ledgerMeta.totalPages > 1 && (
+                <div className="flex items-center justify-between pt-2 pb-4">
+                  <AppButton
+                    variant="ghost"
+                    onClick={() => setLedgerPage((p) => Math.max(1, p - 1))}
+                    disabled={ledgerPage === 1 || ledgerLoading}
+                    className="!h-9 !rounded-xl !text-[10px] !font-black !px-4"
+                  >
+                    <div className="flex items-center gap-1">
+                      <ChevronLeft className="w-4 h-4" />
+                      {t("prev")}
+                    </div>
+                  </AppButton>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    {t("page")} {ledgerPage} / {ledgerMeta.totalPages}
+                  </span>
+                  <AppButton
+                    variant="ghost"
+                    onClick={() => setLedgerPage((p) => Math.min(ledgerMeta.totalPages, p + 1))}
+                    disabled={ledgerPage === ledgerMeta.totalPages || ledgerLoading}
+                    className="!h-9 !rounded-xl !text-[10px] !font-black !px-4"
+                  >
+                    <div className="flex items-center gap-1">
+                      {t("next")}
+                      <ChevronRight className="w-4 h-4" />
+                    </div>
+                  </AppButton>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

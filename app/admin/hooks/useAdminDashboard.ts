@@ -3,9 +3,9 @@ import { useQueryState } from "nuqs";
 import { useLang } from "@/hooks/useLang";
 import { User as UserType } from "@/lib/types/user";
 import { Booking } from "@/lib/types/booking";
-import { AdminStats, PendingDriver } from "@/lib/types/admin";
+import { AdminStats, PendingDriver, IssueReportType } from "@/lib/types/admin";
 
-export type AdminTab = "overview" | "drivers" | "users" | "logs" | "bazars" | "settings";
+export type AdminTab = "overview" | "drivers" | "users" | "logs" | "bazars" | "settings" | "issues";
 
 interface SystemSetting {
   id: string;
@@ -48,6 +48,21 @@ export function useAdminDashboard() {
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [historyDriver, setHistoryDriver] = useState<PendingDriver | null>(null);
 
+  // Issues State
+  const [issues, setIssues] = useState<IssueReportType[]>([]);
+  const [issueSearch, setIssueSearch] = useState("");
+  const [debouncedIssueSearch, setDebouncedIssueSearch] = useState("");
+  const [issueFilter, setIssueFilter] = useState("ALL");
+  const [issuePage, setIssuePage] = useState(1);
+  const [issueMeta, setIssueMeta] = useState({ total: 0, totalPages: 0 });
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedIssueSearch(issueSearch);
+    }, 1000);
+    return () => clearTimeout(handler);
+  }, [issueSearch]);
+
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedDriverSearch(driverSearch);
@@ -82,6 +97,41 @@ export function useAdminDashboard() {
       });
     } catch (e) {
       console.error("Fetch drivers error:", e);
+    }
+  };
+
+  const fetchIssues = async (page = 1, search = "", filter = "ALL") => {
+    try {
+      const res = await fetch(`/api/admin/issues?page=${page}&limit=20&search=${search}&status=${filter}`);
+      const data = await res.json();
+      setIssues(Array.isArray(data?.issues) ? data.issues : []);
+      setIssueMeta({
+        total: data?.meta?.total || 0,
+        totalPages: data?.meta?.totalPages || 0
+      });
+    } catch (e) {
+      console.error("Fetch issues error:", e);
+    }
+  };
+
+  const handleResolveIssue = async (issueId: string, resolutionNote: string) => {
+    try {
+      const res = await fetch(`/api/admin/issues/${issueId}/resolve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resolutionNote }),
+      });
+      if (res.ok) {
+        fetchIssues(issuePage, debouncedIssueSearch, issueFilter);
+        const resStats = await fetch("/api/admin/stats");
+        const dataStats = await resStats.json();
+        setStats(dataStats.stats);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      console.error("Resolve issue error:", e);
+      return false;
     }
   };
 
@@ -123,6 +173,10 @@ export function useAdminDashboard() {
         fetchDrivers(driverPage, debouncedDriverSearch, driverFilter, driverSort);
       }
 
+      if (activeTab === "issues") {
+        fetchIssues(issuePage, debouncedIssueSearch, issueFilter);
+      }
+
       if (Array.isArray(dataBazars)) {
         setBazars(dataBazars);
       } else if (dataBazars && typeof dataBazars === 'object' && 'bazars' in dataBazars && Array.isArray((dataBazars as Record<string, unknown>).bazars)) {
@@ -152,6 +206,12 @@ export function useAdminDashboard() {
       fetchDrivers(driverPage, debouncedDriverSearch, driverFilter, driverSort);
     }
   }, [driverPage, debouncedDriverSearch, driverFilter, driverSort, activeTab]);
+
+  useEffect(() => {
+    if (activeTab === "issues") {
+      fetchIssues(issuePage, debouncedIssueSearch, issueFilter);
+    }
+  }, [issuePage, debouncedIssueSearch, issueFilter, activeTab]);
 
   const fetchBookings = async (status: string) => {
     setIsRefreshing(true);
@@ -404,6 +464,16 @@ export function useAdminDashboard() {
     isHistoryModalOpen,
     setIsHistoryModalOpen,
     historyDriver,
-    setHistoryDriver
+    setHistoryDriver,
+    issues,
+    setIssues,
+    issueSearch,
+    setIssueSearch,
+    issueFilter,
+    setIssueFilter,
+    issuePage,
+    setIssuePage,
+    issueMeta,
+    handleResolveIssue
   };
 }

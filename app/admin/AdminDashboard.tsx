@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Users, UserCheck, Store, History } from "lucide-react";
+import { Activity, Users, UserCheck, Store, History, AlertOctagon } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { PageHeading } from "@/components/ui/PageHeading";
 import { useAdminDashboard } from "./hooks/useAdminDashboard";
@@ -10,6 +10,7 @@ import { UsersTab } from "./components/tabs/UsersTab";
 import { LogsTab } from "./components/tabs/LogsTab";
 import { BazarsTab } from "./components/tabs/BazarsTab";
 import { SettingsTab } from "./components/tabs/SettingsTab";
+import { IssuesTab } from "./components/tabs/IssuesTab";
 import { 
   DriverManagementModal, 
   RechargeModal, 
@@ -81,6 +82,15 @@ export default function AdminDashboard() {
     setIsHistoryModalOpen,
     historyDriver,
     setHistoryDriver,
+    issues,
+    issueSearch,
+    setIssueSearch,
+    issueFilter,
+    setIssueFilter,
+    issuePage,
+    setIssuePage,
+    issueMeta,
+    handleResolveIssue,
   } = useAdminDashboard();
 
   const tabs = [
@@ -89,6 +99,7 @@ export default function AdminDashboard() {
     { id: "users" as const, label: t("users"), icon: UserCheck },
     { id: "bazars" as const, label: t("bazars"), icon: Store },
     { id: "logs" as const, label: t("logs"), icon: History },
+    { id: "issues" as const, label: t("report_issue") || "Complaints", icon: AlertOctagon },
     { id: "settings" as const, label: t("settings") || "Settings", icon: SettingsIcon },
   ];
 
@@ -185,6 +196,21 @@ export default function AdminDashboard() {
             handleDeleteBazar={handleDeleteBazar}
             handleUpdateBazar={handleUpdateBazar}
             t={t}
+          />
+        )}
+
+        {activeTab === "issues" && (
+          <IssuesTab
+            t={t}
+            issues={issues}
+            issueSearch={issueSearch}
+            setIssueSearch={setIssueSearch}
+            issueFilter={issueFilter}
+            setIssueFilter={setIssueFilter}
+            issuePage={issuePage}
+            setIssuePage={setIssuePage}
+            issueMeta={issueMeta}
+            handleResolveIssue={handleResolveIssue}
           />
         )}
 
