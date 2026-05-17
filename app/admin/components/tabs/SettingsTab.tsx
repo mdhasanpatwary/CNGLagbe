@@ -140,6 +140,47 @@ export function SettingsTab({
               </AppButton>
             </div>
           </div>
+
+          {/* Driver Search Radius */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50">
+            <div>
+              <h4 className="font-semibold text-slate-900">
+                {t("driver_search_radius_title" as TextKey) || "Driver Search Radius (km)"}
+              </h4>
+              <p className="text-sm text-slate-500 mt-1">
+                {t("driver_search_radius_desc" as TextKey) || "Configure the search radius in kilometers for matching drivers with passenger ride requests."}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  step="0.5"
+                  value={getSettingValue("DRIVER_SEARCH_RADIUS_KM", "3")}
+                  onChange={(e) =>
+                    handleValueChange(
+                      "DRIVER_SEARCH_RADIUS_KM",
+                      e.target.value
+                    )
+                  }
+                  className="w-32 pl-4 pr-12 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium text-slate-900"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium text-xs">
+                  km
+                </span>
+              </div>
+              <AppButton
+                onClick={() => handleSave("DRIVER_SEARCH_RADIUS_KM")}
+                loading={isSaving["DRIVER_SEARCH_RADIUS_KM"]}
+                leftIcon={<Save className="w-4 h-4" />}
+                className="whitespace-nowrap"
+              >
+                {t("save_changes" as TextKey) || "Save"}
+              </AppButton>
+            </div>
+          </div>
         </div>
       </div>
     </div>
