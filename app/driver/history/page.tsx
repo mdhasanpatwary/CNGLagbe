@@ -15,6 +15,8 @@ import {
   ChevronRight,
   MapPin,
   TrendingUp,
+  Search,
+  X,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLang } from "@/hooks/useLang";
@@ -217,6 +219,24 @@ export default function DriverHistoryPage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [timeframe, setTimeframe] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Debounce search query changes
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      setIsSearching(true);
+    }
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+      setIsSearching(false);
+    }, 400);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
 
   useEffect(() => {
     let active = true;
@@ -226,6 +246,9 @@ export default function DriverHistoryPage() {
       timeframe,
     });
     if (statusFilter !== "ALL") query.append("status", statusFilter);
+    if (debouncedSearchQuery.trim()) {
+      query.append("search", debouncedSearchQuery.trim());
+    }
 
     apiFetch(`/api/driver/history?${query.toString()}`)
       .then((res) => res.json())
@@ -244,7 +267,7 @@ export default function DriverHistoryPage() {
     return () => {
       active = false;
     };
-  }, [page, statusFilter, timeframe]);
+  }, [page, statusFilter, timeframe, debouncedSearchQuery]);
 
   const handleStatusChange = (status: string) => {
     setLoading(true);
@@ -334,6 +357,40 @@ export default function DriverHistoryPage() {
                 }
                 icon={<Star className="w-4 h-4" />}
               />
+            </div>
+
+            {/* Search Input */}
+            <div className="relative w-full">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-slate-400" />
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setPage(1);
+                  setSearchQuery(e.target.value);
+                }}
+                placeholder={t("search_placeholder")}
+                className="block w-full pl-9 pr-10 py-2.5 border border-slate-200 rounded-2xl bg-white text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all shadow-sm"
+              />
+              {isSearching && (
+                <div className="absolute inset-y-0 right-3 flex items-center">
+                  <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-primary border-t-transparent" />
+                </div>
+              )}
+              {!isSearching && searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPage(1);
+                    setSearchQuery("");
+                  }}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-slate-600 text-slate-400 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
 
             {/* Filters */}
