@@ -160,9 +160,22 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Fare Breakdown Visibility:** The driver dashboard and active booking views must always display a granular fare breakdown: **Base Fare**, **Platform Fee**, and **Collect Amount** (Total). This ensures the driver knows exactly how much to collect from the passenger and why their wallet balance decreased.
 - **Transaction History Context:** Every transaction in the driver's wallet history should include pickup and drop-off location names (where applicable) to help drivers cross-reference fees with specific trips.
 - **Automated Fee Deduction:** Platform fees are automatically calculated and deducted from the driver's wallet balance within the same database transaction that marks a ride as `COMPLETED`. (Added 2026-05-15)
+- **Wallet Transactions History Ledger:** Both the driver wallet dashboard and the admin driver modal feature a comprehensive transactions ledger. Each transaction lists: the exact amount (with proper green/red formatting and +/- sign), the date/time, localized transaction type badges (e.g., Booking Fee, Payment, Adjustment), and the granular trip details/pickup/destination where applicable. (Added 2026-05-17)
+- **Multidimensional Transaction Filtering:** Both drivers and admins have access to time-frame filters (All, Today, Last Week, Last Month) and debit/credit type filters (All, Debit, Credit) to easily navigate through transactions history. (Added 2026-05-17)
+- **Wallet Balance Cards:** The top of the ledger displays the driver's current wallet balance inside a stylized card for instant visibility, eliminating the need to display a running balance column per transaction row. (Added 2026-05-17)
+- **Dynamic Platform Fee Percentage:** The platform fee percentage is dynamically configured. The calculation logic queries the database setting `PLATFORM_FEE_PERCENTAGE` with a safe fallback to the default seed value of `5%` if the setting is absent or corrupted. (Added 2026-05-17)
+- **Admin Configuration Interface:** Admins can view and dynamically edit the platform fee percentage from the "Settings" tab in the Admin Dashboard. The percentage input supports values from 0 to 100 and displays clear percentage indicators. (Added 2026-05-17)
+- **Bilingual Translation Support:** Settings labels, descriptions, and buttons must be fully localized via the central `TEXT` dictionary to maintain a professional, accessible multilingual UI for both English and Bangla. (Added 2026-05-17)
 
 ## 🏗️ Admin Dashboard Architecture
 - **Hyper-Granular Refactor:** The Admin Dashboard follows a strict separation of concerns. All business logic, data fetching, and state management live in the [useAdminDashboard](file:///Users/patwary/Projects/CNGLagbe/app/admin/hooks/useAdminDashboard.ts) custom hook. Presentational logic is split into individual tab components under `app/admin/components/tabs/`.
 - **Shared Component Directory:** Common UI elements (badges, cards, modals) are centralized in `app/admin/components/shared/` and exposed via an `index.ts` file to ensure consistent styling and simplified imports across the dashboard.
 - **TabNavigation Standardization:** The dashboard uses a unified `TabNavigation` component to handle tab switching, ensuring a consistent UI and reducing redundant navigation logic in the main entry point.
 - **Type Safety Over `any`:** All component props in the admin dashboard use explicit TypeScript interfaces. The use of the `any` type is strictly avoided to ensure production stability.
+
+## ⚠️ Passenger Complaint & Issue Report System
+- **Authorized Reporter:** Only passengers are permitted to submit complaints against drivers. Driving partners cannot file reports against passengers to maintain the lightweight dispatch positioning.
+- **Valid Ride Restriction:** Issue reports can only be filed on dynamic booking pages when the ride's status is either `COMPLETED` or `CANCELLED`, and a driver was successfully assigned (`driverId` is present). This prevents spamming on unaccepted bookings.
+- **Bengalized Visual Predefined Reasons:** Dropdown reasons are fully localized (Base Fare, Behavior, Delayed Arrival, Lost Items, Other) to ensure readability for all literacy levels, styled using colored cards with radio checkboxes.
+- **Mandatory Admin Resolution Notes:** Administrative resolution action strictly requires marking status as `RESOLVED` and submitting a mandatory `resolutionNote` documenting warning outcomes or fare adjustments.
+
