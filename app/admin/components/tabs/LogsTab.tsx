@@ -1,9 +1,7 @@
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AppButton } from "@/components/ui/AppButton";
-import { History, Filter, Route, Banknote, ChevronLeft, ChevronRight } from "lucide-react";
+import { History, Filter, Route, Banknote, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { StatusBadge } from "../shared";
 import { formatDate } from "../../utils/format";
 import { TextKey } from "@/constants/text";
@@ -17,12 +15,13 @@ interface LogsTabProps {
   paginatedBookings: Booking[];
   logFilter: string;
   setLogFilter: (filter: string) => void;
+  bookingSearch: string;
+  setBookingSearch: (search: string) => void;
   currentPage: number;
   setCurrentPage: (page: number | ((prev: number) => number)) => void;
   totalPages: number;
   itemsPerPage: number;
   handleSort: (key: keyof Booking | "fee" | "driver_payout") => void;
-  fetchBookings: (status: string) => void;
   t: (key: TextKey) => string;
 }
 
@@ -32,12 +31,13 @@ export function LogsTab({
   paginatedBookings,
   logFilter,
   setLogFilter,
+  bookingSearch,
+  setBookingSearch,
   currentPage,
   setCurrentPage,
   totalPages,
   itemsPerPage,
   handleSort,
-  fetchBookings,
   t,
 }: LogsTabProps) {
   return (
@@ -80,20 +80,33 @@ export function LogsTab({
       )}
       <Card className="border-none shadow-xl rounded-[2rem] overflow-hidden">
         <CardHeader className="bg-slate-50 border-b border-slate-100 p-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <CardTitle className="text-2xl font-black text-slate-800 uppercase tracking-tighter flex items-center gap-3">
               <History className="text-slate-600" />
               {t("full_booking_log")}
             </CardTitle>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+              <div className="relative flex-1 sm:flex-initial">
+                <input
+                  type="text"
+                  value={bookingSearch}
+                  onChange={(e) => {
+                    setBookingSearch(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  placeholder={t("search") || "Search booking, address, driver, passenger..."}
+                  className="w-full sm:w-[280px] h-11 pl-10 pr-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white"
+                />
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
+
               <div className="relative">
                 <select
-                  className="appearance-none h-10 rounded-xl pl-10 pr-8 text-xs font-black uppercase border border-slate-200 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer text-slate-700"
+                  className="appearance-none w-full sm:w-auto h-11 rounded-xl pl-10 pr-8 text-xs font-black uppercase border border-slate-200 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer text-slate-700"
                   value={logFilter}
                   onChange={(e) => {
                     setLogFilter(e.target.value);
                     setCurrentPage(1);
-                    fetchBookings(e.target.value);
                   }}
                 >
                   <option value="ALL">{t("all") || "ALL BOOKINGS"}</option>
@@ -114,6 +127,7 @@ export function LogsTab({
               <TableRow className="hover:bg-transparent border-none">
                 <TableHead onClick={() => handleSort("id")} className="px-8 py-5 text-xs font-black uppercase tracking-widest text-slate-400 cursor-pointer hover:bg-slate-100 transition">{t("id")}</TableHead>
                 <TableHead onClick={() => handleSort("driver")} className="py-5 text-xs font-black uppercase tracking-widest text-slate-400 cursor-pointer hover:bg-slate-100 transition">{t("driver")}</TableHead>
+                <TableHead onClick={() => handleSort("user")} className="py-5 text-xs font-black uppercase tracking-widest text-slate-400 cursor-pointer hover:bg-slate-100 transition">{t("passenger") || "PASSENGER"}</TableHead>
                 <TableHead onClick={() => handleSort("distance")} className="py-5 text-xs font-black uppercase tracking-widest text-slate-400 cursor-pointer hover:bg-slate-100 transition whitespace-nowrap">
                   <div className="flex items-center gap-1"><Route size={12} /> {t("distance")}</div>
                 </TableHead>
@@ -146,6 +160,16 @@ export function LogsTab({
                       <span className="text-xs italic text-slate-300">{t("unassigned")}</span>
                     )}
                   </TableCell>
+                  <TableCell>
+                    {booking.user ? (
+                      <div>
+                        <p className="font-black text-xs text-slate-800">{booking.user.name}</p>
+                        <p className="text-[10px] text-slate-400">{booking.user.phone}</p>
+                      </div>
+                    ) : (
+                      <span className="text-xs italic text-slate-300">N/A</span>
+                    )}
+                  </TableCell>
                   <TableCell className="text-xs font-medium text-slate-600">
                     {formatDecimal(booking.distance)} {t("km_unit")}
                   </TableCell>
@@ -168,7 +192,7 @@ export function LogsTab({
               ))}
               {bookings.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-20 text-center">
+                  <TableCell colSpan={9} className="py-20 text-center">
                     <div className="flex flex-col items-center justify-center gap-3 text-slate-400 italic">
                       <History size={40} className="opacity-10" />
                       <p className="text-sm">{t("no_bookings")}</p>
@@ -185,7 +209,7 @@ export function LogsTab({
       {bookings.length > 0 && (
         <div className="flex items-center justify-between px-6 py-4 bg-white rounded-2xl shadow-sm border border-slate-100 mt-4">
           <p className="text-xs text-slate-500 font-medium uppercase tracking-widest">
-            Showing {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, bookings.length)} of {bookings.length}
+            Showing {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, bookings.length * currentPage)} of paginated logs
           </p>
           <div className="flex items-center gap-2">
             <AppButton

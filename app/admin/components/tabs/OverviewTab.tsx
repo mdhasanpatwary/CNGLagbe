@@ -1,5 +1,5 @@
 import React from "react";
-import { Activity, Users, UserCheck, Route, Banknote, ChevronLeft, ChevronRight, TrendingUp, HandCoins, MapPin, ShieldAlert } from "lucide-react";
+import { Activity, Users, UserCheck, Route, Banknote, ChevronLeft, ChevronRight, TrendingUp, HandCoins, MapPin, ShieldAlert, Search, Filter } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AppButton } from "@/components/ui/AppButton";
@@ -25,6 +25,10 @@ interface OverviewTabProps {
   totalPages: number;
   itemsPerPage: number;
   totalBookings: number;
+  bookingSearch: string;
+  setBookingSearch: (search: string) => void;
+  logFilter: string;
+  setLogFilter: (filter: string) => void;
 }
 
 export const OverviewTab: React.FC<OverviewTabProps> = ({
@@ -41,6 +45,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   totalPages,
   itemsPerPage,
   totalBookings,
+  bookingSearch,
+  setBookingSearch,
+  logFilter,
+  setLogFilter,
 }) => {
   return (
     <>
@@ -295,9 +303,48 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
         {/* Recent Bookings Table */}
         <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl font-bold">{t("recent_bookings")}</CardTitle>
+          <Card className="border-none shadow-xl rounded-[2rem] overflow-hidden">
+            <CardHeader className="bg-slate-50 border-b border-slate-100 p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <CardTitle className="text-xl font-black text-slate-800 uppercase tracking-tighter flex items-center gap-2">
+                  {t("recent_bookings")}
+                </CardTitle>
+
+                <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2 w-full sm:w-auto">
+                  <div className="relative flex-1 xs:flex-initial">
+                    <input
+                      type="text"
+                      value={bookingSearch}
+                      onChange={(e) => {
+                        setBookingSearch(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      placeholder={t("search") || "Search..."}
+                      className="w-full sm:w-[200px] h-10 pl-9 pr-3 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white"
+                    />
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  </div>
+
+                  <div className="relative">
+                    <select
+                      className="appearance-none w-full sm:w-auto h-10 rounded-xl pl-9 pr-7 text-[10px] font-black uppercase border border-slate-200 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer text-slate-700"
+                      value={logFilter}
+                      onChange={(e) => {
+                        setLogFilter(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <option value="ALL">{t("all") || "ALL"}</option>
+                      <option value="COMPLETED">COMPLETED</option>
+                      <option value="CANCELLED">CANCELLED</option>
+                      <option value="TIMED_OUT">TIMED_OUT</option>
+                      <option value="PENDING">PENDING</option>
+                      <option value="ACCEPTED">ACCEPTED</option>
+                    </select>
+                    <Filter size={12} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="rounded-md border border-slate-100 overflow-hidden">

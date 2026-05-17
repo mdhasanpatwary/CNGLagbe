@@ -116,6 +116,8 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 ## 🛠️ Code Quality & Maintenance
 - **Strict Linting Compliance:** The codebase maintains zero linting errors and warnings. Key practices include:
   - **Avoiding `any`:** Never use the `any` type in API routes or components. Always use specific types or `unknown` with type assertions (e.g., `error as Error`).
+  - **Prisma Where Clauses:** For API endpoint filtering and queries, strongly type where clauses using specific inputs from Prisma (e.g., `Prisma.BookingWhereInput`, `Prisma.UserWhereInput`) instead of `any`. If conditions are constructed dynamically, use typed arrays (e.g., `const andConditions: Prisma.BookingWhereInput[] = []`) and aggregate them with `{ AND: andConditions }`.
+  - **Non-Hoisted Variable Declarations:** In custom hooks, always define functions (e.g., `fetchBookings`) before they are accessed or called in standard `useEffect` hooks to prevent Temporal Dead Zone (TDZ) / access-before-declaration compiler or linter errors. If a data-fetching function performs synchronous state updates inside the effect, retain the `// eslint-disable-next-line react-hooks/set-state-in-effect` compiler directive to safely ignore the warning.
   - **Dead Code Removal:** Unused variables (like `_` in destructuring), imports, and props are strictly removed or handled to ensure build stability and clean code. (2026-05-11)
 - **Design System Enforcement (AppButton):** Native `<button>` elements are strictly prohibited in favor of the `AppButton` component. This ensures consistent styling, loading states, and tactile feedback across all panels. Even highly custom buttons (like the user menu toggle) must be wrapped in `AppButton` with `variant="ghost"` and appropriate overrides.
 
@@ -178,4 +180,11 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Valid Ride Restriction:** Issue reports can only be filed on dynamic booking pages when the ride's status is either `COMPLETED` or `CANCELLED`, and a driver was successfully assigned (`driverId` is present). This prevents spamming on unaccepted bookings.
 - **Bengalized Visual Predefined Reasons:** Dropdown reasons are fully localized (Base Fare, Behavior, Delayed Arrival, Lost Items, Other) to ensure readability for all literacy levels, styled using colored cards with radio checkboxes.
 - **Mandatory Admin Resolution Notes:** Administrative resolution action strictly requires marking status as `RESOLVED` and submitting a mandatory `resolutionNote` documenting warning outcomes or fare adjustments.
+
+## 📊 Unified Search, Pagination & Filtering in Tables
+- **Hybrid Search/Filter Strategy:** Tables in CNGLagbe utilize a hybrid approach:
+  - **Server-Side Filtering & Search:** Heavy lists with high volumes (e.g., Users, Bookings) implement server-side search and filtering via API parameters. Text search filters against user profiles (name, phone) and active relations (passenger, driver).
+  - **Client-Side Filtering & Search:** Lightweight static lists (e.g., Bazars) implement responsive client-side in-memory filter logic to keep queries fast and instant.
+- **Visual Premium Headers:** Every searchable/filterable table card header features a clean responsive layout with a search input (prefixed with a `Search` icon) and a status/role select dropdown (prefixed with a `Filter` icon).
+- **Page Resets on Search/Filter:** Whenever a user types into a search input or modifies a filter, the pagination page state MUST be programmatically reset to the first page (`currentPage = 1` or `setPage(1)`) to avoid displaying blank empty states.
 

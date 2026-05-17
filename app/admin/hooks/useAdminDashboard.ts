@@ -56,6 +56,18 @@ export function useAdminDashboard() {
   const [issuePage, setIssuePage] = useState(1);
   const [issueMeta, setIssueMeta] = useState({ total: 0, totalPages: 0 });
 
+  // Users State
+  const [userSearch, setUserSearch] = useState("");
+  const [debouncedUserSearch, setDebouncedUserSearch] = useState("");
+  const [userFilter, setUserFilter] = useState("ALL");
+  const [userPage, setUserPage] = useState(1);
+  const [userMeta, setUserMeta] = useState({ total: 0, totalPages: 0 });
+
+  // Bookings/Logs Search State
+  const [bookingSearch, setBookingSearch] = useState("");
+  const [debouncedBookingSearch, setDebouncedBookingSearch] = useState("");
+  const [totalPages, setTotalPages] = useState(1);
+
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedIssueSearch(issueSearch);
@@ -69,6 +81,20 @@ export function useAdminDashboard() {
     }, 1000);
     return () => clearTimeout(handler);
   }, [driverSearch]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedUserSearch(userSearch);
+    }, 1000);
+    return () => clearTimeout(handler);
+  }, [userSearch]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedBookingSearch(bookingSearch);
+    }, 1000);
+    return () => clearTimeout(handler);
+  }, [bookingSearch]);
 
   const [driverSort, setDriverSort] = useState("latest");
   const [driverPage, setDriverPage] = useState(1);
@@ -114,6 +140,20 @@ export function useAdminDashboard() {
     }
   };
 
+  const fetchUsers = async (page = 1, search = "", role = "ALL") => {
+    try {
+      const res = await fetch(`/api/admin/users?page=${page}&limit=20&search=${search}&role=${role}`);
+      const data = await res.json();
+      setAllUsers(Array.isArray(data?.users) ? data.users : []);
+      setUserMeta({
+        total: data?.meta?.total || 0,
+        totalPages: data?.meta?.totalPages || 0
+      });
+    } catch (e) {
+      console.error("Fetch users error:", e);
+    }
+  };
+
   const handleResolveIssue = async (issueId: string, resolutionNote: string) => {
     try {
       const res = await fetch(`/api/admin/issues/${issueId}/resolve`, {
@@ -138,9 +178,7 @@ export function useAdminDashboard() {
   const fetchData = async (options?: { showLoading?: boolean }) => {
     if (options?.showLoading) setIsRefreshing(true);
     try {
-      const url = logFilter === "ALL"
-        ? "/api/admin/bookings?limit=100"
-        : `/api/admin/bookings?limit=100&status=${logFilter}`;
+      const url = `/api/admin/bookings?page=${currentPage}&limit=20&status=${logFilter}&search=${debouncedBookingSearch}`;
 
       const [resStats, resBookings, resDrivers, resActive, resOnline, resAllUsers, resBazars, resSettings] = await Promise.all([
         fetch("/api/admin/stats"),
@@ -148,7 +186,7 @@ export function useAdminDashboard() {
         fetch("/api/admin/drivers/approve"),
         fetch("/api/admin/bookings?type=active"),
         fetch("/api/admin/drivers/online"),
-        fetch("/api/admin/users?limit=100"),
+        fetch(`/api/admin/users?page=${userPage}&limit=20&search=${debouncedUserSearch}&role=${userFilter}`),
         fetch("/api/bazars"),
         fetch("/api/admin/settings")
       ]);
@@ -164,10 +202,15 @@ export function useAdminDashboard() {
 
       setStats(dataStats?.stats || null);
       setBookings(Array.isArray(dataBookings?.bookings) ? dataBookings.bookings : []);
+      setTotalPages(dataBookings?.meta?.totalPages || 1);
       setPendingDrivers(Array.isArray(dataDrivers?.drivers) ? dataDrivers.drivers : []);
       setActiveBookings(Array.isArray(dataActive?.bookings) ? dataActive.bookings : []);
       setOnlineDrivers(Array.isArray(dataOnline?.drivers) ? dataOnline.drivers : []);
       setAllUsers(Array.isArray(dataAllUsers?.users) ? dataAllUsers.users : []);
+      setUserMeta({
+        total: dataAllUsers?.meta?.total || 0,
+        totalPages: dataAllUsers?.meta?.totalPages || 0
+      });
 
       if (activeTab === "drivers") {
         fetchDrivers(driverPage, debouncedDriverSearch, driverFilter, driverSort);
@@ -175,6 +218,10 @@ export function useAdminDashboard() {
 
       if (activeTab === "issues") {
         fetchIssues(issuePage, debouncedIssueSearch, issueFilter);
+      }
+
+      if (activeTab === "users") {
+        fetchUsers(userPage, debouncedUserSearch, userFilter);
       }
 
       if (Array.isArray(dataBazars)) {
@@ -214,21 +261,34 @@ export function useAdminDashboard() {
     }
   }, [issuePage, debouncedIssueSearch, issueFilter, activeTab]);
 
-  const fetchBookings = async (status: string) => {
+  useEffect(() => {
+    if (activeTab === "users") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchUsers(userPage, debouncedUserSearch, userFilter);
+    }
+  }, [userPage, debouncedUserSearch, userFilter, activeTab]);
+
+  const fetchBookings = async (page = 1, status = "ALL", search = "") => {
     setIsRefreshing(true);
     try {
-      const url = status === "ALL"
-        ? "/api/admin/bookings?limit=100"
-        : `/api/admin/bookings?limit=100&status=${status}`;
+      const url = `/api/admin/bookings?page=${page}&limit=20&status=${status}&search=${search}`;
       const res = await fetch(url);
       const data = await res.json();
       setBookings(Array.isArray(data?.bookings) ? data.bookings : []);
+      setTotalPages(data?.meta?.totalPages || 1);
     } catch (e) {
       console.error(e);
     } finally {
       setIsRefreshing(false);
     }
   };
+
+  useEffect(() => {
+    if (activeTab === "logs" || activeTab === "overview") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchBookings(currentPage, logFilter, debouncedBookingSearch);
+    }
+  }, [currentPage, logFilter, debouncedBookingSearch, activeTab]);
 
   const handleApprove = async (driverId: string) => {
     try {
@@ -400,8 +460,7 @@ export function useAdminDashboard() {
     return direction === "asc" ? result : -result;
   });
 
-  const paginatedBookings = sortedBookings.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-  const totalPages = Math.ceil(bookings.length / itemsPerPage);
+  const paginatedBookings = sortedBookings;
 
   return {
     t,
@@ -475,6 +534,15 @@ export function useAdminDashboard() {
     issuePage,
     setIssuePage,
     issueMeta,
-    handleResolveIssue
+    handleResolveIssue,
+    userSearch,
+    setUserSearch,
+    userFilter,
+    setUserFilter,
+    userPage,
+    setUserPage,
+    userMeta,
+    bookingSearch,
+    setBookingSearch,
   };
 }

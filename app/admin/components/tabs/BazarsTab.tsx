@@ -1,9 +1,8 @@
-"use client";
-
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AppButton } from "@/components/ui/AppButton";
-import { Store, Plus, Users, Edit2, Trash2 } from "lucide-react";
+import { Store, Plus, Users, Edit2, Trash2, Search } from "lucide-react";
 
 import { TextKey } from "@/constants/text";
 
@@ -30,32 +29,51 @@ export function BazarsTab({
   handleUpdateBazar,
   t,
 }: BazarsTabProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredBazars = bazars.filter((bazar) =>
+    bazar.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
       <Card className="border-none shadow-xl rounded-[2rem] overflow-hidden">
         <CardHeader className="bg-slate-50 border-b border-slate-100 p-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <CardTitle className="text-2xl font-black text-slate-800 uppercase tracking-tighter flex items-center gap-3">
               <Store className="text-primary" />
               {t("bazars")}
             </CardTitle>
 
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={newBazarName}
-                onChange={(e) => setNewBazarName(e.target.value)}
-                placeholder={t("bazar_name")}
-                className="h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white min-w-[200px]"
-                onKeyDown={(e) => e.key === "Enter" && handleAddBazar()}
-              />
-              <AppButton
-                onClick={handleAddBazar}
-                className="h-11 px-6 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black rounded-xl uppercase tracking-widest shadow-lg shadow-slate-900/10"
-                leftIcon={<Plus size={16} />}
-              >
-                {t("add_bazar")}
-              </AppButton>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+              <div className="relative flex-1 sm:flex-initial">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t("search") || "Search..."}
+                  className="w-full sm:w-[200px] h-11 pl-10 pr-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white"
+                />
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newBazarName}
+                  onChange={(e) => setNewBazarName(e.target.value)}
+                  placeholder={t("bazar_name")}
+                  className="h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white min-w-[150px] flex-1 sm:flex-initial"
+                  onKeyDown={(e) => e.key === "Enter" && handleAddBazar()}
+                />
+                <AppButton
+                  onClick={handleAddBazar}
+                  className="h-11 px-6 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black rounded-xl uppercase tracking-widest shadow-lg shadow-slate-900/10"
+                  leftIcon={<Plus size={16} />}
+                >
+                  {t("add_bazar")}
+                </AppButton>
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -69,7 +87,7 @@ export function BazarsTab({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {bazars.map((bazar) => (
+              {filteredBazars.map((bazar) => (
                 <TableRow key={bazar.id} className="hover:bg-slate-50/50 border-b border-slate-50">
                   <TableCell className="px-8 py-6">
                     {editingBazar?.id === bazar.id ? (
@@ -133,7 +151,7 @@ export function BazarsTab({
                   </TableCell>
                 </TableRow>
               ))}
-              {bazars.length === 0 && (
+              {filteredBazars.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={3} className="py-20 text-center">
                     <div className="flex flex-col items-center justify-center gap-3 text-slate-400 italic">

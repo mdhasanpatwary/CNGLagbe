@@ -68,7 +68,6 @@ export default function AdminDashboard() {
     driverSort,
     setDriverSort,
     fetchData,
-    fetchBookings,
     handleApprove,
     handleToggleSuspend,
     handleAddBazar,
@@ -91,6 +90,15 @@ export default function AdminDashboard() {
     setIssuePage,
     issueMeta,
     handleResolveIssue,
+    userSearch,
+    setUserSearch,
+    userFilter,
+    setUserFilter,
+    userPage,
+    setUserPage,
+    userMeta,
+    bookingSearch,
+    setBookingSearch,
   } = useAdminDashboard();
 
   const tabs = [
@@ -131,6 +139,10 @@ export default function AdminDashboard() {
             onlineDrivers={onlineDrivers}
             pendingDrivers={pendingDrivers}
             paginatedBookings={paginatedBookings}
+            bookingSearch={bookingSearch}
+            setBookingSearch={setBookingSearch}
+            logFilter={logFilter}
+            setLogFilter={setLogFilter}
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
             totalPages={totalPages}
@@ -166,7 +178,19 @@ export default function AdminDashboard() {
           />
         )}
 
-        {activeTab === "users" && <UsersTab allUsers={allUsers} t={t} />}
+        {activeTab === "users" && (
+          <UsersTab
+            allUsers={allUsers}
+            userSearch={userSearch}
+            setUserSearch={setUserSearch}
+            userFilter={userFilter}
+            setUserFilter={setUserFilter}
+            userPage={userPage}
+            setUserPage={setUserPage}
+            userMeta={userMeta}
+            t={t}
+          />
+        )}
 
         {activeTab === "logs" && (
           <LogsTab
@@ -175,12 +199,13 @@ export default function AdminDashboard() {
             paginatedBookings={paginatedBookings}
             logFilter={logFilter}
             setLogFilter={setLogFilter}
+            bookingSearch={bookingSearch}
+            setBookingSearch={setBookingSearch}
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
             totalPages={totalPages}
             itemsPerPage={itemsPerPage}
             handleSort={handleSort}
-            fetchBookings={fetchBookings}
             t={t}
           />
         )}

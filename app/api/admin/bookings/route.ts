@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedAdmin } from "@/lib/auth";
+import { Prisma } from "@prisma/client";
 
 export async function GET(request: Request) {
   try {
@@ -16,13 +17,43 @@ export async function GET(request: Request) {
 
     const type = searchParams.get("type");
     const statusFilter = searchParams.get("status");
+    const search = searchParams.get("search") || "";
 
-    const whereClause: { status?: string | { in: string[] } } = {};
+    const andConditions: Prisma.BookingWhereInput[] = [];
+
     if (type === "active") {
-      whereClause.status = { in: ["PENDING", "ACCEPTED", "ASSIGNED"] };
+      andConditions.push({ status: { in: ["PENDING", "ACCEPTED", "ASSIGNED"] } });
     } else if (statusFilter && statusFilter !== "ALL") {
-      whereClause.status = statusFilter;
+      andConditions.push({ status: statusFilter });
     }
+
+    if (search) {
+      andConditions.push({
+        OR: [
+          { id: { contains: search, mode: "insensitive" } },
+          { pickupAddress: { contains: search, mode: "insensitive" } },
+          { destAddress: { contains: search, mode: "insensitive" } },
+          {
+            driver: {
+              OR: [
+                { name: { contains: search, mode: "insensitive" } },
+                { phone: { contains: search, mode: "insensitive" } }
+              ]
+            }
+          },
+          {
+            user: {
+              OR: [
+                { name: { contains: search, mode: "insensitive" } },
+                { phone: { contains: search, mode: "insensitive" } }
+              ]
+            }
+          }
+        ]
+      });
+    }
+
+    const whereClause: Prisma.BookingWhereInput = andConditions.length > 0 ? { AND: andConditions } : {};
 
     // Run findMany and count in parallel instead of sequentially
     const [bookings, total] = await Promise.all([
@@ -33,6 +64,7 @@ export async function GET(request: Request) {
         take: limit,
         include: {
           driver: { select: { name: true, phone: true } },
+          user: { select: { name: true, phone: true } }
         },
       }),
       prisma.booking.count({ where: whereClause }),

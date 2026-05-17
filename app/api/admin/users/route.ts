@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedAdmin } from "@/lib/auth";
+import { Prisma } from "@prisma/client";
 
 export async function GET(request: Request) {
   try {
@@ -13,10 +14,24 @@ export async function GET(request: Request) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
     const skip = (page - 1) * limit;
+    const search = searchParams.get("search") || "";
+    const role = searchParams.get("role") || "ALL";
+
+    const whereClause: Prisma.UserWhereInput = {};
+    if (search) {
+      whereClause.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { phone: { contains: search, mode: "insensitive" } }
+      ];
+    }
+    if (role && role !== "ALL") {
+      whereClause.role = role;
+    }
 
     // Run findMany and count in parallel instead of sequentially
     const [users, total] = await Promise.all([
       prisma.user.findMany({
+        where: whereClause,
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
@@ -26,7 +41,7 @@ export async function GET(request: Request) {
           }
         }
       }),
-      prisma.user.count(),
+      prisma.user.count({ where: whereClause }),
     ]);
 
     return NextResponse.json({
