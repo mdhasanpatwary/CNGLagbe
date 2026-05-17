@@ -46,53 +46,79 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     <>
       {/* Top metrics */}
       {stats ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatsCard
-            title={t("total_revenue")}
-            value={stats.revenue?.total ?? 0}
-            desc={t("revenue_desc")}
-            icon={TrendingUp}
-            variant="primary"
-            currency={t("currency")}
-            extra={stats.revenue?.voided ? (
-              <p className="text-[10px] text-red-500 font-black mt-2 bg-red-50 w-fit px-2 py-0.5 rounded-md uppercase border border-red-100">
-                {t("voided_revenue")}: {t("currency")}{stats.revenue.voided}
-              </p>
-            ) : null}
-          />
+        <div className="space-y-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <StatsCard
+              title={t("total_revenue")}
+              value={stats.revenue?.total ?? 0}
+              desc={t("revenue_desc")}
+              icon={TrendingUp}
+              variant="primary"
+              currency={t("currency")}
+              extra={stats.revenue?.voided ? (
+                <p className="text-[10px] text-red-500 font-black mt-2 bg-red-50 w-fit px-2 py-0.5 rounded-md uppercase border border-red-100">
+                  {t("voided_revenue")}: {t("currency")}{stats.revenue.voided}
+                </p>
+              ) : null}
+            />
 
-          <StatsCard
-            title={t("admin_commission")}
-            value={stats.revenue?.commission ?? 0}
-            desc={t("commission_desc")}
-            icon={HandCoins}
-            variant="blue"
-            currency={t("currency")}
-          />
+            <StatsCard
+              title={t("admin_commission")}
+              value={stats.revenue?.commission ?? 0}
+              desc={t("commission_desc")}
+              icon={HandCoins}
+              variant="blue"
+              currency={t("currency")}
+            />
 
-          <StatsCard
-            title={t("driver_payouts")}
-            value={stats.revenue?.driverPayout ?? 0}
-            desc={t("payout_desc")}
-            icon={UserCheck}
-            variant="purple"
-            currency={t("currency")}
-          />
+            <StatsCard
+              title={t("driver_payouts")}
+              value={stats.revenue?.driverPayout ?? 0}
+              desc={t("payout_desc")}
+              icon={Banknote}
+              variant="purple"
+              currency={t("currency")}
+            />
+          </div>
 
-          <StatsCard
-            title={t("active_drivers")}
-            value={stats.activeDrivers ?? 0}
-            desc={stats.bookings?.pending && stats.bookings.pending > 0 ? `${stats.bookings.pending} ${t("needs_review")}` : `${t("assigned_desc")}: ${stats.bookings?.pending ?? 0}`}
-            icon={Users}
-            variant="amber"
-          />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <StatsCard
+              title={t("online_drivers")}
+              value={stats.activeDrivers ?? 0}
+              desc={stats.bookings?.pending && stats.bookings.pending > 0 ? `${stats.bookings.pending} ${t("needs_review")}` : `${t("assigned_desc")}: ${stats.bookings?.pending ?? 0}`}
+              icon={Activity}
+              variant="amber"
+            />
+            
+            <StatsCard
+              title={t("on_ride_drivers")}
+              value={stats.onRideDrivers ?? 0}
+              desc={t("trip_in_progress")}
+              icon={Route}
+              variant="primary"
+            />
+            
+            <StatsCard
+              title={t("offline_drivers")}
+              value={stats.offlineDrivers ?? 0}
+              desc={t("approved")}
+              icon={Users}
+              variant="purple"
+            />
+          </div>
         </div>
       ) : (
-        <div className="animate-pulse flex space-x-4 mb-8">
-          <div className="h-32 bg-slate-200 rounded w-full"></div>
-          <div className="h-32 bg-slate-200 rounded w-full"></div>
-          <div className="h-32 bg-slate-200 rounded w-full"></div>
-          <div className="h-32 bg-slate-200 rounded w-full"></div>
+        <div className="animate-pulse space-y-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="h-32 bg-slate-200 rounded-xl w-full"></div>
+            <div className="h-32 bg-slate-200 rounded-xl w-full"></div>
+            <div className="h-32 bg-slate-200 rounded-xl w-full"></div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="h-32 bg-slate-200 rounded-xl w-full"></div>
+            <div className="h-32 bg-slate-200 rounded-xl w-full"></div>
+            <div className="h-32 bg-slate-200 rounded-xl w-full"></div>
+          </div>
         </div>
       )}
 

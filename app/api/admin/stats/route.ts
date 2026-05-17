@@ -11,7 +11,7 @@ export async function GET() {
 
     // Single raw SQL for all booking stats via conditional aggregation,
     // plus a parallel driver count (separate table).
-    const [bookingStats, activeDrivers] = await Promise.all([
+    const [bookingStats, activeDrivers, offlineDrivers, onRideDrivers] = await Promise.all([
       prisma.$queryRaw<
         Array<{
           totalBookings: bigint;
@@ -38,6 +38,8 @@ export async function GET() {
         FROM "Booking"
       `,
       prisma.driver.count({ where: { isOnline: true } }),
+      prisma.driver.count({ where: { isOnline: false, isApproved: true } }),
+      prisma.booking.count({ where: { status: { in: ['ACCEPTED', 'ASSIGNED', 'PICKED_UP'] } } }),
     ]);
 
     const row = bookingStats[0];
@@ -57,6 +59,8 @@ export async function GET() {
         voidedAmount: Number(row.voidedAmount) || 0,
         adminCommission,
         activeDrivers,
+        offlineDrivers,
+        onRideDrivers,
         revenue: {
           total: totalRevenue,
           voided: Number(row.voidedAmount) || 0,

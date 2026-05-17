@@ -12,6 +12,8 @@ export interface AdminStats {
     driverPayout: number;
   };
   activeDrivers?: number;
+  offlineDrivers?: number;
+  onRideDrivers?: number;
   bookings?: {
     pending: number;
   };
