@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { BoundedCache } from "@/lib/bounded-cache";
 import { getBookingRequestTimeoutThreshold } from "@/constants/booking";
+import { getBoundingBox } from "@/lib/radius";
 
 // BoundedCache prevents unbounded memory growth from accumulating unique user/driver IDs
 const syncCache = new BoundedCache<Record<string, unknown>>(2000); // 2s TTL
@@ -145,30 +146,31 @@ export async function GET() {
         where: { key: "MIN_WALLET_BALANCE_FOR_RIDE_REQUESTS" }
       });
 
-      const [stats, lifetimeStats, currentBooking, wallet, minBalanceSetting] = await Promise.all([
+      const searchRadiusSettingPromise = prisma.systemSetting.findUnique({
+        where: { key: "DRIVER_SEARCH_RADIUS_KM" }
+      });
+
+      const [stats, lifetimeStats, currentBooking, wallet, minBalanceSetting, searchRadiusSetting] = await Promise.all([
         statsPromise,
         lifetimeStatsPromise,
         currentBookingPromise,
         walletPromise,
-        minBalanceSettingPromise
+        minBalanceSettingPromise,
+        searchRadiusSettingPromise
       ]);
 
       const minBalance = minBalanceSetting ? parseFloat(minBalanceSetting.value) : -100;
       const isWalletSuspended = (wallet?.balance || 0) <= minBalance;
+      const searchRadiusKm = searchRadiusSetting ? parseFloat(searchRadiusSetting.value) : 3;
 
       let requestsPromise: Promise<unknown[]> = Promise.resolve([]);
       if (driver.isOnline && driver.isApproved && driver.currentLat && driver.currentLng && !isWalletSuspended) {
         const timeoutThreshold = getBookingRequestTimeoutThreshold();
 
-        // Bounding box for 3km (~0.027 degrees) to use B-Tree index
-        const latDelta = 0.027;
-        const lngDelta = 0.027;
-        const minLat = driver.currentLat - latDelta;
-        const maxLat = driver.currentLat + latDelta;
-        const minLng = driver.currentLng - lngDelta;
-        const maxLng = driver.currentLng + lngDelta;
+        // Dynamically compute bounding box using the search radius setting
+        const { minLat, maxLat, minLng, maxLng } = getBoundingBox(driver.currentLat, driver.currentLng, searchRadiusKm);
 
-        // Optimized geospatial query with bounding box pre-filter
+        // Optimized geospatial query with bounding box pre-filter and dynamic search radius setting
         requestsPromise = prisma.$queryRaw`
           SELECT
             b."id",
@@ -200,7 +202,7 @@ export async function GET() {
             AND ST_DWithin(
               ST_MakePoint(b."pickupLng", b."pickupLat"),
               ST_MakePoint(${driver.currentLng}::float8, ${driver.currentLat}::float8),
-              3000
+              ${searchRadiusKm * 1000}::float8
             )
           ORDER BY "calculatedDistance" ASC
           LIMIT 10
