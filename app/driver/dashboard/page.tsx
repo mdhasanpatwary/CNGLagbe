@@ -833,66 +833,62 @@ export default function DriverHomePage() {
             </div>
             
             <Card className="border-none shadow-2xl shadow-blue-500/10 rounded-[2rem] bg-white overflow-hidden">
-              <CardContent className="p-6">
-                <div className="space-y-6">
-                  <div className="w-full h-48 rounded-2xl overflow-hidden shadow-inner bg-slate-100 mb-2">
-                    <GoogleMapPreview 
-                      pickupLat={currentBooking.pickupLat}
-                      pickupLng={currentBooking.pickupLng}
-                      destLat={currentBooking.destLat}
-                      destLng={currentBooking.destLng}
-                      apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
-                    />
-                  </div>
-                  <div className="px-1 flex justify-end">
-                    <a 
-                      target="_blank" 
-                      href={`https://www.google.com/maps/dir/?api=1&origin=${currentBooking.pickupLat},${currentBooking.pickupLng}&destination=${currentBooking.destLat},${currentBooking.destLng}&travelmode=driving`}
-                      className="inline-flex items-center gap-2 text-primary text-[10px] font-black uppercase bg-primary/5 px-4 py-2 rounded-full hover:bg-primary/10 transition-all border border-primary/10"
-                    >
-                      <Navigation size={12} /> {t("nav_google_maps")}
-                    </a>
-                  </div>
-                  {/* Locations */}
-                  <div className="relative space-y-6 before:absolute before:left-3 before:top-4 before:bottom-4 before:w-px before:bg-slate-100">
-                    <div className="flex gap-4 relative">
+              <CardContent className="p-0">
+                <div className="relative w-full h-48 bg-slate-100">
+                  <GoogleMapPreview 
+                    pickupLat={currentBooking.pickupLat}
+                    pickupLng={currentBooking.pickupLng}
+                    destLat={currentBooking.destLat}
+                    destLng={currentBooking.destLng}
+                    apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
+                  />
+                  <a 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    href={`https://www.google.com/maps/dir/?api=1&origin=${currentBooking.pickupLat},${currentBooking.pickupLng}&destination=${currentBooking.destLat},${currentBooking.destLng}&travelmode=driving`}
+                    className="absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 text-primary text-[10px] font-black uppercase bg-white px-3.5 py-2 rounded-full hover:bg-slate-50 transition-all shadow-md border border-slate-100/50"
+                  >
+                    <Navigation size={12} /> {t("nav_google_maps")}
+                  </a>
+                </div>
+                
+                <div className="p-5 space-y-5">
+                  {/* Spacing coherent vertical timeline */}
+                  <div className="relative space-y-5 before:absolute before:left-3 before:top-3 before:bottom-3 before:w-px before:bg-slate-100">
+                    <div className="flex gap-3 relative">
                       <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 z-10">
-                        <Navigation className="text-primary w-3.5 h-3.5" />
+                        <span className="w-2 h-2 rounded-full bg-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1">{t("pickup")}</p>
+                        <p className="text-xs font-black text-slate-400 uppercase mb-0.5">{t("pickup")}</p>
                         <p className="text-sm font-bold text-slate-800 truncate">
                           {simplifyAddress(currentBooking.pickupAddress) || t("pickup")}
                         </p>
-                        <p className="text-[10px] text-slate-400 mb-1 truncate">
-                          {`${currentBooking.pickupLat.toFixed(4)}, ${currentBooking.pickupLng.toFixed(4)}`}
-                        </p>
                         <a 
                           target="_blank" 
+                          rel="noopener noreferrer"
                           href={`https://www.google.com/maps/dir/?api=1&destination=${currentBooking.pickupLat},${currentBooking.pickupLng}`}
-                          className="inline-flex items-center gap-2 text-blue-600 text-[10px] font-black uppercase mt-1 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors"
+                          className="inline-flex items-center gap-1 text-blue-600 text-xs font-black uppercase mt-1 hover:underline"
                         >
                           <ExternalLink size={10} /> {t("nav_pickup")}
                         </a>
                       </div>
                     </div>
 
-                    <div className="flex gap-4 relative">
-                      <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center shrink-0 z-10">
-                        <MapPin className="text-red-600 w-3.5 h-3.5" />
+                    <div className="flex gap-3 relative">
+                      <div className="w-6 h-6 rounded-full bg-red-50 flex items-center justify-center shrink-0 z-10">
+                        <span className="w-2 h-2 rounded-full bg-red-500" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1">{t("drop")}</p>
+                        <p className="text-xs font-black text-slate-400 uppercase mb-0.5">{t("drop")}</p>
                         <p className="text-sm font-bold text-slate-800 truncate">
                           {simplifyAddress(currentBooking.destAddress) || t("drop")}
                         </p>
-                        <p className="text-[10px] text-slate-400 mb-1 truncate">
-                          {`${currentBooking.destLat.toFixed(4)}, ${currentBooking.destLng.toFixed(4)}`}
-                        </p>
                         <a 
                           target="_blank" 
+                          rel="noopener noreferrer"
                           href={`https://www.google.com/maps/dir/?api=1&destination=${currentBooking.destLat},${currentBooking.destLng}`}
-                          className="inline-flex items-center gap-2 text-blue-600 text-[10px] font-black uppercase mt-1 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors"
+                          className="inline-flex items-center gap-1 text-blue-600 text-xs font-black uppercase mt-1 hover:underline"
                         >
                           <ExternalLink size={10} /> {t("nav_drop")}
                         </a>
@@ -901,56 +897,58 @@ export default function DriverHomePage() {
                   </div>
 
                   {/* Fare Section */}
-                  <div className="bg-slate-50 p-5 rounded-2xl space-y-3 border border-slate-100">
-                    <div className="flex justify-between items-end">
+                  <div className="bg-slate-50 p-4 rounded-2xl space-y-3 border border-slate-100">
+                    <div className="flex justify-between items-center">
                       <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1 flex items-center gap-1">
+                        <p className="text-xs font-black text-slate-400 uppercase mb-0.5 flex items-center gap-1">
                           <Banknote size={12} /> {t("collect_cash")}
                         </p>
-                        <p className="text-3xl font-black text-slate-800">{t("currency")}{formatDecimal(currentBooking.totalFare || currentBooking.fare)}</p>
+                        <p className="text-2xl font-black text-slate-800">{t("currency")}{formatDecimal(currentBooking.totalFare || currentBooking.fare)}</p>
                       </div>
-                      <Badge variant="outline" className="h-8 border-primary/20 text-primary font-black text-[10px] uppercase px-3 bg-primary/5">{t("cash_only")}</Badge>
+                      <Badge variant="outline" className="border-primary/20 text-primary font-black text-xs uppercase px-2.5 py-0.5 bg-primary/5">{t("cash_only")}</Badge>
                     </div>
                     
-                    <div className="pt-3 border-t border-slate-200 flex flex-col gap-2">
-                      <div className="flex justify-between items-center text-[11px] font-bold text-slate-500">
+                    <div className="pt-3 border-t border-slate-200/60 flex flex-col gap-2">
+                      <div className="flex justify-between items-center text-xs font-bold text-slate-500">
                         <span>{t("fare")}</span>
                         <span>{t("currency")}{formatDecimal(currentBooking.baseFare || currentBooking.fare)}</span>
                       </div>
-                      <div className="flex justify-between items-center text-[11px] font-bold text-slate-500">
+                      <div className="flex justify-between items-center text-xs font-bold text-slate-500">
                         <span>{t("platform_fee")}</span>
                         <span>{t("currency")}{formatDecimal(currentBooking.platformFee || 0)}</span>
                       </div>
                     </div>
                   </div>
 
-                  {currentBooking.user?.phone && (
-                    <AppButton
-                      onClick={() => window.location.href = `tel:${currentBooking.user?.phone}`}
-                      variant="outline"
-                      className="w-full h-16 text-lg font-black rounded-2xl border-slate-200 hover:bg-slate-50 text-slate-800"
-                      leftIcon={<Phone size={24} className="text-primary" />}
+                  {/* Vertically stacked Option A action buttons */}
+                  <div className="flex flex-col gap-3 pt-1">
+                    {currentBooking.user?.phone && (
+                      <AppButton
+                        onClick={() => window.location.href = `tel:${currentBooking.user?.phone}`}
+                        variant="outline"
+                        className="w-full h-14 text-sm font-black rounded-2xl border-slate-200 hover:bg-slate-50 text-slate-800"
+                        leftIcon={<Phone size={18} className="text-primary" />}
+                      >
+                        {t("call_user")} {currentBooking.user?.name ? `- ${currentBooking.user.name}` : ""}
+                      </AppButton>
+                    )}
+
+                    <AppButton 
+                      onClick={() => handleArrived(currentBooking.id)} 
+                      className="w-full h-14 text-sm font-black rounded-2xl shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-white"
+                      leftIcon={<CheckCircle2 size={18} />}
                     >
-                      {t("call_user")} {currentBooking.user?.name ? `- ${currentBooking.user.name}` : ""}
+                      {t("i_arrived")}
                     </AppButton>
-                  )}
 
-                  <AppButton 
-                    onClick={() => handleArrived(currentBooking.id)} 
-                    className="w-full h-16 text-lg font-black rounded-2xl shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 text-white"
-                    leftIcon={<CheckCircle2 size={24} />}
-                  >
-                    {t("i_arrived")}
-                  </AppButton>
-
-                  <AppButton 
-                    variant="ghost"
-                    onClick={() => setShowCancel(true)}
-                    className="w-full mt-4 h-12 text-red-500 font-black uppercase tracking-widest text-[10px] hover:bg-red-50"
-                    leftIcon={<XCircle size={14} />}
-                  >
-                    {t("cancel_booking")}
-                  </AppButton>
+                    <AppButton 
+                      variant="ghost"
+                      onClick={() => setShowCancel(true)}
+                      className="w-full h-10 text-red-500 hover:text-red-600 hover:bg-red-50/50 text-xs font-black rounded-xl transition-colors"
+                    >
+                      {t("cancel_booking")}
+                    </AppButton>
+                  </div>
                 </div>
               </CardContent>
             </Card>
