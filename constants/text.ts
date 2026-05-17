@@ -276,6 +276,7 @@ export const TEXT = {
   reason_lost_items: { en: "Lost items in vehicle", bn: "সিএনজিতে মালামাল হারিয়ে গেছে" },
   report_details_ph: { en: "Describe the issue in detail (mandatory for Other)", bn: "বিস্তারিত বিবরণ লিখুন (অন্যান্য কারণের জন্য বাধ্যতামূলক)" },
   report_submitted_success: { en: "Your complaint has been submitted successfully.", bn: "আপনার অভিযোগটি সফলভাবে জমা দেওয়া হয়েছে।" },
+  reported: { en: "Reported", bn: "অভিযোগ দায়ের করা হয়েছে" },
   close_btn: { en: "Close", bn: "বন্ধ করুন" },
   view_details: { en: "Details", bn: "বিস্তারিত" },
   pickup_point: { en: "From", bn: "কোথা থেকে" },

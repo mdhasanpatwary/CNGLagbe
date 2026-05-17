@@ -59,4 +59,5 @@ export interface Booking {
   feedback?: string | null;
   isSuspicious?: boolean;
   offlineFeedback?: string | null;
+  issueReports?: { id: string; status: string }[] | null;
 }

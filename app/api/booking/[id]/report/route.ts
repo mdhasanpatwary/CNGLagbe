@@ -55,6 +55,18 @@ export async function POST(
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
+    // Check if an issue report already exists for this booking
+    const existingReport = await prisma.issueReport.findFirst({
+      where: { bookingId: id },
+    });
+
+    if (existingReport) {
+      return NextResponse.json(
+        { error: "You have already reported an issue for this booking." },
+        { status: 400 }
+      );
+    }
+
     // Verify it belongs to the passenger
     if (booking.userId !== session.sub) {
       return NextResponse.json(

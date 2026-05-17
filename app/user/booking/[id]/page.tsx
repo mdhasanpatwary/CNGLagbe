@@ -81,6 +81,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
       
       if (res.ok) {
         setReportSubmitted(true);
+        void fetchBooking();
       }
     } catch (err) {
       console.error("Submit report error:", err);
@@ -123,6 +124,8 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
   });
 
   const booking = bookingData ?? null;
+  const isAlreadyReported =
+    !!(booking?.issueReports && booking.issueReports.length > 0) || reportSubmitted;
   const countdown =
     booking?.status === "PENDING"
       ? getRemainingSeconds(booking.createdAt, now)
@@ -802,15 +805,27 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                 </AppButton>
 
                 {booking.driver && (
-                  <AppButton
-                    fullWidth
-                    variant="secondary"
-                    onClick={() => setShowReportModal(true)}
-                    className="h-14 rounded-2xl bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 font-black uppercase text-sm"
-                    leftIcon={<AlertTriangle size={16} />}
-                  >
-                    {t("report_driver")}
-                  </AppButton>
+                  isAlreadyReported ? (
+                    <AppButton
+                      fullWidth
+                      variant="secondary"
+                      disabled
+                      className="h-14 rounded-2xl bg-red-50/50 text-red-400 border border-red-100/50 font-black uppercase text-sm cursor-not-allowed"
+                      leftIcon={<AlertTriangle size={16} />}
+                    >
+                      {t("reported")}
+                    </AppButton>
+                  ) : (
+                    <AppButton
+                      fullWidth
+                      variant="secondary"
+                      onClick={() => setShowReportModal(true)}
+                      className="h-14 rounded-2xl bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 font-black uppercase text-sm"
+                      leftIcon={<AlertTriangle size={16} />}
+                    >
+                      {t("report_driver")}
+                    </AppButton>
+                  )
                 )}
               </div>
             </div>
@@ -928,15 +943,27 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                 </AppButton>
 
                 {booking.driver && (
-                  <AppButton
-                    fullWidth
-                    variant="secondary"
-                    onClick={() => setShowReportModal(true)}
-                    className="h-14 rounded-2xl bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 font-black uppercase text-sm"
-                    leftIcon={<AlertTriangle size={16} />}
-                  >
-                    {t("report_driver")}
-                  </AppButton>
+                  isAlreadyReported ? (
+                    <AppButton
+                      fullWidth
+                      variant="secondary"
+                      disabled
+                      className="h-14 rounded-2xl bg-red-50/50 text-red-400 border border-red-100/50 font-black uppercase text-sm cursor-not-allowed"
+                      leftIcon={<AlertTriangle size={16} />}
+                    >
+                      {t("reported")}
+                    </AppButton>
+                  ) : (
+                    <AppButton
+                      fullWidth
+                      variant="secondary"
+                      onClick={() => setShowReportModal(true)}
+                      className="h-14 rounded-2xl bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 font-black uppercase text-sm"
+                      leftIcon={<AlertTriangle size={16} />}
+                    >
+                      {t("report_driver")}
+                    </AppButton>
+                  )
                 )}
               </div>
             </div>

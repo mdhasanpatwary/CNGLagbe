@@ -178,6 +178,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 ## ⚠️ Passenger Complaint & Issue Report System
 - **Authorized Reporter:** Only passengers are permitted to submit complaints against drivers. Driving partners cannot file reports against passengers to maintain the lightweight dispatch positioning.
 - **Valid Ride Restriction:** Issue reports can only be filed on dynamic booking pages when the ride's status is either `COMPLETED` or `CANCELLED`, and a driver was successfully assigned (`driverId` is present). This prevents spamming on unaccepted bookings.
+- **Uniqueness & UI Feedback Protection:** To prevent duplication, a passenger is strictly restricted to a single report per booking. The backend API checks for existing reports and rejects duplicates. On the frontend, if a report already exists, the "Report Driver" button is rendered as a beautifully disabled, pastel reddish-gray button exhibiting "Reported" (অভিযোগ দায়ের করা হয়েছে).
 - **Bengalized Visual Predefined Reasons:** Dropdown reasons are fully localized (Base Fare, Behavior, Delayed Arrival, Lost Items, Other) to ensure readability for all literacy levels, styled using colored cards with radio checkboxes.
 - **Mandatory Admin Resolution Notes:** Administrative resolution action strictly requires marking status as `RESOLVED` and submitting a mandatory `resolutionNote` documenting warning outcomes or fare adjustments.
 

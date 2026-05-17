@@ -22,6 +22,12 @@ export async function GET(
             ratingCount: true,
           },
         },
+        issueReports: {
+          select: {
+            id: true,
+            status: true,
+          },
+        },
       },
     });
 
