@@ -834,7 +834,7 @@ export default function DriverHomePage() {
             
             <Card className="border-none shadow-2xl shadow-blue-500/10 rounded-[2rem] bg-white overflow-hidden">
               <CardContent className="p-0">
-                <div className="relative w-full h-48 bg-slate-100">
+                <div className="relative w-full h-56 bg-slate-100 overflow-hidden rounded-t-[2rem]">
                   <GoogleMapPreview 
                     pickupLat={currentBooking.pickupLat}
                     pickupLng={currentBooking.pickupLng}
@@ -854,7 +854,7 @@ export default function DriverHomePage() {
                 
                 <div className="p-5 space-y-5">
                   {/* Spacing coherent vertical timeline */}
-                  <div className="relative space-y-5 before:absolute before:left-3 before:top-3 before:bottom-3 before:w-px before:bg-slate-100">
+                  <div className="relative space-y-5 before:absolute before:left-3 before:top-3 before:bottom-3 before:border-l before:border-dashed before:border-slate-200">
                     <div className="flex gap-3 relative">
                       <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 z-10">
                         <span className="w-2 h-2 rounded-full bg-primary" />
