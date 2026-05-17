@@ -269,6 +269,14 @@ export const TEXT = {
   details_label: { en: "Details", bn: "বিস্তারিত" },
   submit_report: { en: "Submit", bn: "জমা দিন" },
   report_success: { en: "Submitted", bn: "জমা হয়েছে" },
+  report_driver: { en: "Report Driver", bn: "অভিযোগ করুন" },
+  reason_extra_money: { en: "Driver demanded extra money", bn: "অতিরিক্ত ভাড়া দাবি করেছে" },
+  reason_poor_behavior: { en: "Driver behaved poorly", bn: "খারাপ আচরণ করেছে" },
+  reason_no_arrive: { en: "Driver did not arrive", bn: "ড্রাইভার আসেনি" },
+  reason_lost_items: { en: "Lost items in vehicle", bn: "সিএনজিতে মালামাল হারিয়ে গেছে" },
+  report_details_ph: { en: "Describe the issue in detail (mandatory for Other)", bn: "বিস্তারিত বিবরণ লিখুন (অন্যান্য কারণের জন্য বাধ্যতামূলক)" },
+  report_submitted_success: { en: "Your complaint has been submitted successfully.", bn: "আপনার অভিযোগটি সফলভাবে জমা দেওয়া হয়েছে।" },
+  close_btn: { en: "Close", bn: "বন্ধ করুন" },
   view_details: { en: "Details", bn: "বিস্তারিত" },
   pickup_point: { en: "From", bn: "কোথা থেকে" },
   drop_point: { en: "To", bn: "কোথায়" },
@@ -640,6 +648,25 @@ export const TEXT = {
   filter_by: { en: "Filter By", bn: "ফিল্টার করুন" },
   all_drivers: { en: "All Drivers", bn: "সব ড্রাইভার" },
   minus_balance: { en: "Minus Balance", bn: "নেগেটিভ ব্যালেন্স" },
+  search_placeholder: { en: "Search...", bn: "খুঁজুন..." },
+  resolved: { en: "Resolved", bn: "সমাধানকৃত" },
+  passenger: { en: "Passenger", bn: "প্যাসেঞ্জার" },
+  min_balance_title: {
+    en: "Minimum Wallet Balance for Ride Requests",
+    bn: "রাইড রিকোয়েস্টের জন্য সর্বনিম্ন ওয়ালেট ব্যালেন্স"
+  },
+  min_balance_desc: {
+    en: "Drivers with a balance equal to or lower than this will not receive new ride requests.",
+    bn: "ড্রাইভারের ব্যালেন্স এই পরিমাণের সমান বা কম হলে তারা আর নতুন রাইড রিকোয়েস্ট পাবেন না।"
+  },
+  platform_fee_title: {
+    en: "Platform Fee Percentage",
+    bn: "প্ল্যাটফর্ম ফি পার্সেন্টেজ"
+  },
+  platform_fee_desc: {
+    en: "Configure the booking platform fee percentage deducted from driver rides.",
+    bn: "ড্রাইভারের প্রতিটি রাইড থেকে কেটে নেওয়া প্ল্যাটফর্ম ফি বা কমিশন হার নির্ধারণ করুন।"
+  },
 } as const;
 
 
