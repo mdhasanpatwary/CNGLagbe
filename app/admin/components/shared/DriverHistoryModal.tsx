@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   XCircle,
   MessageSquare,
-  Clock,
   ChevronLeft,
   ChevronRight,
   MapPin,
@@ -227,11 +226,11 @@ export function DriverHistoryModal({
 
           {/* Trip list */}
           {loading ? (
-             <div className="flex flex-col gap-3">
-               {[1, 2, 3].map((i) => (
-                 <Skeleton key={i} className="h-40 w-full rounded-2xl" />
-               ))}
-             </div>
+            <div className="flex flex-col gap-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-40 w-full rounded-2xl" />
+              ))}
+            </div>
           ) : trips.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-3xl border border-dashed border-slate-200">
               <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mb-4">
@@ -316,11 +315,10 @@ export function DriverHistoryModal({
                             {[1, 2, 3, 4, 5].map((star) => (
                               <Star
                                 key={star}
-                                className={`w-3 h-3 ${
-                                  star <= trip.rating!
+                                className={`w-3 h-3 ${star <= trip.rating!
                                     ? "text-amber-400 fill-amber-400"
                                     : "text-slate-200 fill-slate-200"
-                                }`}
+                                  }`}
                               />
                             ))}
                           </div>
@@ -402,26 +400,23 @@ function StatCard({
 }) {
   return (
     <div
-      className={`flex flex-col items-center justify-center p-3 rounded-2xl border shadow-sm text-center ${
-        accent
+      className={`flex flex-col items-center justify-center p-3 rounded-2xl border shadow-sm text-center ${accent
           ? "bg-primary text-white border-primary"
           : "bg-white border-slate-100"
-      }`}
+        }`}
     >
       <div className={`mb-1.5 ${accent ? "text-white/80" : "text-slate-400"}`}>
         {icon}
       </div>
       <p
-        className={`text-[9px] font-black uppercase tracking-tight mb-0.5 ${
-          accent ? "text-white/70" : "text-slate-400"
-        }`}
+        className={`text-[9px] font-black uppercase tracking-tight mb-0.5 ${accent ? "text-white/70" : "text-slate-400"
+          }`}
       >
         {label}
       </p>
       <div
-        className={`text-lg font-black leading-none ${
-          accent ? "text-white" : "text-slate-800"
-        }`}
+        className={`text-lg font-black leading-none ${accent ? "text-white" : "text-slate-800"
+          }`}
       >
         {value}
       </div>
@@ -442,11 +437,10 @@ function FilterPill({
     <AppButton
       variant={active ? "primary" : "ghost"}
       onClick={onClick}
-      className={`whitespace-nowrap !h-8 !rounded-full !text-[11px] !font-black !uppercase !tracking-widest !px-4 ${
-        active
+      className={`whitespace-nowrap !h-8 !rounded-full !text-[11px] !font-black !uppercase !tracking-widest !px-4 ${active
           ? "shadow-sm shadow-primary/30"
           : "!bg-white !text-slate-500 border border-slate-200 hover:border-primary/40 hover:!text-primary"
-      }`}
+        }`}
     >
       {label}
     </AppButton>
