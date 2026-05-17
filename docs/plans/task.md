@@ -2,9 +2,10 @@
 
 | Task ID | Description | Status |
 |---|---|---|
-| Brainstorm-1 | Explore project context — check files, docs, and search for components > 500 lines | [x] |
-| Brainstorm-2 | Ask clarifying questions — one at a time, understand purpose/constraints/success criteria | [x] |
-| Brainstorm-3 | Propose 2-3 approaches — with trade-offs and recommendation | [x] |
-| Brainstorm-4 | Present design — in sections scaled to complexity, get user approval after each section | [x] |
-| Brainstorm-5 | Write design doc — save to docs/plans/2026-05-17-component-splitting-design.md and commit | [x] |
-| Brainstorm-6 | Transition to implementation — invoke writing-plans skill to create implementation plan | [x] |
+| Task-1 | Update Agent Rules & System Identity Documentation | [ ] |
+| Task-2 | Create Reusable UI Design System Components | [ ] |
+| Task-3 | Standardize central TypeScript Types | [ ] |
+| Task-4 | Implement Custom Hook for Driver History Modal | [ ] |
+| Task-5 | Implement Custom Hook for Driver Portal History Page | [ ] |
+| Task-6 | Refactor Admin DriverHistoryModal UI | [ ] |
+| Task-7 | Refactor Driver Portal History Page UI | [ ] |
