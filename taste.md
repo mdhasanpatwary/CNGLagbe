@@ -13,6 +13,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Driver-User Call Interface:** The "Call" button on the driver dashboard must use the `tel:` protocol, be styled as a secondary but clear action (outline variant), and include the user's name if available to improve trust and coordination.
 - **Marker Cleanup on Input Clear:** When a user clears a location input field (pickup or destination) using the cross icon, the corresponding marker MUST be removed from the map immediately by setting its `map` property to `null`. This keeps the visual map in sync with the input state.
 - **Initial Pickup Sync:** When the map initializes and sets the initial pickup location (via geolocation or default), the pickup search input field must be explicitly synchronized with the geocoded address using `setPickupSearchValue`. This ensures the user sees their starting address immediately upon loading the booking interface.
+- **Dismissible Google Map Card:** In the driver dashboard map, the default Google directions/place card is redundant and blocks screen space. We implement a beautiful floating close button (`X` icon) next to the card that slides/shifts the map iframe up and left out of view via negative margins when clicked, seamlessly expanding the visible map area.
 
 ## 🚖 Booking Request & Booking Flow
 - **Request Again Button:** If a booking search times out or fails to find a driver, a "Request Again" button must appear, allowing the user to seamlessly retry the request without re-entering their pickup and destination.

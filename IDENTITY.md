@@ -268,6 +268,7 @@ The agent may continue **ONLY** after explicit confirmation or business approval
 6. **Minimize CPU and RAM** — Prefer lightweight tool calls. Avoid parallel heavy tasks.
 7. **Lightweight execution** — Favor fast, targeted edits over comprehensive auditing.
 8. **Process cleanup** — Stop unused processes or servers immediately after the task is complete.
+9. **NEVER auto-commit code** — The agent MUST NEVER perform autonomous Git commits or write commits without the user's explicit, manual command/approval in the chat.
 
 ---
 

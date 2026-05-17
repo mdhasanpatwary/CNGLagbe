@@ -22,6 +22,8 @@ export function GoogleMapPreview({
   className = "",
 }: GoogleMapPreviewProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isCardDismissed, setIsCardDismissed] = useState(false);
+  
   const origin = `${pickupLat},${pickupLng}`;
   const destination = `${destLat},${destLng}`;
   const src = `https://www.google.com/maps/embed/v1/directions?key=${apiKey}&origin=${origin}&destination=${destination}&mode=driving`;
@@ -43,14 +45,26 @@ export function GoogleMapPreview({
 
   const mapContent = (
     <iframe
-      width="100%"
-      height="100%"
-      style={{ border: 0 }}
+      style={{
+        border: 0,
+        ...(!isExpanded && isCardDismissed
+          ? {
+              width: "calc(100% + 220px)",
+              height: "calc(100% + 85px)",
+              marginLeft: "-220px",
+              marginTop: "-85px",
+            }
+          : {
+              width: "100%",
+              height: "100%",
+            }),
+        transition: "all 0.3s ease-in-out",
+      }}
       loading="lazy"
       allowFullScreen
       referrerPolicy="no-referrer-when-downgrade"
       src={src}
-      className={isExpanded ? "w-full h-full" : "absolute inset-0"}
+      className={isExpanded ? "w-full h-full" : "absolute top-0 left-0"}
     />
   );
 
@@ -59,6 +73,17 @@ export function GoogleMapPreview({
       <div className={`relative w-full h-full min-h-[250px] bg-slate-100 rounded-xl overflow-hidden group ${className}`}>
         {mapContent}
         
+        {/* Hide Map Card Close Button */}
+        {!isExpanded && !isCardDismissed && (
+          <button
+            onClick={() => setIsCardDismissed(true)}
+            className="absolute top-3 left-[225px] bg-white/95 backdrop-blur-md p-1.5 rounded-full shadow-lg border border-slate-200 text-slate-500 hover:text-slate-800 hover:scale-105 hover:bg-white transition-all duration-300 z-10 w-7 h-7 flex items-center justify-center animate-in fade-in duration-300"
+            title="Hide Map Details"
+          >
+            <X size={14} />
+          </button>
+        )}
+
         {/* Expand Button */}
         <AppButton
           onClick={() => setIsExpanded(true)}
