@@ -276,6 +276,15 @@ async function main() {
     },
   })
 
+  await prisma.systemSetting.upsert({
+    where: { key: 'DRIVER_SEARCH_RADIUS_KM' },
+    update: {},
+    create: {
+      key: 'DRIVER_SEARCH_RADIUS_KM',
+      value: '3',
+    },
+  })
+
   console.log('Database seeded successfully.')
 }
 
