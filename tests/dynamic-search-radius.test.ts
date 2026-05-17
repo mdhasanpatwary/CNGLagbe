@@ -1,4 +1,4 @@
-import { getBoundingBox } from "../lib/radius";
+import { getBoundingBox } from "@/lib/radius";
 
 describe("Dynamic Search Radius calculations", () => {
   it("should calculate correct bounding box with the default 3km radius", () => {
