@@ -31,6 +31,7 @@ export function buildDriverHistoryWhere(driverId: string, params: SearchParams):
   if (search && search.trim()) {
     const query = search.trim();
     whereClause.OR = [
+      { id: { contains: query, mode: "insensitive" } },
       { pickupAddress: { contains: query, mode: "insensitive" } },
       { destAddress: { contains: query, mode: "insensitive" } },
       {

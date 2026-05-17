@@ -22,7 +22,8 @@ describe("buildDriverHistoryWhere", () => {
     });
 
     expect(result.OR).toBeDefined();
-    expect(result.OR).toHaveLength(3);
+    expect(result.OR).toHaveLength(4);
+    expect(result.OR).toContainEqual({ id: { contains: "Rahim", mode: "insensitive" } });
     expect(result.OR).toContainEqual({ pickupAddress: { contains: "Rahim", mode: "insensitive" } });
     expect(result.OR).toContainEqual({ destAddress: { contains: "Rahim", mode: "insensitive" } });
     expect(result.OR).toContainEqual({
