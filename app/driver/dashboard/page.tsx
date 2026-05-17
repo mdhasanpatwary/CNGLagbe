@@ -1030,7 +1030,6 @@ export default function DriverHomePage() {
                     </div>
                   </div>
                 </div>
-                
                 <AppButton 
                   onClick={finishTrip} 
                   className="w-full h-16 text-lg font-black rounded-2xl shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 text-white"
@@ -1046,39 +1045,52 @@ export default function DriverHomePage() {
         {/* Incoming Request Fullscreen Modal */}
         {isOnline && !currentBooking && requests.length > 0 && !arrivedBooking && (() => {
           const req = requests[0];
+          const isUrgent = timeLeft <= 5;
           return (
-            <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-6 animate-in fade-in duration-300">
-              <Card className="w-full sm:max-w-md border-none shadow-2xl rounded-t-[2rem] sm:rounded-[2rem] bg-white overflow-hidden animate-in slide-in-from-bottom-full duration-500 max-h-[90vh] flex flex-col">
-                <div className="bg-slate-800 p-4 shrink-0 flex justify-between items-center text-white">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 bg-primary rounded-full animate-pulse shadow-[0_0_10px_rgba(22,163,74,0.5)]" />
-                    <h3 className="text-sm font-black uppercase tracking-widest">{t("incoming")}</h3>
+            <div className="fixed inset-0 z-[100] bg-slate-900/75 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-6 animate-in fade-in duration-300">
+              <Card className="w-full sm:max-w-md border border-slate-100 shadow-2xl rounded-t-[2.5rem] sm:rounded-[2.5rem] bg-white overflow-hidden animate-in slide-in-from-bottom-full duration-500 max-h-[95vh] flex flex-col">
+                {/* Premium Gradient Header */}
+                <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-5 shrink-0 flex justify-between items-center text-white border-b border-slate-800">
+                  <div className="flex items-center gap-2.5 relative">
+                    <span className="w-3.5 h-3.5 bg-primary rounded-full animate-ping absolute" />
+                    <span className="w-3.5 h-3.5 bg-primary rounded-full animate-pulse shadow-[0_0_12px_rgba(22,163,74,0.6)] relative" />
+                    <h3 className="text-xs font-black uppercase tracking-widest ml-1">{t("incoming")}</h3>
                   </div>
-                  <Badge className="bg-slate-700/80 text-white hover:bg-slate-700 border-none font-black flex gap-1.5 px-3 py-1">
-                    <Clock size={14} className={timeLeft <= 5 ? "animate-pulse text-red-400" : ""} /> 
-                    <span className={timeLeft <= 5 ? "text-red-400" : ""}>{timeLeft}s</span>
+                  <Badge 
+                    className={`font-black flex gap-1.5 px-3 py-1.5 rounded-full border transition-all duration-300 ${
+                      isUrgent 
+                        ? "bg-red-500/10 text-red-400 border-red-500/20 animate-pulse hover:bg-red-500/20" 
+                        : "bg-slate-800/80 text-emerald-400 border-emerald-500/20 hover:bg-slate-800"
+                    }`}
+                  >
+                    <Clock size={14} className={isUrgent ? "animate-pulse" : ""} /> 
+                    <span>{timeLeft}s</span>
                   </Badge>
                 </div>
                 
-                <CardContent className="p-6 flex-1 overflow-y-auto">
-                  <div className="flex justify-between items-start mb-6 pb-4 border-b border-slate-50">
-                    <div>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{t("fixed_fare")}</p>
-                      <p className="text-5xl font-black text-primary tracking-tighter">{t("currency")}{formatDecimal(req.totalFare || req.fare)}</p>
-                      <div className="flex gap-2 mt-1">
-                        <span className="text-[9px] font-bold text-slate-400">{t("fare")}: {t("currency")}{formatDecimal(req.baseFare || req.fare)}</span>
-                        <span className="text-[9px] font-bold text-slate-400">+ {t("platform_fee")}: {t("currency")}{formatDecimal(req.platformFee || 0)}</span>
+                <CardContent className="p-5 flex-1 overflow-y-auto space-y-4">
+                  {/* Fare & Distance Split Deck Card */}
+                  <div className="bg-slate-50/80 border border-slate-100 rounded-3xl p-4 flex justify-between items-center gap-4">
+                    <div className="flex-1">
+                      <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-0.5">{t("fixed_fare")}</p>
+                      <p className="text-4xl font-black text-primary tracking-tight leading-none">{t("currency")}{formatDecimal(req.totalFare || req.fare)}</p>
+                      <div className="flex gap-2 mt-1.5 opacity-80">
+                        <span className="text-[9px] font-bold text-slate-500">{t("fare")}: {t("currency")}{formatDecimal(req.baseFare || req.fare)}</span>
+                        <span className="text-[9px] font-bold text-slate-500">+ {t("platform_fee")}: {t("currency")}{formatDecimal(req.platformFee || 0)}</span>
                       </div>
                     </div>
+                    <div className="w-px h-10 bg-slate-200 shrink-0" />
                     <div className="text-right">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{t("distance")}</p>
-                      <p className="text-2xl font-black text-slate-700">{formatDecimal(req.distance, 1)} <span className="text-sm text-slate-400 opacity-60">{t("km_unit")}</span></p>
+                      <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">{t("distance")}</p>
+                      <p className="text-2xl font-black text-slate-700 leading-none">
+                        {formatDecimal(req.distance, 1)}{" "}
+                        <span className="text-xs text-slate-400 font-bold tracking-normal">{t("km_unit")}</span>
+                      </p>
                     </div>
                   </div>
                   
-
-
-                  <div className="w-full h-56 rounded-3xl overflow-hidden shadow-inner bg-slate-100 mb-4 border border-slate-100">
+                  {/* Integrated Map & Floating Google Maps Navigation Pill */}
+                  <div className="w-full h-48 rounded-3xl overflow-hidden shadow-inner bg-slate-100 relative border border-slate-100 group">
                     <GoogleMapPreview 
                       pickupLat={req.pickupLat}
                       pickupLng={req.pickupLng}
@@ -1086,62 +1098,61 @@ export default function DriverHomePage() {
                       destLng={req.destLng}
                       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
                     />
-                  </div>
-                  <div className="flex justify-end mb-4">
+                    {/* Floating Google Maps Overlay Pill */}
                     <a 
                       target="_blank" 
+                      rel="noopener noreferrer"
                       href={`https://www.google.com/maps/dir/?api=1&destination=${req.pickupLat},${req.pickupLng}&travelmode=driving`}
-                      className="inline-flex items-center gap-2 text-blue-600 text-[10px] font-black uppercase bg-blue-50 px-4 py-2 rounded-full hover:bg-blue-100 transition-all border border-blue-100"
+                      className="absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 text-blue-600 text-[10px] font-black uppercase bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-full hover:bg-white hover:scale-105 transition-all shadow-lg border border-slate-200/80"
                     >
                       <Navigation size={12} /> {t("nav_google_maps")}
                     </a>
                   </div>
                   
-                  <div className="flex flex-col gap-4 mb-8 bg-slate-50/80 p-5 rounded-2xl border border-slate-100">
-                    <div className="flex gap-4 text-slate-600 items-start">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                          <MapPin size={16} className="text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t("pickup")}</p>
-                          <span className="text-sm font-bold text-slate-800 leading-tight block">
-                            {simplifyAddress(req.pickupAddress) || t("pickup")}
-                          </span>
-                          <span className="text-[10px] text-slate-400 block mt-0.5">
-                            {`${req.pickupLat.toFixed(4)}, ${req.pickupLng.toFixed(4)}`}
-                          </span>
-                        </div>
+                  {/* Premium Spacing Clean Timeline (No Coordinates) */}
+                  <div className="flex flex-col bg-slate-50/50 p-4 rounded-3xl border border-slate-100">
+                    {/* Pickup Section */}
+                    <div className="flex gap-3.5 text-slate-600 items-start">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                        <MapPin size={16} className="text-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{t("pickup")}</p>
+                        <span className="text-sm font-bold text-slate-800 leading-tight block truncate">
+                          {simplifyAddress(req.pickupAddress) || t("pickup")}
+                        </span>
+                      </div>
                     </div>
-                    <div className="w-px h-6 bg-slate-200 ml-4 -my-2" />
-                    <div className="flex gap-4 text-slate-600 items-start">
-                        <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-0.5">
-                          <Navigation size={16} className="text-red-600" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t("drop")}</p>
-                          <span className="text-sm font-bold text-slate-800 leading-tight block">
-                            {simplifyAddress(req.destAddress) || t("drop")}
-                          </span>
-                          <span className="text-[10px] text-slate-400 block mt-0.5">
-                            {`${req.destLat.toFixed(4)}, ${req.destLng.toFixed(4)}`}
-                          </span>
-                        </div>
+                    {/* Timeline Line */}
+                    <div className="w-0.5 h-3 border-l-2 border-dashed border-slate-200 ml-4 my-1" />
+                    {/* Drop Section */}
+                    <div className="flex gap-3.5 text-slate-600 items-start">
+                      <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                        <Navigation size={16} className="text-red-500" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{t("drop")}</p>
+                        <span className="text-sm font-bold text-slate-800 leading-tight block truncate">
+                          {simplifyAddress(req.destAddress) || t("drop")}
+                        </span>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-3 mt-4">
+ 
+                  {/* Actions Grid */}
+                  <div className="grid grid-cols-2 gap-3 pt-2">
                     <AppButton 
                       onClick={() => handleReject(req.id)} 
                       variant="secondary" 
-                      className="h-16 rounded-2xl border-slate-200 font-black text-sm uppercase hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all"
-                      leftIcon={<XCircle size={20} />}
+                      className="h-14 rounded-2xl border-slate-200 font-black text-xs uppercase hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all animate-in fade-in duration-300"
+                      leftIcon={<XCircle size={18} />}
                     >
                       {t("reject")}
                     </AppButton>
                     <AppButton 
                       onClick={() => handleAccept(req)} 
-                      className="h-16 rounded-2xl font-black text-sm uppercase shadow-xl shadow-primary/30 bg-primary hover:bg-primary/90 text-white"
-                      leftIcon={<CheckCircle2 size={20} />}
+                      className="h-14 rounded-2xl font-black text-xs uppercase shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-white animate-in fade-in duration-300"
+                      leftIcon={<CheckCircle2 size={18} />}
                     >
                       {t("accept")}
                     </AppButton>

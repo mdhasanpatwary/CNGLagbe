@@ -75,13 +75,13 @@ export function GoogleMapPreview({
         
         {/* Hide Map Card Close Button */}
         {!isExpanded && !isCardDismissed && (
-          <button
+          <AppButton
             onClick={() => setIsCardDismissed(true)}
             className="absolute top-3 left-[225px] bg-white/95 backdrop-blur-md p-1.5 rounded-full shadow-lg border border-slate-200 text-slate-500 hover:text-slate-800 hover:scale-105 hover:bg-white transition-all duration-300 z-10 w-7 h-7 flex items-center justify-center animate-in fade-in duration-300"
             title="Hide Map Details"
-          >
-            <X size={14} />
-          </button>
+            variant="ghost"
+            leftIcon={<X size={14} />}
+          />
         )}
 
         {/* Expand Button */}
