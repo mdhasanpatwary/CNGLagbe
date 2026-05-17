@@ -130,14 +130,19 @@ model WalletTransaction {
 }
 
 model IssueReport {
-  id        String   @id @default(cuid())
-  bookingId String
-  userId    String
-  reason    String
-  details   String?
-  status    String   @default("OPEN")
-  createdAt DateTime @default(now())
-  booking   Booking  @relation(fields: [bookingId], references: [id])
+  id             String    @id @default(cuid())
+  bookingId      String
+  userId         String
+  reason         String
+  details        String?
+  status         String    @default("OPEN")
+  resolutionNote String?
+  resolvedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  booking        Booking   @relation(fields: [bookingId], references: [id])
+
+  @@index([status])
+  @@index([createdAt])
 }
 
 model GeoCache {
