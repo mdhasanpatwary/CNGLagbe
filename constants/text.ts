@@ -668,6 +668,14 @@ export const TEXT = {
     en: "Configure the booking platform fee percentage deducted from driver rides.",
     bn: "ড্রাইভারের প্রতিটি রাইড থেকে কেটে নেওয়া প্ল্যাটফর্ম ফি বা কমিশন হার নির্ধারণ করুন।"
   },
+  driver_search_radius_title: {
+    en: "Driver Search Radius (km)",
+    bn: "ড্রাইভার সার্চের রেডিয়াস (কিমি)"
+  },
+  driver_search_radius_desc: {
+    en: "Configure the search radius in kilometers for matching drivers with passenger ride requests.",
+    bn: "যাত্রীদের রাইড রিকোয়েস্ট ড্রাইভারদের কাছে পাঠানোর জন্য সার্চের সর্বোচ্চ দূরত্ব (কিলোমিটারে) নির্ধারণ করুন।"
+  },
 } as const;
 
 
