@@ -150,22 +150,28 @@ export async function GET() {
         where: { key: "DRIVER_SEARCH_RADIUS_KM" }
       });
 
-      const [stats, lifetimeStats, currentBooking, wallet, minBalanceSetting, searchRadiusSetting] = await Promise.all([
+      const timeoutSettingPromise = prisma.systemSetting.findUnique({
+        where: { key: "BOOKING_REQUEST_TIMEOUT_MINUTES" }
+      });
+
+      const [stats, lifetimeStats, currentBooking, wallet, minBalanceSetting, searchRadiusSetting, timeoutSetting] = await Promise.all([
         statsPromise,
         lifetimeStatsPromise,
         currentBookingPromise,
         walletPromise,
         minBalanceSettingPromise,
-        searchRadiusSettingPromise
+        searchRadiusSettingPromise,
+        timeoutSettingPromise
       ]);
 
       const minBalance = minBalanceSetting ? parseFloat(minBalanceSetting.value) : -100;
       const isWalletSuspended = (wallet?.balance || 0) <= minBalance;
       const searchRadiusKm = searchRadiusSetting ? parseFloat(searchRadiusSetting.value) : 3;
+      const timeoutMinutes = timeoutSetting ? parseFloat(timeoutSetting.value) : 5;
 
       let requestsPromise: Promise<unknown[]> = Promise.resolve([]);
       if (driver.isOnline && driver.isApproved && driver.currentLat && driver.currentLng && !isWalletSuspended) {
-        const timeoutThreshold = getBookingRequestTimeoutThreshold();
+        const timeoutThreshold = getBookingRequestTimeoutThreshold(timeoutMinutes);
 
         // Dynamically compute bounding box using the search radius setting
         const { minLat, maxLat, minLng, maxLng } = getBoundingBox(driver.currentLat, driver.currentLng, searchRadiusKm);
@@ -224,6 +230,7 @@ export async function GET() {
       responseData.currentBooking = currentBooking;
       responseData.requests = requests;
       responseData.isWalletSuspended = isWalletSuspended;
+      responseData.timeoutSeconds = timeoutMinutes * 60;
     }
 
     // Update cache

@@ -55,6 +55,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [isSubmittingOfflineFeedback, setIsSubmittingOfflineFeedback] = useState(false);
   const [offlineFeedbackSubmitted, setOfflineFeedbackSubmitted] = useState(false);
+  const [dynamicTimeoutSeconds, setDynamicTimeoutSeconds] = useState(BOOKING_REQUEST_TIMEOUT_SECONDS);
 
   const [showReportModal, setShowReportModal] = useState(false);
   const [selectedReason, setSelectedReason] = useState("");
@@ -111,6 +112,9 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
       const res = await fetch(`/api/booking/${id}`);
       if (!res.ok) throw new Error(t("error"));
       const data = await res.json();
+      if (typeof data.timeoutSeconds === "number") {
+        setDynamicTimeoutSeconds(data.timeoutSeconds);
+      }
       return data.booking as Booking;
     },
     refetchInterval: (query) => {
@@ -128,8 +132,8 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
     !!(booking?.issueReports && booking.issueReports.length > 0) || reportSubmitted;
   const countdown =
     booking?.status === "PENDING"
-      ? getRemainingSeconds(booking.createdAt, now)
-      : BOOKING_REQUEST_TIMEOUT_SECONDS;
+      ? getRemainingSeconds(booking.createdAt, now, dynamicTimeoutSeconds)
+      : dynamicTimeoutSeconds;
 
   // Countdown timer
   useEffect(() => {
@@ -145,12 +149,12 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
       setNow(currentNow);
       
       if (isPending) {
-        const remaining = getRemainingSeconds(booking.createdAt, currentNow);
+        const remaining = getRemainingSeconds(booking.createdAt, currentNow, dynamicTimeoutSeconds);
         if (remaining <= 0) void fetchBooking();
       }
     }, 1000);
     return () => clearInterval(timer);
-  }, [booking, fetchBooking]);
+  }, [booking, fetchBooking, dynamicTimeoutSeconds]);
 
   const handleRate = async () => {
     if (userRating === 0) return;

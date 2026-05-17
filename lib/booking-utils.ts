@@ -4,10 +4,14 @@ import { BOOKING_REQUEST_TIMEOUT_SECONDS } from "@/constants/booking";
 /**
  * Calculates remaining seconds for a pending booking.
  */
-export function getRemainingSeconds(createdAt: string, now: number): number {
+export function getRemainingSeconds(
+  createdAt: string,
+  now: number,
+  timeoutSeconds = BOOKING_REQUEST_TIMEOUT_SECONDS
+): number {
   const createdTime = new Date(createdAt).getTime();
   const elapsed = Math.max(0, Math.floor((now - createdTime) / 1000));
-  return Math.max(0, Math.min(BOOKING_REQUEST_TIMEOUT_SECONDS, BOOKING_REQUEST_TIMEOUT_SECONDS - elapsed));
+  return Math.max(0, Math.min(timeoutSeconds, timeoutSeconds - elapsed));
 }
 
 /**

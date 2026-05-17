@@ -676,6 +676,14 @@ export const TEXT = {
     en: "Configure the search radius in kilometers for matching drivers with passenger ride requests.",
     bn: "যাত্রীদের রাইড রিকোয়েস্ট ড্রাইভারদের কাছে পাঠানোর জন্য সার্চের সর্বোচ্চ দূরত্ব (কিলোমিটারে) নির্ধারণ করুন।"
   },
+  booking_timeout_title: {
+    en: "Booking Request Timeout (minutes)",
+    bn: "বুকিং রিকোয়েস্টের সময়সীমা (মিনিট)"
+  },
+  booking_timeout_desc: {
+    en: "Configure how long the system searches for a driver before timing out the passenger's request.",
+    bn: "ড্রাইভার খুঁজে পেতে সিস্টেমটি কতক্ষণ চেষ্টা করবে তা নির্ধারণ করুন।"
+  },
 } as const;
 
 

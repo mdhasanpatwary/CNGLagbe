@@ -560,11 +560,12 @@ export default function DriverHomePage() {
       lastActiveReqId.current = activeReqId;
       
       // Calculate how much time is actually left based on createdAt
-      // This is better than just 300 to keep sync with backend
+      // This is better than a hardcoded value to keep sync with backend
       const createdAt = new Date(activeReq.createdAt).getTime();
       const now = Date.now();
       const elapsedSeconds = Math.floor((now - createdAt) / 1000);
-      const initialTimeLeft = Math.max(0, 300 - elapsedSeconds);
+      const maxTimeoutSeconds = syncData?.timeoutSeconds ?? 300;
+      const initialTimeLeft = Math.max(0, maxTimeoutSeconds - elapsedSeconds);
       
       setTimeLeft(initialTimeLeft);
 
@@ -605,7 +606,7 @@ export default function DriverHomePage() {
     return () => {
       clearInterval(interval);
     };
-  }, [requests, isOnline, currentBooking, handleReject]);
+  }, [requests, isOnline, currentBooking, handleReject, syncData?.timeoutSeconds]);
 
   // ─── Render ──────────────────────────────────────────────────────────────
   return (

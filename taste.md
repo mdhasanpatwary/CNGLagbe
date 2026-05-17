@@ -20,6 +20,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Address-First Experience:** The booking flow emphasizes human-readable addresses for pickup and drop-off, rather than raw coordinates, across the user map, booking details, and driver dashboard.
 - **Admin Role Booking Access:** Users with the `ADMIN` role are permitted to use user-facing features like booking history and active booking tracking. API routes (e.g., `/api/user/bookings`, `/api/booking/active`) must allow both `USER` and `ADMIN` roles to ensure Admins can test and use the booking flow as regular users.
 - **Hide TIMED_OUT from User History:** Failed bookings (`TIMED_OUT`) are retained in the database for analytics but must be explicitly filtered out (`{ status: { not: "TIMED_OUT" } }`) from the user's Booking History page to avoid UI clutter and maintain a premium UX.
+- **Dynamic Booking Request Timeout:** The booking search timeout duration is fully dynamic. It is configured in the database under the `BOOKING_REQUEST_TIMEOUT_MINUTES` setting key (default to **5 minutes**). The admin settings dashboard allows this to be configured dynamically between 1 and 30 minutes, automatically affecting the active client-side countdown timer, background auto-timeout cron, incoming request modal timer on the driver dashboard, and backend API active search calculations. (Added 2026-05-18)
 
 
 ## 🧑‍✈️ Driver Dashboard

@@ -285,6 +285,15 @@ async function main() {
     },
   })
 
+  await prisma.systemSetting.upsert({
+    where: { key: 'BOOKING_REQUEST_TIMEOUT_MINUTES' },
+    update: {},
+    create: {
+      key: 'BOOKING_REQUEST_TIMEOUT_MINUTES',
+      value: '5',
+    },
+  })
+
   console.log('Database seeded successfully.')
 }
 

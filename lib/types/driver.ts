@@ -19,4 +19,5 @@ export interface DriverSyncData {
   currentBooking: Booking | null;
   requests: (Booking & { calculatedDistance: number })[];
   isWalletSuspended?: boolean;
+  timeoutSeconds?: number;
 }

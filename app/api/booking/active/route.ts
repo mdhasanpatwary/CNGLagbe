@@ -4,6 +4,7 @@ import { getAuthUser } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { BoundedCache } from "@/lib/bounded-cache";
 import { getBookingRequestTimeoutThreshold } from "@/constants/booking";
+import { getBookingTimeoutMinutes } from "@/lib/settings";
 
 // BoundedCache prevents unbounded memory growth from accumulating unique user IDs
 const activeBookingCache = new BoundedCache<Record<string, unknown>>(5000); // 5s TTL
@@ -54,7 +55,8 @@ export async function GET() {
 
     // 4. Auto-cancel logic for stale PENDING bookings
     if (activeBooking && activeBooking.status === "PENDING") {
-      const timeoutThreshold = getBookingRequestTimeoutThreshold();
+      const timeoutMinutes = await getBookingTimeoutMinutes();
+      const timeoutThreshold = getBookingRequestTimeoutThreshold(timeoutMinutes);
       if (activeBooking.createdAt < timeoutThreshold) {
         await prisma.booking.update({
           where: { id: activeBooking.id },

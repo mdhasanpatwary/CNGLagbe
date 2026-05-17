@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getBookingRequestTimeoutThreshold } from "@/constants/booking";
+import { getBookingTimeoutMinutes } from "@/lib/settings";
 
 export async function GET(
   request: Request,
@@ -35,8 +36,10 @@ export async function GET(
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
+    const timeoutMinutes = await getBookingTimeoutMinutes();
+
     if (booking.status === "PENDING") {
-      const timeoutThreshold = getBookingRequestTimeoutThreshold();
+      const timeoutThreshold = getBookingRequestTimeoutThreshold(timeoutMinutes);
       if (booking.createdAt < timeoutThreshold) {
         // Auto-expire when request timeout is reached
         await prisma.booking.update({
@@ -48,7 +51,7 @@ export async function GET(
       }
     }
 
-    return NextResponse.json({ booking });
+    return NextResponse.json({ booking, timeoutSeconds: timeoutMinutes * 60 });
   } catch (error) {
     console.error("Booking GET Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
