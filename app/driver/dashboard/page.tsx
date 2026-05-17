@@ -834,13 +834,14 @@ export default function DriverHomePage() {
             
             <Card className="border-none shadow-2xl shadow-blue-500/10 rounded-[2rem] bg-white overflow-hidden">
               <CardContent className="p-0">
-                <div className="relative w-full h-56 bg-slate-100 overflow-hidden rounded-t-[2rem]">
+                <div className="relative w-full h-64 bg-slate-100 overflow-hidden rounded-t-[2rem]">
                   <GoogleMapPreview 
                     pickupLat={currentBooking.pickupLat}
                     pickupLng={currentBooking.pickupLng}
                     destLat={currentBooking.destLat}
                     destLng={currentBooking.destLng}
                     apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
+                    className="rounded-none"
                   />
                   <a 
                     target="_blank" 
