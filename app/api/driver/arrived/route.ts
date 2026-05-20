@@ -36,18 +36,13 @@ export async function POST(request: Request) {
     const result = await prisma.booking.update({
       where: { id: bookingId },
       data: { 
-        status: "PICKED_UP",
-        startedAt: new Date(),
-        driver: {
-          update: {
-            isOnline: false
-          }
-        }
+        status: "ARRIVED",
+        arrivedAt: new Date(),
       },
     });
 
     // Broadcast status change to user
-    broadcastStatusChange(bookingId, "PICKED_UP");
+    broadcastStatusChange(bookingId, "ARRIVED");
 
     return NextResponse.json({ booking: result });
   } catch (error) {

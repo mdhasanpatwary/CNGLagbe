@@ -139,9 +139,9 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
   useEffect(() => {
     if (!booking) return;
     const isPending = booking.status === "PENDING";
-    const isAccepted = booking.status === "ACCEPTED";
+    const isAccepted = booking.status === "ACCEPTED" || booking.status === "ARRIVED" || booking.status === "PICKED_UP";
     
-    // We need 'now' for PENDING countdown and for ACCEPTED cancellation 15m timer
+    // We need 'now' for PENDING countdown and for ACCEPTED/ARRIVED cancellation 15m timer
     if (!isPending && !isAccepted) return;
 
     const timer = setInterval(() => {
@@ -289,8 +289,8 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
 
   const uiState = getBookingUiState(booking, countdown);
   const cancelLabelKey: TextKey = uiState === "FINDING_DRIVER" ? "cancel_request" : "cancel_booking";
-  const showCancelAction = uiState === "FINDING_DRIVER" || uiState === "DRIVER_ASSIGNED";
-  const showDriverCard = (uiState === "DRIVER_ASSIGNED" || uiState === "COMPLETED") && Boolean(booking.driver);
+  const showCancelAction = uiState === "FINDING_DRIVER" || uiState === "DRIVER_ASSIGNED" || uiState === "DRIVER_ARRIVED";
+  const showDriverCard = (uiState === "DRIVER_ASSIGNED" || uiState === "DRIVER_ARRIVED" || uiState === "COMPLETED") && Boolean(booking.driver);
 
 
   const progressPct = uiState === "FINDING_DRIVER"
@@ -612,6 +612,81 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                 )}
 
                 {!canCancelAfterAccept && uiState === "DRIVER_ASSIGNED" && (
+                  <p className="text-[10px] font-black text-slate-400 text-center uppercase tracking-widest mt-2 bg-slate-50 py-3 rounded-xl border border-dashed border-slate-200">
+                    {t("cancel_available_in")} {formatDuration(remainingWaitSeconds, "0:00")}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── DRIVER ARRIVED STATE ──────────────────────────────────────── */}
+        {uiState === "DRIVER_ARRIVED" && showDriverCard && booking.driver && (
+          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+            {/* Header */}
+            <div className="bg-amber-500 px-5 py-4 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                  <MapPin size={16} className="text-white" />
+                </div>
+                <span className="text-sm font-black text-white uppercase tracking-wider">{t("driver_arrived")}</span>
+              </div>
+              <span className="text-[10px] font-black text-white/70">#{id.slice(-6).toUpperCase()}</span>
+            </div>
+
+            <div className="p-6">
+              {/* Arrived animation / visual */}
+              <div className="w-full relative bg-amber-50 rounded-2xl overflow-hidden mb-8 p-5 border border-amber-100 flex flex-col items-center">
+                <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mb-3 shadow-inner shadow-amber-200">
+                  <MapPin size={28} className="text-amber-600 fill-amber-600/20" />
+                </div>
+                <p className="text-sm font-black text-amber-800 uppercase tracking-tight text-center">{t("driver_arrived_info")}</p>
+              </div>
+
+              {/* Ride summary */}
+              <div className="space-y-4 mb-8">
+                <div className="grid grid-cols-3 gap-3 border-t border-slate-100 pt-4">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase mb-1">{t("fare")}</span>
+                    <div className="space-y-0.5">
+                      <p className="text-[9px] font-bold text-slate-500 leading-tight">{t("fare")}: {t("currency")}{formatDecimal(booking.baseFare || booking.fare)}</p>
+                      <p className="text-[9px] font-bold text-slate-500 leading-tight">{t("platform_fee")}: {t("currency")}{formatDecimal(booking.platformFee || 0)}</p>
+                      <p className="text-base font-black text-slate-900">{t("currency")}{formatDecimal(booking.totalFare || booking.fare)}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase mb-1">{t("time")}</span>
+                    <p className="text-base font-black text-slate-900">{timeValue}</p>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase mb-1">{t("distance")}</span>
+                    <p className="text-base font-black text-slate-900">{booking.distance.toFixed(1)}{t("km_unit")}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Call Driver */}
+              <div className="flex flex-col gap-3">
+                <a
+                  href={`tel:${booking.driver.phone}`}
+                  className="flex h-16 items-center justify-center gap-3 rounded-2xl bg-primary text-base font-black text-white transition-all shadow-xl shadow-primary/25 hover:bg-primary-dark active:scale-[0.98]"
+                >
+                  <Phone size={20} fill="currentColor" />
+                  {t("call_driver")}
+                </a>
+
+                {canCancelAfterAccept && (
+                  <AppButton
+                    variant="secondary"
+                    onClick={() => setShowCancel(true)}
+                    className="h-14 rounded-2xl border-2 border-slate-100 text-slate-400 font-black uppercase tracking-widest text-[10px] hover:text-red-500 hover:border-red-100 hover:bg-red-50/50 transition-all"
+                  >
+                    {t("cancel_booking")}
+                  </AppButton>
+                )}
+
+                {!canCancelAfterAccept && (
                   <p className="text-[10px] font-black text-slate-400 text-center uppercase tracking-widest mt-2 bg-slate-50 py-3 rounded-xl border border-dashed border-slate-200">
                     {t("cancel_available_in")} {formatDuration(remainingWaitSeconds, "0:00")}
                   </p>

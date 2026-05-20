@@ -198,7 +198,6 @@ export default function DriverHomePage() {
   };
   const currentBooking = syncData?.currentBooking || null;
   
-  // Derive arrivedBooking from currentBooking status + optimistic state
   const arrivedBooking = useMemo(() => {
     if (isArrivedOptimistic && currentBooking) {
       return {
@@ -210,7 +209,7 @@ export default function DriverHomePage() {
         distance: currentBooking.distance
       };
     }
-    if (currentBooking?.status === "PICKED_UP") {
+    if (currentBooking?.status === "ARRIVED" || currentBooking?.status === "PICKED_UP") {
       return {
         id: currentBooking.id,
         fare: currentBooking.fare,
@@ -223,11 +222,10 @@ export default function DriverHomePage() {
     return null;
   }, [currentBooking, isArrivedOptimistic]);
 
-  // Sync optimistic state: if server reports PICKED_UP or booking is gone, we don't need optimistic anymore
+  // Sync optimistic state: if server reports ARRIVED/PICKED_UP or booking is gone, we don't need optimistic anymore
   useEffect(() => {
-    if (currentBooking?.status === "PICKED_UP" || !currentBooking) {
+    if (currentBooking?.status === "ARRIVED" || currentBooking?.status === "PICKED_UP" || !currentBooking) {
       if (isArrivedOptimistic) {
-        // Defer to next tick to satisfy strict linting against synchronous state updates in effects
         queueMicrotask(() => {
           setIsArrivedOptimistic(false);
         });
@@ -992,20 +990,20 @@ export default function DriverHomePage() {
           </div>
         )}
 
-        {/* Arrived Booking Modal - Fare to Collect */}
+        {/* Arrived Booking Modal - Driver is waiting for passenger */}
         {arrivedBooking && (
           <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-300">
             <Card className="w-full max-w-sm border-none shadow-2xl rounded-[2rem] bg-white overflow-hidden animate-in zoom-in-95 duration-500">
               <CardContent className="p-8 flex flex-col items-center text-center">
-                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6 shadow-inner shadow-primary/20">
-                  <Clock className="w-10 h-10 text-primary animate-pulse" />
+                <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6 shadow-inner shadow-amber-100">
+                  <Clock className="w-10 h-10 text-amber-500 animate-pulse" />
                 </div>
-                <Badge className="mb-4 bg-primary/10 text-primary border-none font-black text-[10px] px-3 py-1 uppercase tracking-widest">
-                  {t("trip_active")}
+                <Badge className="mb-4 bg-amber-100 text-amber-700 border-none font-black text-[10px] px-3 py-1 uppercase tracking-widest">
+                  {t("driver_arrived")}
                 </Badge>
-                <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-2">{t("trip_in_progress")}</h2>
+                <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-2">{t("driver_arrived")}</h2>
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6 leading-relaxed max-w-[250px]">
-                  {t("trip_desc")}
+                  {t("driver_arrived_wait")}
                 </p>
                 
                 <div className="bg-slate-50 p-6 rounded-2xl w-full mb-8 border border-slate-100 relative overflow-hidden">
@@ -1035,7 +1033,7 @@ export default function DriverHomePage() {
                   className="w-full h-16 text-lg font-black rounded-2xl shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 text-white"
                   leftIcon={<CheckCircle2 size={24} />}
                 >
-                  {t("finish_trip_go_online")}
+                  {t("complete_ride")}
                 </AppButton>
               </CardContent>
             </Card>

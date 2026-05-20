@@ -79,6 +79,7 @@ model Booking {
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
   acceptedAt     DateTime?
+  arrivedAt      DateTime?
   startedAt      DateTime?
   cancelReason   String?
   cancelledAt    DateTime?

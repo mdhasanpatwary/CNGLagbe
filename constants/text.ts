@@ -302,6 +302,7 @@ export const TEXT = {
   arriving_soon: { en: "Arriving soon", bn: "কিছুক্ষণের মধ্যেই পৌঁছাবে" },
   wait_minutes: { en: "Wait 10-15 mins", bn: "১০-১৫ মিনিট অপেক্ষা করুন" },
   driver_arrived: { en: "Driver Arrived", bn: "ড্রাইভার পৌঁছেছেন" },
+  driver_arrived_wait: { en: "Waiting for passenger", bn: "যাত্রীর জন্য অপেক্ষা" },
   driver_arrived_info: { en: "Driver is at your pickup location", bn: "ড্রাইভার আপনার পিক-আপ লোকেশনে পৌঁছেছেন" },
   timeout_label: { en: "Timeout", bn: "টাইমআউট" },
   search_timeout_help: {
@@ -309,7 +310,8 @@ export const TEXT = {
     bn: "ড্রাইভার না পেলে আমরা আবার চেষ্টা করব বা বাতিল করব।"
   },
   location_denied: { en: "Location Permission Denied", bn: "লোকেশন পারমিশন নেই" },
-  i_arrived: { en: "Ride Start", bn: "যাত্রা শুরু" },
+  i_arrived: { en: "I Arrived", bn: "আমি পৌঁছেছি" },
+  complete_ride: { en: "Complete Trip", bn: "ট্রিপ শেষ করুন" },
   cancel_booking: { en: "Cancel Booking", bn: "বুকিং বাতিল করুন" },
   cancel_available_in: { en: "Cancel available in", bn: "বাতিল করা যাবে" },
   select_reason: { en: "Select Reason", bn: "কারণ বেছে নিন" },

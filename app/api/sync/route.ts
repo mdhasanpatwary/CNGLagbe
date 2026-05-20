@@ -40,7 +40,7 @@ export async function GET() {
       const activeBooking = await prisma.booking.findFirst({
         where: {
           userId,
-          status: { in: ["PENDING", "ACCEPTED"] },
+          status: { in: ["PENDING", "ACCEPTED", "ARRIVED", "PICKED_UP"] },
         },
         select: {
           id: true,
@@ -110,7 +110,7 @@ export async function GET() {
       const currentBookingPromise = prisma.booking.findFirst({
         where: {
           driverId: userId,
-          status: { in: ["ACCEPTED", "PICKED_UP"] },
+          status: { in: ["ACCEPTED", "ARRIVED", "PICKED_UP"] },
         },
         select: {
           id: true,

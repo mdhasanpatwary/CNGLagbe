@@ -1,6 +1,7 @@
 export type BookingStatus = 
   | "PENDING" 
   | "ACCEPTED" 
+  | "ARRIVED"
   | "PICKED_UP"
   | "COMPLETED" 
   | "CANCELLED" 
@@ -9,6 +10,7 @@ export type BookingStatus =
 export type BookingUiState = 
   | "FINDING_DRIVER" 
   | "DRIVER_ASSIGNED" 
+  | "DRIVER_ARRIVED"
   | "TRIP_IN_PROGRESS"
   | "COMPLETED" 
   | "CANCELLED"
@@ -50,6 +52,7 @@ export interface Booking {
   destAddress?: string | null;
   createdAt: string;
   acceptedAt?: string | null;
+  arrivedAt?: string | null;
   startedAt?: string | null;
   completedAt?: string | null;
   cancelledAt?: string | null;
