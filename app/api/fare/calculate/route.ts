@@ -27,7 +27,13 @@ export async function POST(request: Request) {
     });
     const platformFeePercentage = feeSetting ? Number(feeSetting.value) : 5;
 
-    const fareBreakdown = calculateFare(distance, platformFeePercentage);
+    // Fetch dynamic CNG per KM rate setting
+    const rateSetting = await prisma.systemSetting.findUnique({
+      where: { key: "CNG_PER_KM_RATE" },
+    });
+    const perKmRate = rateSetting ? Number(rateSetting.value) : 20;
+
+    const fareBreakdown = calculateFare(distance, platformFeePercentage, perKmRate);
 
     return NextResponse.json({
       distance,

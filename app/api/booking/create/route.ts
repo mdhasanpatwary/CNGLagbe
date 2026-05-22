@@ -82,7 +82,13 @@ export async function POST(request: Request) {
       });
       const platformFeePercentage = feeSetting ? Number(feeSetting.value) : 5;
 
-      const fare = calculateFare(distance, platformFeePercentage);
+      // Fetch dynamic CNG per KM rate setting
+      const rateSetting = await prisma.systemSetting.findUnique({
+        where: { key: "CNG_PER_KM_RATE" },
+      });
+      const perKmRate = rateSetting ? Number(rateSetting.value) : 20;
+
+      const fare = calculateFare(distance, platformFeePercentage, perKmRate);
 
       const result = await prisma.$transaction(async (tx) => {
         // Row-level lock on the User to prevent double-booking race condition
