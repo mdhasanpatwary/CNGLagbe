@@ -141,6 +141,45 @@ export function SettingsTab({
             </div>
           </div>
 
+          {/* Per Kilometer CNG Rate */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50">
+            <div>
+              <h4 className="font-semibold text-slate-900">
+                {t("per_km_rate_title" as TextKey) || "Per Kilometer CNG Rate (BDT)"}
+              </h4>
+              <p className="text-sm text-slate-500 mt-1">
+                {t("per_km_rate_desc" as TextKey) || "Configure the base fare rate per kilometer used to calculate the passenger's CNG fare."}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">
+                  ৳
+                </span>
+                <input
+                  type="number"
+                  min="1"
+                  value={getSettingValue("CNG_PER_KM_RATE", "20")}
+                  onChange={(e) =>
+                    handleValueChange(
+                      "CNG_PER_KM_RATE",
+                      e.target.value
+                    )
+                  }
+                  className="w-32 pl-8 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium text-slate-900"
+                />
+              </div>
+              <AppButton
+                onClick={() => handleSave("CNG_PER_KM_RATE")}
+                loading={isSaving["CNG_PER_KM_RATE"]}
+                leftIcon={<Save className="w-4 h-4" />}
+                className="whitespace-nowrap"
+              >
+                {t("save_changes" as TextKey) || "Save"}
+              </AppButton>
+            </div>
+          </div>
+
           {/* Driver Search Radius */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50">
             <div>
