@@ -59,6 +59,7 @@ Refer to [/docs/ui-rules.md](file:///Users/patwary/Projects/CNGLagbe/docs/ui-rul
 7. **Lightweight execution**: Favor fast, targeted edits over excessive verification or comprehensive auditing.
 8. **No heavy parallel tasks**: Run one heavy task at a time to prevent resource exhaustion.
 9. **Process Cleanup**: Stop any unused processes or servers immediately after the task is complete.
+10. **NEVER auto-commit code**: The agent MUST NEVER perform autonomous Git commits, staging, or push operations without the user's explicit, manual command/approval in the chat.
 
 For small changes, avoid rebuilding the entire project. Use targeted edits and minimal validation only.
 

@@ -155,6 +155,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 
 ## 🤖 AI Agent Workflow
 - **Skip Verification:** Always skip verification/checking steps unless explicitly asked for verification. Proceed directly to executing actions or providing code.
+- **No Autonomous Git Commits/Push:** The AI agent is strictly forbidden from running `git commit`, `git add` (staging all changes for commit), or `git push` unless explicitly and manually instructed by the user in the chat interface.
 - **Booking Timeout State:** Ensure that when a booking times out (`TIMED_OUT` state), the UI explicitly handles this state alongside the `CANCELLED` state to show the "No Driver Found" message and retry options to the user.
 - **Landing Page UI Polish (2026-05-10):**
   - **Section backgrounds:** Enhanced with a mix of `mesh-gradient`, `noise-bg`, and `premium-bg-surface` to create a high-end, dynamic flow between sections. Added a subtle `dot-grid-texture` overlay to all sections for visual unity.
