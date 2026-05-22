@@ -949,6 +949,14 @@ export default function DriverHomePage() {
                       <p className="text-sm font-bold text-slate-800 truncate">
                         {simplifyAddress(currentBooking.destAddress) || t("drop")}
                       </p>
+                      <a
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${currentBooking.destLat},${currentBooking.destLng}`}
+                        className="inline-flex items-center gap-1 text-blue-600 text-xs font-black uppercase mt-1 hover:underline"
+                      >
+                        <ExternalLink size={10} /> {t("nav_drop")}
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -976,7 +984,7 @@ export default function DriverHomePage() {
                   </div>
                 </div>
 
-                {/* Actions — only 2 buttons */}
+                {/* Actions */}
                 <div className="flex flex-col gap-3 pt-1">
                   {currentBooking.user?.phone && (
                     <AppButton
@@ -988,6 +996,15 @@ export default function DriverHomePage() {
                       {t("call_user")} {currentBooking.user?.name ? `- ${currentBooking.user.name}` : ""}
                     </AppButton>
                   )}
+
+                  <AppButton
+                    onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${currentBooking.destLat},${currentBooking.destLng}`, "_blank")}
+                    variant="outline"
+                    className="w-full h-14 text-sm font-black rounded-2xl border-slate-200 hover:bg-slate-50 text-slate-800"
+                    leftIcon={<Navigation size={18} className="text-primary" />}
+                  >
+                    {t("navigate_google_maps")}
+                  </AppButton>
 
                   <AppButton
                     onClick={() => handleStart(currentBooking.id)}
