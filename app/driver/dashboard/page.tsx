@@ -86,6 +86,15 @@ export default function DriverHomePage() {
   const isOnlineRef = useRef(false);
   const sendLocationUpdateRef = useRef<((location: DriverLocationPoint, reason: PendingLocationUpdate["reason"]) => Promise<void>) | null>(null);
   
+  const audioIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const clearAudioInterval = useCallback(() => {
+    if (audioIntervalRef.current) {
+      clearInterval(audioIntervalRef.current);
+      audioIntervalRef.current = null;
+    }
+  }, []);
+  
   const logout = async () => {
     try {
       await apiFetch("/api/auth/logout", { method: "POST" });
@@ -96,6 +105,7 @@ export default function DriverHomePage() {
   };
 
   const toggleOnline = async () => {
+    clearAudioInterval();
     try {
       const nextStatus = !isOnline;
       setIsOnlineOverride(nextStatus);
@@ -119,6 +129,7 @@ export default function DriverHomePage() {
   };
 
   const handleReject = useCallback(async (id: string) => {
+    clearAudioInterval();
     setRejectedIds(prev => new Set(prev).add(id));
     try {
       await apiFetch("/api/driver/reject", {
@@ -131,9 +142,10 @@ export default function DriverHomePage() {
       console.error(e);
       toast.error(t("error") as string);
     }
-  }, [t]);
+  }, [t, clearAudioInterval]);
 
   const handleAccept = useCallback(async (req: Booking) => {
+    clearAudioInterval();
     try {
       const res = await apiFetch("/api/driver/accept", {
         method: "POST",
@@ -153,7 +165,7 @@ export default function DriverHomePage() {
       console.error(e);
       toast.error(t("error") as string);
     }
-  }, [t, queryClient]);
+  }, [t, queryClient, clearAudioInterval]);
 
 
 
@@ -289,6 +301,7 @@ export default function DriverHomePage() {
   useEffect(() => {
     // Listen for forced offline event from CancelModal
     const handleForcedOffline = () => {
+      clearAudioInterval();
       setIsOnlineOverride(false);
       toast.warning(t("cancel_driver_warning") as string, {
         duration: 5000,
@@ -299,7 +312,7 @@ export default function DriverHomePage() {
     return () => {
       window.removeEventListener("FORCED_OFFLINE", handleForcedOffline);
     };
-  }, [t]);
+  }, [t, clearAudioInterval]);
 
   const broadcastLocation = useCallback((location: DriverLocationPoint) => {
     if (!currentBooking) return;
@@ -521,8 +534,9 @@ export default function DriverHomePage() {
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       clearLocationTimers();
+      clearAudioInterval();
     };
-  }, [clearLocationTimers, currentBooking, handleLocationError, isOnline, requestCurrentLocation, sendLocationUpdate]);
+  }, [clearLocationTimers, currentBooking, handleLocationError, isOnline, requestCurrentLocation, sendLocationUpdate, clearAudioInterval]);
 
   // ─── Request Timer & Sound ────────────────────────────────────────────────
   const lastActiveReqId = useRef<string | null>(null);
@@ -533,6 +547,7 @@ export default function DriverHomePage() {
     
     if (!isOnline || !activeReqId || currentBooking) {
       lastActiveReqId.current = null;
+      clearAudioInterval();
       return;
     }
 
@@ -571,7 +586,9 @@ export default function DriverHomePage() {
         }
       };
       
+      clearAudioInterval();
       playAlertTone();
+      audioIntervalRef.current = setInterval(playAlertTone, 1500);
     }
     
     const interval = setInterval(() => {
@@ -586,8 +603,9 @@ export default function DriverHomePage() {
 
     return () => {
       clearInterval(interval);
+      clearAudioInterval();
     };
-  }, [requests, isOnline, currentBooking, handleReject, syncData?.timeoutSeconds]);
+  }, [requests, isOnline, currentBooking, handleReject, syncData?.timeoutSeconds, clearAudioInterval]);
 
   // ─── Render ──────────────────────────────────────────────────────────────
   return (
@@ -1250,6 +1268,7 @@ export default function DriverHomePage() {
                   {/* Actions Grid */}
                   <div className="grid grid-cols-2 gap-3 pt-2">
                     <AppButton 
+                      // eslint-disable-next-line react-hooks/refs
                       onClick={() => handleReject(req.id)} 
                       variant="secondary" 
                       className="h-14 rounded-2xl border-slate-200 font-black text-xs uppercase hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all animate-in fade-in duration-300"
