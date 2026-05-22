@@ -294,6 +294,15 @@ async function main() {
     },
   })
 
+  await prisma.systemSetting.upsert({
+    where: { key: 'CNG_PER_KM_RATE' },
+    update: {},
+    create: {
+      key: 'CNG_PER_KM_RATE',
+      value: '20',
+    },
+  })
+
   console.log('Database seeded successfully.')
 }
 
