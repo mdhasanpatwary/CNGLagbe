@@ -67,7 +67,7 @@ export default function DriverHomePage() {
   const [rejectedIds, setRejectedIds] = useState<Set<string>>(new Set());
   const [timeLeft, setTimeLeft] = useState(300);
   const [showCancel, setShowCancel] = useState(false);
-  const [isArrivedOptimistic, setIsArrivedOptimistic] = useState(false);
+
   const [locationIssue, setLocationIssue] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const consecutiveFailures = useRef(0);
@@ -198,40 +198,7 @@ export default function DriverHomePage() {
   };
   const currentBooking = syncData?.currentBooking || null;
   
-  const arrivedBooking = useMemo(() => {
-    if (isArrivedOptimistic && currentBooking) {
-      return {
-        id: currentBooking.id,
-        fare: currentBooking.fare,
-        baseFare: currentBooking.baseFare,
-        platformFee: currentBooking.platformFee,
-        totalFare: currentBooking.totalFare,
-        distance: currentBooking.distance
-      };
-    }
-    if (currentBooking?.status === "ARRIVED" || currentBooking?.status === "PICKED_UP") {
-      return {
-        id: currentBooking.id,
-        fare: currentBooking.fare,
-        baseFare: currentBooking.baseFare,
-        platformFee: currentBooking.platformFee,
-        totalFare: currentBooking.totalFare,
-        distance: currentBooking.distance
-      };
-    }
-    return null;
-  }, [currentBooking, isArrivedOptimistic]);
 
-  // Sync optimistic state: if server reports ARRIVED/PICKED_UP or booking is gone, we don't need optimistic anymore
-  useEffect(() => {
-    if (currentBooking?.status === "ARRIVED" || currentBooking?.status === "PICKED_UP" || !currentBooking) {
-      if (isArrivedOptimistic) {
-        queueMicrotask(() => {
-          setIsArrivedOptimistic(false);
-        });
-      }
-    }
-  }, [currentBooking?.status, currentBooking, isArrivedOptimistic]);
 
   useEffect(() => {
     isOnlineRef.current = isOnline;
@@ -262,31 +229,46 @@ export default function DriverHomePage() {
     try {
       const res = await apiFetch("/api/driver/arrived", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookingId: id })
       });
       if (res.ok) {
-         setIsArrivedOptimistic(true);
-         queryClient.invalidateQueries({ queryKey: ["driverSync"] });
+        queryClient.invalidateQueries({ queryKey: ["driverSync"] });
       }
     } catch (e) {
       console.error(e);
     }
   }, [queryClient]);
 
+  const handleStart = useCallback(async (id: string) => {
+    try {
+      const res = await apiFetch("/api/driver/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId: id })
+      });
+      if (res.ok) {
+        queryClient.invalidateQueries({ queryKey: ["driverSync"] });
+        toast.success(t("trip_started") as string);
+      } else {
+        toast.error(t("error") as string);
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error(t("error") as string);
+    }
+  }, [queryClient, t]);
+
   const finishTrip = useCallback(async () => {
-    if (!arrivedBooking) return;
+    if (!currentBooking) return;
     try {
       const res = await apiFetch("/api/driver/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bookingId: arrivedBooking.id })
+        body: JSON.stringify({ bookingId: currentBooking.id })
       });
       if (res.ok) {
-        setIsArrivedOptimistic(false);
-        setIsOnlineOverride(null); // Reset override to pick up database 'true' state
+        setIsOnlineOverride(null);
         queryClient.invalidateQueries({ queryKey: ["driverSync"] });
         toast.success(t("completed") as string);
       } else {
@@ -296,7 +278,7 @@ export default function DriverHomePage() {
       console.error(e);
       toast.error(t("error") as string);
     }
-  }, [arrivedBooking, queryClient, t]);
+  }, [currentBooking, queryClient, t]);
   
   const requests = useMemo(() => {
     return (syncData?.requests || []).filter((r: Booking) => !rejectedIds.has(r.id));
@@ -380,7 +362,8 @@ export default function DriverHomePage() {
     location: DriverLocationPoint,
     reason: PendingLocationUpdate["reason"]
   ) => {
-    if (!isOnline || document.visibilityState === "hidden") return;
+    if (!isOnline && !currentBooking) return;
+    if (document.visibilityState === "hidden") return;
 
     consecutiveFailures.current = 0;
     setLocationIssue(false);
@@ -447,7 +430,7 @@ export default function DriverHomePage() {
         }
       }
     }
-  }, [broadcastLocation, flushPendingLocation, isOnline, queueLocationUpdate]);
+  }, [broadcastLocation, currentBooking, flushPendingLocation, isOnline, queueLocationUpdate]);
 
   useEffect(() => {
     sendLocationUpdateRef.current = sendLocationUpdate;
@@ -488,7 +471,7 @@ export default function DriverHomePage() {
 
   // ─── Real-time Location Push ──────────────────────────────────────────────
   useEffect(() => {
-    if (!isOnline) {
+    if (!isOnline && !currentBooking) {
       clearLocationTimers();
       pendingLocationUpdate.current = null;
       locationRequestInFlight.current = false;
@@ -539,7 +522,7 @@ export default function DriverHomePage() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       clearLocationTimers();
     };
-  }, [clearLocationTimers, handleLocationError, isOnline, requestCurrentLocation, sendLocationUpdate]);
+  }, [clearLocationTimers, currentBooking, handleLocationError, isOnline, requestCurrentLocation, sendLocationUpdate]);
 
   // ─── Request Timer & Sound ────────────────────────────────────────────────
   const lastActiveReqId = useRef<string | null>(null);
@@ -829,125 +812,285 @@ export default function DriverHomePage() {
               </h3>
               <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none font-black text-[10px] px-3">LIVE</Badge>
             </div>
-            
+
             <Card className="border-none shadow-2xl shadow-blue-500/10 rounded-[2rem] bg-white overflow-hidden">
-              <CardContent className="p-0">
-                <div className="relative w-full h-64 bg-slate-100 overflow-hidden rounded-t-[2rem]">
-                  <GoogleMapPreview 
-                    pickupLat={currentBooking.pickupLat}
-                    pickupLng={currentBooking.pickupLng}
-                    destLat={currentBooking.destLat}
-                    destLng={currentBooking.destLng}
-                    apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
-                    className="rounded-none"
-                  />
-                  <a 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    href={`https://www.google.com/maps/dir/?api=1&origin=${currentBooking.pickupLat},${currentBooking.pickupLng}&destination=${currentBooking.destLat},${currentBooking.destLng}&travelmode=driving`}
-                    className="absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 text-primary text-[10px] font-black uppercase bg-white px-3.5 py-2 rounded-full hover:bg-slate-50 transition-all shadow-md border border-slate-100/50"
-                  >
-                    <Navigation size={12} /> {t("nav_google_maps")}
-                  </a>
-                </div>
-                
-                <div className="p-5 space-y-5">
-                  {/* Spacing coherent vertical timeline */}
-                  <div className="relative space-y-5 before:absolute before:left-3 before:top-3 before:bottom-3 before:border-l before:border-dashed before:border-slate-200">
-                    <div className="flex gap-3 relative">
-                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 z-10">
-                        <span className="w-2 h-2 rounded-full bg-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-black text-slate-400 uppercase mb-0.5">{t("pickup")}</p>
-                        <p className="text-sm font-bold text-slate-800 truncate">
-                          {simplifyAddress(currentBooking.pickupAddress) || t("pickup")}
-                        </p>
-                        <a 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          href={`https://www.google.com/maps/dir/?api=1&destination=${currentBooking.pickupLat},${currentBooking.pickupLng}`}
-                          className="inline-flex items-center gap-1 text-blue-600 text-xs font-black uppercase mt-1 hover:underline"
-                        >
-                          <ExternalLink size={10} /> {t("nav_pickup")}
-                        </a>
-                      </div>
+              <CardContent className="p-5 space-y-5">
+                {/* Vertical timeline — pickup & drop */}
+                <div className="relative space-y-5 before:absolute before:left-3 before:top-3 before:bottom-3 before:border-l before:border-dashed before:border-slate-200">
+                  <div className="flex gap-3 relative">
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 z-10">
+                      <span className="w-2 h-2 rounded-full bg-primary" />
                     </div>
-
-                    <div className="flex gap-3 relative">
-                      <div className="w-6 h-6 rounded-full bg-red-50 flex items-center justify-center shrink-0 z-10">
-                        <span className="w-2 h-2 rounded-full bg-red-500" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-black text-slate-400 uppercase mb-0.5">{t("drop")}</p>
-                        <p className="text-sm font-bold text-slate-800 truncate">
-                          {simplifyAddress(currentBooking.destAddress) || t("drop")}
-                        </p>
-                        <a 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          href={`https://www.google.com/maps/dir/?api=1&destination=${currentBooking.destLat},${currentBooking.destLng}`}
-                          className="inline-flex items-center gap-1 text-blue-600 text-xs font-black uppercase mt-1 hover:underline"
-                        >
-                          <ExternalLink size={10} /> {t("nav_drop")}
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Fare Section */}
-                  <div className="bg-slate-50 p-4 rounded-2xl space-y-3 border border-slate-100">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="text-xs font-black text-slate-400 uppercase mb-0.5 flex items-center gap-1">
-                          <Banknote size={12} /> {t("collect_cash")}
-                        </p>
-                        <p className="text-2xl font-black text-slate-800">{t("currency")}{formatDecimal(currentBooking.totalFare || currentBooking.fare)}</p>
-                      </div>
-                      <Badge variant="outline" className="border-primary/20 text-primary font-black text-xs uppercase px-2.5 py-0.5 bg-primary/5">{t("cash_only")}</Badge>
-                    </div>
-                    
-                    <div className="pt-3 border-t border-slate-200/60 flex flex-col gap-2">
-                      <div className="flex justify-between items-center text-xs font-bold text-slate-500">
-                        <span>{t("fare")}</span>
-                        <span>{t("currency")}{formatDecimal(currentBooking.baseFare || currentBooking.fare)}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs font-bold text-slate-500">
-                        <span>{t("platform_fee")}</span>
-                        <span>{t("currency")}{formatDecimal(currentBooking.platformFee || 0)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Vertically stacked Option A action buttons */}
-                  <div className="flex flex-col gap-3 pt-1">
-                    {currentBooking.user?.phone && (
-                      <AppButton
-                        onClick={() => window.location.href = `tel:${currentBooking.user?.phone}`}
-                        variant="outline"
-                        className="w-full h-14 text-sm font-black rounded-2xl border-slate-200 hover:bg-slate-50 text-slate-800"
-                        leftIcon={<Phone size={18} className="text-primary" />}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-black text-slate-400 uppercase mb-0.5">{t("pickup")}</p>
+                      <p className="text-sm font-bold text-slate-800 truncate">
+                        {simplifyAddress(currentBooking.pickupAddress) || t("pickup")}
+                      </p>
+                      <a
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${currentBooking.pickupLat},${currentBooking.pickupLng}`}
+                        className="inline-flex items-center gap-1 text-blue-600 text-xs font-black uppercase mt-1 hover:underline"
                       >
-                        {t("call_user")} {currentBooking.user?.name ? `- ${currentBooking.user.name}` : ""}
-                      </AppButton>
-                    )}
-
-                    <AppButton 
-                      onClick={() => handleArrived(currentBooking.id)} 
-                      className="w-full h-14 text-sm font-black rounded-2xl shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-white"
-                      leftIcon={<CheckCircle2 size={18} />}
-                    >
-                      {t("i_arrived")}
-                    </AppButton>
-
-                    <AppButton 
-                      variant="ghost"
-                      onClick={() => setShowCancel(true)}
-                      className="w-full h-10 text-red-500 hover:text-red-600 hover:bg-red-50/50 text-xs font-black rounded-xl transition-colors"
-                    >
-                      {t("cancel_booking")}
-                    </AppButton>
+                        <ExternalLink size={10} /> {t("nav_pickup")}
+                      </a>
+                    </div>
                   </div>
+
+                  <div className="flex gap-3 relative">
+                    <div className="w-6 h-6 rounded-full bg-red-50 flex items-center justify-center shrink-0 z-10">
+                      <span className="w-2 h-2 rounded-full bg-red-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-black text-slate-400 uppercase mb-0.5">{t("drop")}</p>
+                      <p className="text-sm font-bold text-slate-800 truncate">
+                        {simplifyAddress(currentBooking.destAddress) || t("drop")}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fare strip */}
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex justify-between items-center">
+                  <div>
+                    <p className="text-xs font-black text-slate-400 uppercase mb-0.5 flex items-center gap-1">
+                      <Banknote size={12} /> {t("collect_cash")}
+                    </p>
+                    <p className="text-2xl font-black text-slate-800">{t("currency")}{formatDecimal(currentBooking.totalFare || currentBooking.fare)}</p>
+                  </div>
+                  <Badge variant="outline" className="border-primary/20 text-primary font-black text-xs uppercase px-2.5 py-0.5 bg-primary/5">{t("cash_only")}</Badge>
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-col gap-3 pt-1">
+                  {currentBooking.user?.phone && (
+                    <AppButton
+                      onClick={() => window.location.href = `tel:${currentBooking.user?.phone}`}
+                      variant="outline"
+                      className="w-full h-14 text-sm font-black rounded-2xl border-slate-200 hover:bg-slate-50 text-slate-800"
+                      leftIcon={<Phone size={18} className="text-primary" />}
+                    >
+                      {t("call_user")} {currentBooking.user?.name ? `- ${currentBooking.user.name}` : ""}
+                    </AppButton>
+                  )}
+
+                  <AppButton
+                    onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${currentBooking.pickupLat},${currentBooking.pickupLng}`, "_blank")}
+                    variant="outline"
+                    className="w-full h-14 text-sm font-black rounded-2xl border-slate-200 hover:bg-slate-50 text-slate-800"
+                    leftIcon={<Navigation size={18} className="text-primary" />}
+                  >
+                    {t("navigate_google_maps")}
+                  </AppButton>
+
+                  <AppButton
+                    onClick={() => handleArrived(currentBooking.id)}
+                    className="w-full h-14 text-sm font-black rounded-2xl shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-white"
+                    leftIcon={<CheckCircle2 size={18} />}
+                  >
+                    {t("i_arrived")}
+                  </AppButton>
+
+                  <AppButton
+                    variant="ghost"
+                    onClick={() => setShowCancel(true)}
+                    className="w-full h-10 text-red-500 hover:text-red-600 hover:bg-red-50/50 text-xs font-black rounded-xl transition-colors"
+                  >
+                    {t("cancel_booking")}
+                  </AppButton>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {currentBooking && currentBooking.status === "ARRIVED" && (
+          <div className="space-y-4 animate-in fade-in zoom-in-95 duration-500">
+            <div className="flex items-center justify-between px-2">
+              <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                {t("driver_arrived")}
+              </h3>
+              <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none font-black text-[10px] px-3">ARRIVED</Badge>
+            </div>
+
+            <Card className="border-none shadow-2xl shadow-emerald-500/10 rounded-[2rem] bg-white overflow-hidden">
+              <CardContent className="p-5 space-y-5">
+                {/* Arrived banner */}
+                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+                    <CheckCircle2 size={20} className="text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-emerald-700 uppercase tracking-widest">{t("driver_arrived")}</p>
+                    <p className="text-sm font-bold text-slate-600">{t("driver_arrived_wait")}</p>
+                  </div>
+                </div>
+
+                {/* Pickup & Drop timeline */}
+                <div className="relative space-y-5 before:absolute before:left-3 before:top-3 before:bottom-3 before:border-l before:border-dashed before:border-slate-200">
+                  <div className="flex gap-3 relative">
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 z-10">
+                      <span className="w-2 h-2 rounded-full bg-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-black text-slate-400 uppercase mb-0.5">{t("pickup")}</p>
+                      <p className="text-sm font-bold text-slate-800 truncate">
+                        {simplifyAddress(currentBooking.pickupAddress) || t("pickup")}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 relative">
+                    <div className="w-6 h-6 rounded-full bg-red-50 flex items-center justify-center shrink-0 z-10">
+                      <span className="w-2 h-2 rounded-full bg-red-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-black text-slate-400 uppercase mb-0.5">{t("drop")}</p>
+                      <p className="text-sm font-bold text-slate-800 truncate">
+                        {simplifyAddress(currentBooking.destAddress) || t("drop")}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fare strip */}
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-xs font-black text-slate-400 uppercase mb-0.5 flex items-center gap-1">
+                        <Banknote size={12} /> {t("collect_cash")}
+                      </p>
+                      <p className="text-2xl font-black text-slate-800">{t("currency")}{formatDecimal(currentBooking.totalFare || currentBooking.fare)}</p>
+                    </div>
+                    <Badge variant="outline" className="border-primary/20 text-primary font-black text-xs uppercase px-2.5 py-0.5 bg-primary/5">{t("cash_only")}</Badge>
+                  </div>
+                  <div className="pt-3 border-t border-slate-200/60 flex flex-col gap-2 mt-3">
+                    <div className="flex justify-between items-center text-xs font-bold text-slate-500">
+                      <span>{t("fare")}</span>
+                      <span>{t("currency")}{formatDecimal(currentBooking.baseFare || currentBooking.fare)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs font-bold text-slate-500">
+                      <span>{t("platform_fee")}</span>
+                      <span>{t("currency")}{formatDecimal(currentBooking.platformFee || 0)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions — only 2 buttons */}
+                <div className="flex flex-col gap-3 pt-1">
+                  {currentBooking.user?.phone && (
+                    <AppButton
+                      onClick={() => window.location.href = `tel:${currentBooking.user?.phone}`}
+                      variant="outline"
+                      className="w-full h-14 text-sm font-black rounded-2xl border-slate-200 hover:bg-slate-50 text-slate-800"
+                      leftIcon={<Phone size={18} className="text-primary" />}
+                    >
+                      {t("call_user")} {currentBooking.user?.name ? `- ${currentBooking.user.name}` : ""}
+                    </AppButton>
+                  )}
+
+                  <AppButton
+                    onClick={() => handleStart(currentBooking.id)}
+                    className="w-full h-16 text-lg font-black rounded-2xl shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 text-white"
+                    leftIcon={<CheckCircle2 size={24} />}
+                  >
+                    {t("start_trip")}
+                  </AppButton>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {currentBooking && currentBooking.status === "PICKED_UP" && (
+          <div className="space-y-4 animate-in fade-in zoom-in-95 duration-500">
+            <div className="flex items-center justify-between px-2">
+              <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                {t("ongoing")}
+              </h3>
+              <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none font-black text-[10px] px-3">IN PROGRESS</Badge>
+            </div>
+
+            <Card className="border-none shadow-2xl shadow-emerald-500/10 rounded-[2rem] bg-white overflow-hidden">
+              <CardContent className="p-5 space-y-5">
+                {/* Vertical timeline — pickup & drop */}
+                <div className="relative space-y-5 before:absolute before:left-3 before:top-3 before:bottom-3 before:border-l before:border-dashed before:border-slate-200">
+                  <div className="flex gap-3 relative">
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 z-10">
+                      <span className="w-2 h-2 rounded-full bg-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-black text-slate-400 uppercase mb-0.5">{t("pickup")}</p>
+                      <p className="text-sm font-bold text-slate-800 truncate">
+                        {simplifyAddress(currentBooking.pickupAddress) || t("pickup")}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 relative">
+                    <div className="w-6 h-6 rounded-full bg-red-50 flex items-center justify-center shrink-0 z-10">
+                      <span className="w-2 h-2 rounded-full bg-red-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-black text-slate-400 uppercase mb-0.5">{t("drop")}</p>
+                      <p className="text-sm font-bold text-slate-800 truncate">
+                        {simplifyAddress(currentBooking.destAddress) || t("drop")}
+                      </p>
+                      <a
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${currentBooking.destLat},${currentBooking.destLng}`}
+                        className="inline-flex items-center gap-1 text-blue-600 text-xs font-black uppercase mt-1 hover:underline"
+                      >
+                        <ExternalLink size={10} /> {t("nav_drop")}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fare strip */}
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-xs font-black text-slate-400 uppercase mb-0.5 flex items-center gap-1">
+                        <Banknote size={12} /> {t("collect_cash")}
+                      </p>
+                      <p className="text-2xl font-black text-slate-800">{t("currency")}{formatDecimal(currentBooking.totalFare || currentBooking.fare)}</p>
+                    </div>
+                    <Badge variant="outline" className="border-primary/20 text-primary font-black text-xs uppercase px-2.5 py-0.5 bg-primary/5">{t("cash_only")}</Badge>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-col gap-3 pt-1">
+                  {currentBooking.user?.phone && (
+                    <AppButton
+                      onClick={() => window.location.href = `tel:${currentBooking.user?.phone}`}
+                      variant="outline"
+                      className="w-full h-14 text-sm font-black rounded-2xl border-slate-200 hover:bg-slate-50 text-slate-800"
+                      leftIcon={<Phone size={18} className="text-primary" />}
+                    >
+                      {t("call_user")} {currentBooking.user?.name ? `- ${currentBooking.user.name}` : ""}
+                    </AppButton>
+                  )}
+
+                  <AppButton
+                    onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${currentBooking.destLat},${currentBooking.destLng}`, "_blank")}
+                    variant="outline"
+                    className="w-full h-14 text-sm font-black rounded-2xl border-slate-200 hover:bg-slate-50 text-slate-800"
+                    leftIcon={<Navigation size={18} className="text-primary" />}
+                  >
+                    {t("navigate_google_maps")}
+                  </AppButton>
+
+                  <AppButton
+                    onClick={finishTrip}
+                    className="w-full h-16 text-lg font-black rounded-2xl shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 text-white"
+                    leftIcon={<CheckCircle2 size={24} />}
+                  >
+                    {t("complete_ride")}
+                  </AppButton>
                 </div>
               </CardContent>
             </Card>
@@ -990,58 +1133,8 @@ export default function DriverHomePage() {
           </div>
         )}
 
-        {/* Arrived Booking Modal - Driver is waiting for passenger */}
-        {arrivedBooking && (
-          <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-300">
-            <Card className="w-full max-w-sm border-none shadow-2xl rounded-[2rem] bg-white overflow-hidden animate-in zoom-in-95 duration-500">
-              <CardContent className="p-8 flex flex-col items-center text-center">
-                <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6 shadow-inner shadow-amber-100">
-                  <Clock className="w-10 h-10 text-amber-500 animate-pulse" />
-                </div>
-                <Badge className="mb-4 bg-amber-100 text-amber-700 border-none font-black text-[10px] px-3 py-1 uppercase tracking-widest">
-                  {t("driver_arrived")}
-                </Badge>
-                <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-2">{t("driver_arrived")}</h2>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6 leading-relaxed max-w-[250px]">
-                  {t("driver_arrived_wait")}
-                </p>
-                
-                <div className="bg-slate-50 p-6 rounded-2xl w-full mb-8 border border-slate-100 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full pointer-events-none" />
-                  <div className="flex justify-center items-center gap-2 mb-4 relative z-10 border-b border-primary/10 pb-4">
-                    <span className="text-xs font-black text-slate-500 uppercase tracking-widest">{t("distance")}</span>
-                    <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5 px-2 font-black">{formatDecimal(arrivedBooking.distance, 1)} {t("km_unit")}</Badge>
-                  </div>
-                  
-                  <div className="space-y-4 relative z-10">
-                    <div className="flex justify-between items-center text-sm font-bold text-slate-500">
-                      <span>{t("fare")}</span>
-                      <span>{t("currency")}{formatDecimal(arrivedBooking.baseFare || arrivedBooking.fare)}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm font-bold text-slate-500">
-                      <span>{t("platform_fee")}</span>
-                      <span>{t("currency")}{formatDecimal(arrivedBooking.platformFee || 0)}</span>
-                    </div>
-                    <div className="pt-4 border-t border-slate-200 flex justify-between items-center">
-                      <p className="text-[10px] font-black text-primary uppercase tracking-widest">{t("collect_cash")}</p>
-                      <p className="text-4xl font-black text-slate-800">{t("currency")}{formatDecimal(arrivedBooking.totalFare || arrivedBooking.fare)}</p>
-                    </div>
-                  </div>
-                </div>
-                <AppButton 
-                  onClick={finishTrip} 
-                  className="w-full h-16 text-lg font-black rounded-2xl shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 text-white"
-                  leftIcon={<CheckCircle2 size={24} />}
-                >
-                  {t("complete_ride")}
-                </AppButton>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
         {/* Incoming Request Fullscreen Modal */}
-        {isOnline && !currentBooking && requests.length > 0 && !arrivedBooking && (() => {
+        {isOnline && !currentBooking && requests.length > 0 && (() => {
           const req = requests[0];
           const isUrgent = timeLeft <= 5;
           return (

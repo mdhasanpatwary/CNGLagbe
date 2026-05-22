@@ -139,10 +139,11 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
   useEffect(() => {
     if (!booking) return;
     const isPending = booking.status === "PENDING";
-    const isAccepted = booking.status === "ACCEPTED" || booking.status === "ARRIVED" || booking.status === "PICKED_UP";
+    const isAccepted = booking.status === "ACCEPTED" || booking.status === "PICKED_UP";
+    const isArrived = booking.status === "ARRIVED";
     
-    // We need 'now' for PENDING countdown and for ACCEPTED/ARRIVED cancellation 15m timer
-    if (!isPending && !isAccepted) return;
+    // We need 'now' for PENDING countdown and for ACCEPTED/ARRIVED/PICKED_UP cancellation 15m timer
+    if (!isPending && !isAccepted && !isArrived) return;
 
     const timer = setInterval(() => {
       const currentNow = Date.now();
@@ -203,7 +204,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
     const channel = supabase
       .channel(`booking-${id}`)
       .on("broadcast", { event: "location" }, ({ payload }) => {
-        if (booking.status === "ACCEPTED") {
+        if (booking.status === "ACCEPTED" || booking.status === "ARRIVED") {
           setDriverLocation(payload);
           if (driverMarker.current) driverMarker.current.position = payload;
         }
@@ -217,7 +218,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
   useEffect(() => {
     if (!booking || !mapRef.current) return;
     const uiState = getBookingUiState(booking, countdown);
-    if (uiState !== "DRIVER_ASSIGNED") return;
+    if (uiState !== "DRIVER_ASSIGNED" && uiState !== "DRIVER_ARRIVED") return;
 
     let cancelled = false;
     const initMap = async () => {
@@ -297,14 +298,18 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
     ? Math.round((countdown / BOOKING_REQUEST_TIMEOUT_SECONDS) * 100)
     : 100;
 
-  // Driver late cancellation logic (15 mins after accept)
-  const diffMinutes = booking.acceptedAt 
-    ? Math.max(0, Math.floor((now - new Date(booking.acceptedAt).getTime()) / (1000 * 60)))
+  // Use arrivedAt if available, fallback to acceptedAt for legacy bookings
+  const waitStartTime = booking.arrivedAt || booking.acceptedAt;
+  const diffMinutes = waitStartTime
+    ? Math.max(0, Math.floor((now - new Date(waitStartTime).getTime()) / (1000 * 60)))
     : 0;
-  const canCancelAfterAccept = uiState === "FINDING_DRIVER" || diffMinutes >= 15;
+  const canCancelAfterAccept =
+    uiState === "FINDING_DRIVER" ||
+    (uiState === "DRIVER_ARRIVED" && diffMinutes >= 15) ||
+    (uiState === "DRIVER_ASSIGNED" && diffMinutes >= 15);
 
-  const remainingWaitSeconds = booking.acceptedAt 
-    ? Math.max(0, Math.min(15 * 60, 15 * 60 - Math.floor((now - new Date(booking.acceptedAt).getTime()) / 1000)))
+  const remainingWaitSeconds = waitStartTime
+    ? Math.max(0, 15 * 60 - Math.floor((now - new Date(waitStartTime).getTime()) / 1000))
     : 0;
 
   const timeValue = (() => {
@@ -358,7 +363,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 pt-12 pb-24 px-4 relative z-10">
         <PageHeading
           title={
-            (uiState === "FINDING_DRIVER" || uiState === "DRIVER_ASSIGNED")
+            (uiState === "FINDING_DRIVER" || uiState === "DRIVER_ASSIGNED" || uiState === "DRIVER_ARRIVED")
               ? (t("active_booking") as string)
               : (t("booking_details") as string)
           }

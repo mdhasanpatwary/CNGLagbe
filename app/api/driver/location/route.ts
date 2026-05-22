@@ -28,7 +28,14 @@ export async function POST(request: Request) {
           "currentLng" = ${lng}::float8,
           "updatedAt" = NOW()
       WHERE "id" = ${driverId}
-        AND "isOnline" = true
+        AND (
+          "isOnline" = true
+          OR EXISTS (
+            SELECT 1 FROM "Booking"
+            WHERE "driverId" = ${driverId}
+              AND "status" IN ('ACCEPTED', 'ARRIVED', 'PICKED_UP')
+          )
+        )
         AND (
           "currentLat" IS DISTINCT FROM ${lat}::float8
           OR "currentLng" IS DISTINCT FROM ${lng}::float8

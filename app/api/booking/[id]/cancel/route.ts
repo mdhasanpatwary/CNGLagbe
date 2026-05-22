@@ -40,6 +40,10 @@ export async function POST(
         return NextResponse.json({ error: "Booking already finished" }, { status: 400 });
       }
 
+      if (booking.status === "PICKED_UP") {
+        return NextResponse.json({ error: "Cannot cancel a booking in progress" }, { status: 400 });
+      }
+
       let cancelledBy: "USER" | "DRIVER" | null = null;
 
       if ((user.role === "USER" || user.role === "ADMIN") && booking.userId === user.sub) {

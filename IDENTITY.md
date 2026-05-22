@@ -54,8 +54,8 @@ PENDING → ACCEPTED → ARRIVED → PICKED_UP → COMPLETED
 | Step | Action | Who | System Effect |
 |------|--------|-----|---------------|
 | 1 | Passenger books | User | Booking created, `PENDING` |
-| 2 | Driver accepts | Driver | Status → `ACCEPTED`, driver goes **OFFLINE** |
-| 3 | Driver marks arrived | Driver | Status → `ARRIVED`, 15-min cancellation window starts |
+| 2 | Driver accepts | Driver | Status → `ACCEPTED`, driver goes **OFFLINE**, 15-min cancellation window starts |
+| 3 | Driver marks arrived | Driver | Status → `ARRIVED` |
 | 4 | Passenger can cancel | User | Only after 15 min wait window expires |
 | 5 | Driver starts ride | Driver | Status → `PICKED_UP` (`startedAt` recorded) |
 | 6 | Driver completes ride | Driver | Status → `COMPLETED`, driver goes **ONLINE**, platform fee deducted |

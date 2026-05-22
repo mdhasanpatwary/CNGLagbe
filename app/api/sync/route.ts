@@ -47,6 +47,7 @@ export async function GET() {
           status: true,
           fare: true,
           createdAt: true,
+          arrivedAt: true,
           driver: {
             select: {
               id: true,
@@ -127,6 +128,7 @@ export async function GET() {
           totalFare: true,
           distance: true,
           polyline: true,
+          arrivedAt: true,
           user: {
             select: {
               id: true,

@@ -26,8 +26,8 @@ export async function POST(request: Request) {
        return NextResponse.json({ error: "Forbidden: Not your booking" }, { status: 403 });
     }
 
-    if (booking.status !== "ARRIVED" && booking.status !== "PICKED_UP") {
-      return NextResponse.json({ error: "Booking must be in progress (ARRIVED/PICKED_UP) to complete" }, { status: 400 });
+    if (booking.status !== "PICKED_UP") {
+      return NextResponse.json({ error: "Booking must be in progress (PICKED_UP) to complete" }, { status: 400 });
     }
 
     const result = await prisma.$transaction(async (tx) => {

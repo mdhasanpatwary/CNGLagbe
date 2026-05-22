@@ -225,9 +225,6 @@ export default function DriverHistoryPage() {
 
   // Debounce search query changes
   useEffect(() => {
-    if (searchQuery.trim()) {
-      setIsSearching(true);
-    }
     const handler = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
       setIsSearching(false);
@@ -368,8 +365,14 @@ export default function DriverHistoryPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => {
+                  const val = e.target.value;
                   setPage(1);
-                  setSearchQuery(e.target.value);
+                  setSearchQuery(val);
+                  if (val.trim()) {
+                    setIsSearching(true);
+                  } else {
+                    setIsSearching(false);
+                  }
                 }}
                 placeholder={t("search_placeholder")}
                 className="block w-full pl-9 pr-10 py-2.5 border border-slate-200 rounded-2xl bg-white text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all shadow-sm"
@@ -380,16 +383,18 @@ export default function DriverHistoryPage() {
                 </div>
               )}
               {!isSearching && searchQuery && (
-                <button
+                <AppButton
+                  variant="ghost"
                   type="button"
                   onClick={() => {
                     setPage(1);
                     setSearchQuery("");
+                    setIsSearching(false);
                   }}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-slate-600 text-slate-400 transition-colors"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-slate-600 text-slate-400 transition-colors !p-0 !h-auto !bg-transparent hover:!bg-transparent active:scale-100 focus:ring-0 focus:ring-offset-0"
                 >
                   <X className="h-4 w-4" />
-                </button>
+                </AppButton>
               )}
             </div>
 

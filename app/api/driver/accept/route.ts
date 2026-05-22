@@ -24,7 +24,7 @@ export async function POST(request: Request) {
         await tx.$queryRaw`SELECT id FROM "Driver" WHERE id = ${driverId} FOR UPDATE`;
 
         const activeBooking = await tx.booking.findFirst({
-          where: { driverId, status: "ACCEPTED" }
+          where: { driverId, status: { in: ["ACCEPTED", "ARRIVED", "PICKED_UP"] } }
         });
         if (activeBooking) {
           throw new Error("Driver already has an active booking");

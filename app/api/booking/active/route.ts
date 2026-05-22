@@ -41,6 +41,7 @@ export async function GET() {
         status: true,
         fare: true,
         createdAt: true,
+        arrivedAt: true,
         driver: {
           select: {
             id: true,
