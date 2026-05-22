@@ -688,6 +688,14 @@ export const TEXT = {
     en: "Configure how long the system searches for a driver before timing out the passenger's request.",
     bn: "ড্রাইভার খুঁজে পেতে সিস্টেমটি কতক্ষণ চেষ্টা করবে তা নির্ধারণ করুন।"
   },
+  per_km_rate_title: {
+    en: "Per Kilometer CNG Rate (BDT)",
+    bn: "প্রতি কিলোমিটার সিএনজি ভাড়া (টাকা)"
+  },
+  per_km_rate_desc: {
+    en: "Configure the base fare rate per kilometer used to calculate the passenger's CNG fare.",
+    bn: "যাত্রীর সিএনজি ভাড়া হিসাব করার জন্য প্রতি কিলোমিটারে ভাড়া বা রেট নির্ধারণ করুন।"
+  },
 } as const;
 
 
