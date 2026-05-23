@@ -216,6 +216,8 @@ export const TEXT = {
   reject: { en: "Reject", bn: "বাতিল" },
   accept: { en: "Accept", bn: "অ্যাকসেপ্ট" },
   incoming: { en: "New Bookings", bn: "নতুন বুকিং" },
+  mute: { en: "Mute", bn: "মিউট" },
+  unmute: { en: "Unmute", bn: "আনমিউট" },
   finding: { en: "Finding...", bn: "খোঁজা হচ্ছে..." },
   driver_signup: { en: "Join as Driver", bn: "ড্রাইভার হিসেবে যোগ দিন" },
   signup_btn: { en: "Sign Up", bn: "যোগ দিন" },

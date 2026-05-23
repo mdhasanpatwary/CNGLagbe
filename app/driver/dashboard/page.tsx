@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Power, MapPin, Navigation, Info, ExternalLink, CheckCircle2, XCircle, Banknote, Clock, AlertTriangle, Phone, Star, TrendingUp, Award, History, ChevronRight } from "lucide-react";
+import { Power, MapPin, Navigation, Info, ExternalLink, CheckCircle2, XCircle, Banknote, Clock, AlertTriangle, Phone, Star, TrendingUp, Award, History, ChevronRight, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
 import { AppButton } from "@/components/ui/AppButton";
 import { Card, CardContent } from "@/components/ui/card";
@@ -87,6 +87,12 @@ export default function DriverHomePage() {
   const sendLocationUpdateRef = useRef<((location: DriverLocationPoint, reason: PendingLocationUpdate["reason"]) => Promise<void>) | null>(null);
   
   const audioIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const isMutedRef = useRef(isMuted);
+
+  useEffect(() => {
+    isMutedRef.current = isMuted;
+  }, [isMuted]);
 
   const clearAudioInterval = useCallback(() => {
     if (audioIntervalRef.current) {
@@ -554,6 +560,8 @@ export default function DriverHomePage() {
     // Only reset timer and play sound if it's a NEW request
     if (activeReqId !== lastActiveReqId.current) {
       lastActiveReqId.current = activeReqId;
+      setIsMuted(false);
+      isMutedRef.current = false;
       
       // Calculate how much time is actually left based on createdAt
       // This is better than a hardcoded value to keep sync with backend
@@ -566,6 +574,7 @@ export default function DriverHomePage() {
       setTimeLeft(initialTimeLeft);
 
       const playAlertTone = () => {
+        if (isMutedRef.current) return;
         try {
           const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
           if (!AudioCtx) return;
@@ -1182,16 +1191,38 @@ export default function DriverHomePage() {
                     <span className="w-3.5 h-3.5 bg-primary rounded-full animate-pulse shadow-[0_0_12px_rgba(22,163,74,0.6)] relative" />
                     <h3 className="text-xs font-black uppercase tracking-widest ml-1">{t("incoming")}</h3>
                   </div>
-                  <Badge 
-                    className={`font-black flex gap-1.5 px-3 py-1.5 rounded-full border transition-all duration-300 ${
-                      isUrgent 
-                        ? "bg-red-500/10 text-red-400 border-red-500/20 animate-pulse hover:bg-red-500/20" 
-                        : "bg-slate-800/80 text-emerald-400 border-emerald-500/20 hover:bg-slate-800"
-                    }`}
-                  >
-                    <Clock size={14} className={isUrgent ? "animate-pulse" : ""} /> 
-                    <span>{timeLeft}s</span>
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setIsMuted(!isMuted)}
+                      className={`font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all duration-300 ${
+                        isMuted
+                          ? "bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20"
+                          : "bg-slate-800/80 text-slate-300 border-slate-700/50 hover:bg-slate-700 hover:text-white"
+                      }`}
+                    >
+                      {isMuted ? (
+                        <>
+                          <VolumeX size={14} className="animate-pulse" />
+                          <span>{t("unmute")}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Volume2 size={14} />
+                          <span>{t("mute")}</span>
+                        </>
+                      )}
+                    </button>
+                    <Badge 
+                      className={`font-black flex gap-1.5 px-3 py-1.5 rounded-full border transition-all duration-300 ${
+                        isUrgent 
+                          ? "bg-red-500/10 text-red-400 border-red-500/20 animate-pulse hover:bg-red-500/20" 
+                          : "bg-slate-800/80 text-emerald-400 border-emerald-500/20 hover:bg-slate-800"
+                      }`}
+                    >
+                      <Clock size={14} className={isUrgent ? "animate-pulse" : ""} /> 
+                      <span>{timeLeft}s</span>
+                    </Badge>
+                  </div>
                 </div>
                 
                 <CardContent className="p-5 flex-1 overflow-y-auto space-y-4">
@@ -1228,7 +1259,7 @@ export default function DriverHomePage() {
                     <a 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${req.pickupLat},${req.pickupLng}&travelmode=driving`}
+                      href={`https://www.google.com/maps/dir/?api=1&origin=${req.pickupLat},${req.pickupLng}&destination=${req.destLat},${req.destLng}&travelmode=driving`}
                       className="absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 text-blue-600 text-[10px] font-black uppercase bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-full hover:bg-white hover:scale-105 transition-all shadow-lg border border-slate-200/80"
                     >
                       <Navigation size={12} /> {t("nav_google_maps")}
