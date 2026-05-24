@@ -14,11 +14,11 @@ model User {
   id           String    @id @default(cuid())
   name         String
   phone        String    @unique
-  passwordHash String?
   createdAt    DateTime  @default(now())
   role         String    @default("USER")
   birthday     DateTime?
   photoUrl     String?
+  passwordHash String?
   bookings     Booking[]
 }
 
@@ -38,10 +38,6 @@ model Driver {
   photoUrl        String
   vehicleType     String?
   isSuspended     Boolean            @default(false)
-  averageRating   Float              @default(0)
-  ratingCount     Int                @default(0)
-  totalIncome     Float              @default(0)
-  totalRides      Int                @default(0)
   updatedAt       DateTime           @updatedAt
   birthday        DateTime?
   address         String?
@@ -50,8 +46,13 @@ model Driver {
   licenseFrontUrl String
   nidBackUrl      String
   nidFrontUrl     String
+  averageRating   Float              @default(0)
+  totalIncome     Float              @default(0)
+  totalRides      Int                @default(0)
+  ratingCount     Int                @default(0)
   bookings        Booking[]
   rejections      BookingRejection[]
+  pushToken       DriverPushToken?
   wallet          DriverWallet?
 
   @@index([isOnline])
@@ -61,40 +62,40 @@ model Driver {
 
 /// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model Booking {
-  id             String             @id @default(cuid())
-  userId         String?
-  driverId       String?
-  pickupLat      Float
-  pickupLng      Float
-  destLat        Float
-  destLng        Float
-  pickupAddress  String?
-  destAddress    String?
-  distance       Float
-  fare           Float
-  baseFare       Float              @default(0)
-  platformFee    Float              @default(0)
-  totalFare      Float              @default(0)
-  status         String             @default("PENDING")
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
-  acceptedAt     DateTime?
-  arrivedAt      DateTime?
-  startedAt      DateTime?
-  cancelReason   String?
-  cancelledAt    DateTime?
-  cancelledBy    String?
-  completedAt    DateTime?
-  polyline       String?
-  mapSnapshotUrl String?
-  rating         Int?
-  feedback       String?
-  driver         Driver?            @relation(fields: [driverId], references: [id])
-  user           User?              @relation(fields: [userId], references: [id])
-  isSuspicious   Boolean            @default(false)
-  offlineFeedback String?
-  rejections     BookingRejection[]
-  issueReports   IssueReport[]
+  id                String             @id @default(cuid())
+  userId            String?
+  driverId          String?
+  pickupLat         Float
+  pickupLng         Float
+  destLat           Float
+  destLng           Float
+  pickupAddress     String?
+  destAddress       String?
+  distance          Float
+  fare              Float
+  status            String             @default("PENDING")
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  acceptedAt        DateTime?
+  cancelReason      String?
+  cancelledAt       DateTime?
+  cancelledBy       String?
+  completedAt       DateTime?
+  polyline          String?
+  mapSnapshotUrl    String?
+  feedback          String?
+  rating            Int?
+  isSuspicious      Boolean            @default(false)
+  offlineFeedback   String?
+  startedAt         DateTime?
+  baseFare          Float              @default(0)
+  platformFee       Float              @default(0)
+  totalFare         Float              @default(0)
+  arrivedAt         DateTime?
+  driver            Driver?            @relation(fields: [driverId], references: [id])
+  user              User?              @relation(fields: [userId], references: [id])
+  rejections        BookingRejection[]
+  issueReports      IssueReport[]
   walletTransaction WalletTransaction?
 
   @@index([status, createdAt])
@@ -110,7 +111,7 @@ model Booking {
 model DriverWallet {
   id           String              @id @default(cuid())
   driverId     String              @unique
-  balance      Float               @default(0) // Platform fee debt (negative means owing)
+  balance      Float               @default(0)
   updatedAt    DateTime            @updatedAt
   driver       Driver              @relation(fields: [driverId], references: [id])
   transactions WalletTransaction[]
@@ -119,13 +120,13 @@ model DriverWallet {
 model WalletTransaction {
   id        String       @id @default(cuid())
   walletId  String
-  amount    Float        // Negative for fees, positive for payments
-  type      String       // 'BOOKING_FEE', 'PAYMENT', 'ADJUSTMENT'
+  amount    Float
+  type      String
   bookingId String?      @unique
   details   String?
   createdAt DateTime     @default(now())
-  wallet    DriverWallet @relation(fields: [walletId], references: [id])
   booking   Booking?     @relation(fields: [bookingId], references: [id])
+  wallet    DriverWallet @relation(fields: [walletId], references: [id])
 
   @@index([walletId])
 }
@@ -137,9 +138,9 @@ model IssueReport {
   reason         String
   details        String?
   status         String    @default("OPEN")
+  createdAt      DateTime  @default(now())
   resolutionNote String?
   resolvedAt     DateTime?
-  createdAt      DateTime  @default(now())
   booking        Booking   @relation(fields: [bookingId], references: [id])
 
   @@index([status])
@@ -215,4 +216,13 @@ model SystemSetting {
   value     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model DriverPushToken {
+  id        String   @id @default(cuid())
+  driverId  String   @unique
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  driver    Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
 }

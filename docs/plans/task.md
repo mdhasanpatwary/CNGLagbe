@@ -1,10 +1,25 @@
-# Task Progress Tracker (Mute Alert Sound Feature)
+# Task Progress Tracker (Driver Background Notifications)
 
 | Task ID | Description | Status | Completed At |
 |:---|:---|:---|:---|
-| 1 | Add Localization Translation Keys | done | 2026-05-24 |
-| 2 | Implement Mute State and Synchronization Ref in Driver Dashboard | done | 2026-05-24 |
-| 3 | Intercept Audio Generation in alert loop | done | 2026-05-24 |
-| 4 | Integrate Premium Mute Toggle Button in Modal Header | done | 2026-05-24 |
-| 5 | Manual Verification and Compilation | done | 2026-05-24 |
+| 1 | Install Firebase & Firebase Admin SDK Dependencies | done | 2026-05-24 |
+| 2 | Update Database Schema and Run Migration | done | 2026-05-24 |
+| 3 | Create Server-Side API for FCM Token Upsert / Delete | done | 2026-05-24 |
+| 4 | Initialize Firebase Client Config & Permission Flow | done | 2026-05-24 |
+| 5 | Integrate Token Registration with toggleOnline on Driver Dashboard | done | 2026-05-24 |
+| 6 | Create Service Worker for Background Notification Handling | done | 2026-05-24 |
+| 7 | Implement Server-Side Broadcast on Booking Creation | done | 2026-05-24 |
+| 8 | Add Translation Keys for Notification UI | done | 2026-05-24 |
+| 9 | Verification & Testing | done | 2026-05-24 |
+| 10 | Replace native button in app/driver/dashboard/page.tsx with AppButton | done | 2026-05-24 |
+| 11 | Create Implementation Plan for Jest & Testing Dependencies Removal | done | 2026-05-24 |
+| 12 | Remove Jest and testing library devDependencies from package.json | done | 2026-05-24 |
+| 13 | Remove Jest scripts from package.json | done | 2026-05-24 |
+| 14 | Delete testing configuration files (jest.config.js, jest.setup.js) | done | 2026-05-24 |
+| 15 | Delete tests/ directory | done | 2026-05-24 |
+| 16 | Run clean install and verify build, lint, and type check | done | 2026-05-24 |
+| 17 | Remove Service Worker Scope Restriction | done | 2026-05-24 |
+| 18 | Implement Foreground Message Handler (`onMessage`) | done | 2026-05-24 |
+| 19 | Verification & Testing for Push Notifications | done | 2026-05-24 |
+
 

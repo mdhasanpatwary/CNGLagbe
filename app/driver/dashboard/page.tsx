@@ -9,6 +9,7 @@ import { AppButton } from "@/components/ui/AppButton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useLang } from "@/hooks/useLang";
+import { useDriverFCM } from "@/hooks/useDriverFCM";
 import { supabase } from "@/lib/supabase";
 import { CancelModal } from "@/components/CancelModal";
 import { Header } from "@/components/layout/Header";
@@ -63,6 +64,7 @@ const geoOptions: PositionOptions = {
 export default function DriverHomePage() {
   const router = useRouter();
   const { t } = useLang();
+  const { registerToken, deregisterToken } = useDriverFCM();
   const [isOnlineOverride, setIsOnlineOverride] = useState<boolean | null>(null);
   const [rejectedIds, setRejectedIds] = useState<Set<string>>(new Set());
   const [timeLeft, setTimeLeft] = useState(300);
@@ -103,6 +105,7 @@ export default function DriverHomePage() {
   
   const logout = async () => {
     try {
+      await deregisterToken();
       await apiFetch("/api/auth/logout", { method: "POST" });
       router.push("/");
     } catch (e) {
@@ -115,6 +118,18 @@ export default function DriverHomePage() {
     try {
       const nextStatus = !isOnline;
       setIsOnlineOverride(nextStatus);
+
+      if (nextStatus) {
+        // Driver is attempting to go Online
+        const registrationSuccess = await registerToken();
+        if (!registrationSuccess) {
+          toast.warning(t("notification_permission_denied_warning") || "বিজ্ঞপ্তি অনুমতি দিন যাতে ব্যাকগ্রাউন্ডেও রাইড রিকুয়েস্ট পান!");
+        }
+      } else {
+        // Driver is going Offline
+        await deregisterToken();
+      }
+
       const res = await apiFetch("/api/driver/status", {
         method: "POST",
         headers: {
@@ -1192,9 +1207,10 @@ export default function DriverHomePage() {
                     <h3 className="text-xs font-black uppercase tracking-widest ml-1">{t("incoming")}</h3>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button
+                    <AppButton
+                      variant="ghost"
                       onClick={() => setIsMuted(!isMuted)}
-                      className={`font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all duration-300 ${
+                      className={`h-auto font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all duration-300 active:scale-100 ${
                         isMuted
                           ? "bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20"
                           : "bg-slate-800/80 text-slate-300 border-slate-700/50 hover:bg-slate-700 hover:text-white"
@@ -1211,7 +1227,7 @@ export default function DriverHomePage() {
                           <span>{t("mute")}</span>
                         </>
                       )}
-                    </button>
+                    </AppButton>
                     <Badge 
                       className={`font-black flex gap-1.5 px-3 py-1.5 rounded-full border transition-all duration-300 ${
                         isUrgent 

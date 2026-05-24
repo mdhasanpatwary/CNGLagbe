@@ -208,8 +208,8 @@ export async function GET() {
             AND b."pickupLng" BETWEEN ${minLng} AND ${maxLng}
             AND br."id" IS NULL
             AND ST_DWithin(
-              ST_MakePoint(b."pickupLng", b."pickupLat"),
-              ST_MakePoint(${driver.currentLng}::float8, ${driver.currentLat}::float8),
+              ST_MakePoint(b."pickupLng", b."pickupLat")::geography,
+              ST_MakePoint(${driver.currentLng}::float8, ${driver.currentLat}::float8)::geography,
               ${searchRadiusKm * 1000}::float8
             )
           ORDER BY "calculatedDistance" ASC

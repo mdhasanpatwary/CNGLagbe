@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { calculateDistance, calculateFare } from "@/lib/fare";
 import { withIdempotency } from "@/lib/idempotency";
+import { getBoundingBox } from "@/lib/radius";
+import { messagingAdmin } from "@/lib/firebase-admin";
 
 export async function POST(request: Request) {
   try {
@@ -76,17 +78,18 @@ export async function POST(request: Request) {
             Number(destLng)
           );
 
-      // Fetch dynamic platform fee setting
-      const feeSetting = await prisma.systemSetting.findUnique({
-        where: { key: "PLATFORM_FEE_PERCENTAGE" },
-      });
-      const platformFeePercentage = feeSetting ? Number(feeSetting.value) : 5;
+      // Fetch dynamic platform, rate, radius, and balance settings in parallel
+      const [feeSetting, rateSetting, searchRadiusSetting, minBalanceSetting] = await Promise.all([
+        prisma.systemSetting.findUnique({ where: { key: "PLATFORM_FEE_PERCENTAGE" } }),
+        prisma.systemSetting.findUnique({ where: { key: "CNG_PER_KM_RATE" } }),
+        prisma.systemSetting.findUnique({ where: { key: "DRIVER_SEARCH_RADIUS_KM" } }),
+        prisma.systemSetting.findUnique({ where: { key: "MIN_DRIVER_BALANCE" } }),
+      ]);
 
-      // Fetch dynamic CNG per KM rate setting
-      const rateSetting = await prisma.systemSetting.findUnique({
-        where: { key: "CNG_PER_KM_RATE" },
-      });
+      const platformFeePercentage = feeSetting ? Number(feeSetting.value) : 5;
       const perKmRate = rateSetting ? Number(rateSetting.value) : 20;
+      const searchRadiusKm = searchRadiusSetting ? parseFloat(searchRadiusSetting.value) : 3;
+      const minBalance = minBalanceSetting ? parseFloat(minBalanceSetting.value) : -100;
 
       const fare = calculateFare(distance, platformFeePercentage, perKmRate);
 
@@ -125,6 +128,68 @@ export async function POST(request: Request) {
           },
         });
       });
+
+      // Send push notifications to nearby drivers
+      // MUST be awaited — Next.js kills un-awaited promises after the response is sent
+      try {
+        const { minLat, maxLat, minLng, maxLng } = getBoundingBox(
+          Number(pickupLat),
+          Number(pickupLng),
+          searchRadiusKm
+        );
+
+        const nearbyDrivers = await prisma.$queryRaw<{ id: string; pushToken: string }[]>`
+          SELECT 
+            d."id",
+            pt."token" AS "pushToken"
+          FROM "Driver" d
+          LEFT JOIN "DriverWallet" w ON w."driverId" = d."id"
+          LEFT JOIN "DriverPushToken" pt ON pt."driverId" = d."id"
+          WHERE 
+            d."isOnline" = true
+            AND d."isApproved" = true
+            AND d."isSuspended" = false
+            AND d."currentLat" BETWEEN ${minLat} AND ${maxLat}
+            AND d."currentLng" BETWEEN ${minLng} AND ${maxLng}
+            AND pt."token" IS NOT NULL
+            AND (w."balance" IS NULL OR w."balance" > ${minBalance})
+            AND NOT EXISTS (
+              SELECT 1 FROM "Booking" b 
+              WHERE b."driverId" = d."id" 
+                AND b."status" IN ('ACCEPTED', 'ARRIVED', 'PICKED_UP')
+            )
+            AND ST_DWithin(
+              ST_MakePoint(d."currentLng", d."currentLat")::geography,
+              ST_MakePoint(${Number(pickupLng)}::float8, ${Number(pickupLat)}::float8)::geography,
+              ${searchRadiusKm * 1000}::float8
+            )
+        `;
+
+        const pushTokens = nearbyDrivers
+          .map((d) => d.pushToken)
+          .filter((t): t is string => !!t);
+
+        if (pushTokens.length > 0 && messagingAdmin) {
+          const message = {
+            notification: {
+              title: "নতুন রাইড রিকুয়েস্ট! 🛺",
+              body: `ভাড়া: ${fare.totalFare} BDT | দূরত্ব: ${distance.toFixed(1)} KM`,
+            },
+            data: {
+              bookingId: result.id,
+              pickupAddress: pickupAddress || "",
+              destAddress: destAddress || "",
+            },
+            tokens: pushTokens,
+          };
+
+          const response = await messagingAdmin.sendEachForMulticast(message);
+          console.log(`Push notifications sent: ${response.successCount} success, ${response.failureCount} failed`);
+        }
+      } catch (broadcastError) {
+        // Silent catch — never block the booking response for a push failure
+        console.error("FCM broadcast error:", broadcastError);
+      }
 
       return NextResponse.json({ booking: result });
     });

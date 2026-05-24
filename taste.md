@@ -55,6 +55,8 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 ## ⚙️ Performance & Database
 - **Direct Database Connections:** Prisma is configured with a dedicated direct URL and proper connection pooling to eliminate database performance overhead.
 - **Parallel Queries:** API routes (like `/api/sync`) execute independent queries in parallel to optimize response times.
+- **PostGIS Proximity Queries (Geography Casting):** In PostGIS geospatial queries (e.g., in `/api/booking/create` and `/api/sync`), coordinates stored as geometry degrees (`pickupLat`, `pickupLng`, `currentLat`, `currentLng`) MUST be cast to `::geography` (e.g., `ST_MakePoint(...)::geography`) before being passed to `ST_DWithin`. Otherwise, `ST_DWithin` calculates the radius in degrees instead of meters (e.g., treating a 3000m radius as 3000 degrees, matching every point globally). (Added 2026-05-24)
+
 
 ## 🏠 Landing Page (Homepage)
 - **Full Landing Page Architecture:** The homepage (`app/page.tsx`) is now a full-length, conversion-optimized landing page — NOT a minimal centered card. It must contain all 11 sections: Hero, Local Trust, How It Works, Why Choose Us, Popular Routes, Features, Service Area, Testimonials, FAQ, Final CTA, and Footer.
@@ -215,3 +217,8 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **All Active-Booking APIs Updated:** `/api/sync`, `/api/booking/active`, and the user booking page now include `ARRIVED` in all "active booking" status filters so the user and driver never lose their booking context when the status transitions to `ARRIVED`.
 - **Arrived Phase Navigation:** Added destination navigation support to the `ARRIVED` phase of the booking lifecycle on the driver dashboard. The UI now displays a neat inline navigation link under the destination address, and a prominent full-width **Navigate** action button next to the Call User and Start/Complete action buttons. Clicking either of these launches external Google Maps directions from the driver's current position to the destination (`https://www.google.com/maps/dir/?api=1&destination=destLat,destLng`).
 
+## 🔔 Push Notifications (FCM)
+- **No Mock Token Fallback (2026-05-25):** The `useDriverFCM` hook must NEVER generate fallback mock tokens (`mock_fcm_token_dev_...`). Mock tokens stored in `DriverPushToken` cause Firebase Admin SDK to reject all push broadcasts with `messaging/invalid-argument`. If `getToken()` fails, the hook returns `false` and logs actionable diagnostics — the driver proceeds without push capability.
+- **15-Second Token Timeout (2026-05-25):** FCM `getToken()` requires service worker installation, VAPID key exchange, push subscription creation, and token registration with Google servers. This routinely takes 5–15 seconds on first registration. The timeout is set to 15 seconds (previously 3 seconds which always lost the race).
+- **Server-Side Token Validation (2026-05-25):** The `/api/driver/push-token` POST handler rejects tokens that start with `mock_` or are shorter than 50 characters. Real FCM registration tokens are 100+ character base64-like strings. This prevents invalid tokens from ever being stored in the database.
+- **VAPID Key Verification:** The `NEXT_PUBLIC_FIREBASE_VAPID_KEY` in `.env.local` must match the Web Push certificate in the Firebase Console (Project Settings → Cloud Messaging → Web Push Certificates). A mismatch causes silent `getToken()` failures.

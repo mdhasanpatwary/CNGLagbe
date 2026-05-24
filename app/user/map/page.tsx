@@ -47,7 +47,7 @@ const ROUTE_WEIGHT = 5;
 
 export default function UserMapPage() {
   const router = useRouter();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const mapRef = useRef<HTMLDivElement>(null);
   // Holds the route polyline drawn on the map
   const fallbackPolylineRef = useRef<google.maps.Polyline | null>(null);
@@ -550,6 +550,20 @@ export default function UserMapPage() {
           }),
         });
         const data = await res.json();
+
+        // --- Rate Limit (Cancel Cooldown) ---
+        if (res.status === 429 && data.error === "CANCEL_COOLDOWN") {
+          const mins = data.remainingMinutes ?? 30;
+          const msg = lang === "bn"
+            ? `বারবার বাতিলের কারণে সীমা শেষ। ${mins} মিনিট পরে আবার চেষ্টা করুন।`
+            : `Too many cancellations. Try again in ${mins} minute${mins > 1 ? "s" : ""}.`;
+          toast.error(msg, { duration: 6000 });
+          setIsRequesting(false);
+          setIsSearching(false);
+          return;
+        }
+        // ------------------------------------
+
         if (data.booking?.id) {
           clearBookingSession();
           router.push(`/user/booking/${data.booking.id}`);
@@ -558,10 +572,6 @@ export default function UserMapPage() {
         }
       } catch (e: unknown) {
         console.error(e);
-        const err = e as { message?: string; status?: number };
-        if (err.message?.includes("CANCEL_COOLDOWN") || err.status === 429) {
-          toast.error(t("cancel_user_limit"));
-        }
         setIsRequesting(false);
         setIsSearching(false);
       }

@@ -698,6 +698,10 @@ export const TEXT = {
     en: "Configure the base fare rate per kilometer used to calculate the passenger's CNG fare.",
     bn: "যাত্রীর সিএনজি ভাড়া হিসাব করার জন্য প্রতি কিলোমিটারে ভাড়া বা রেট নির্ধারণ করুন।"
   },
+  notification_permission_denied_warning: {
+    en: "Enable notifications to receive background ride alerts when the tab is closed!",
+    bn: "বিজ্ঞপ্তি অনুমতি দিন যাতে ব্যাকগ্রাউন্ডেও রাইড রিকুয়েস্ট পান!"
+  },
 } as const;
 
 
