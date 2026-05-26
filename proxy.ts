@@ -27,8 +27,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Production Restriction: Only allow landing page and API
-  if (process.env.NODE_ENV === "production" && path !== "/" && !path.startsWith("/api")) {
+  // 2. Production Restriction: Only allow landing page and API on the main production domain
+  if (useConfiguredDomains && path !== "/" && !path.startsWith("/api")) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
