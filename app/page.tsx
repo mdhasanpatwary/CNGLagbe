@@ -26,6 +26,7 @@ import { FaqItem } from "@/components/landing/FaqItem";
 import { AppDownloadCard } from "@/components/landing/AppDownloadCard";
 import { toast } from "sonner";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { isConfiguredProductionHost } from "@/lib/subdomain";
 
 /**
  * Landing Page Component
@@ -125,7 +126,10 @@ export default function LandingPage() {
   };
 
   const handleBookNow = useCallback(() => {
-    if (process.env.NODE_ENV === "production") {
+    const isProd = process.env.NODE_ENV === "production";
+    const isConfiguredHost = typeof window !== "undefined" && isConfiguredProductionHost(window.location.host);
+
+    if (isProd && isConfiguredHost) {
       toast.info(t("booking_coming_soon"), {
         description: t("access_restricted"),
         duration: 5000,
