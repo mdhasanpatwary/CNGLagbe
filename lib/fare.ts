@@ -2,7 +2,11 @@
 const R = 6371;
 
 /**
- * Calculates distance in kilometers between two lat/lng points using the Haversine formula
+ * Calculates distance in kilometers between two lat/lng points using the Haversine formula.
+ * 
+ * WARNING: This computes the straight-line (as the crow flies) distance. 
+ * DO NOT use this for passenger fare calculation as it significantly underestimates 
+ * curved road driving distance. Use it ONLY for online driver proximity and searching in PostGIS.
  */
 export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const dLat = deg2rad(lat2 - lat1);

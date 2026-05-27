@@ -21,5 +21,7 @@
 | 17 | Remove Service Worker Scope Restriction | done | 2026-05-24 |
 | 18 | Implement Foreground Message Handler (`onMessage`) | done | 2026-05-24 |
 | 19 | Verification & Testing for Push Notifications | done | 2026-05-24 |
-
-
+| 20 | Haversine Formula Warning Comment in lib/fare.ts | done | 2026-05-27 |
+| 21 | Mandatory Distance Validation in /api/fare/calculate | done | 2026-05-27 |
+| 22 | Mandatory Distance Validation in /api/booking/create | done | 2026-05-27 |
+| 23 | Manual API Verification & Testing | done | 2026-05-27 |

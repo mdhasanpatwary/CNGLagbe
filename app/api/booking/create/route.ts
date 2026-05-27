@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
-import { calculateDistance, calculateFare } from "@/lib/fare";
+import { calculateFare } from "@/lib/fare";
 import { withIdempotency } from "@/lib/idempotency";
 import { getBoundingBox } from "@/lib/radius";
 import { messagingAdmin } from "@/lib/firebase-admin";
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
       const { 
         pickupLat, pickupLng, destLat, destLng, 
         pickupAddress, destAddress, polyline,
-        distance: manualDistance
+        distance
       } = body;
 
       // --- Cancellation Rate Limit Check ---
@@ -67,16 +67,15 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Missing coordinates" }, { status: 400 });
       }
 
-      // Calculate distance and fare strictly server-side based on immutable coordinates
-      // or use manualDistance if provided (and valid)
-      const distance = manualDistance !== undefined
-        ? Number(manualDistance)
-        : calculateDistance(
-            Number(pickupLat),
-            Number(pickupLng),
-            Number(destLat),
-            Number(destLng)
-          );
+      if (distance === undefined || distance === null || typeof distance !== "number" || distance <= 0) {
+        return NextResponse.json(
+          { 
+            error: "Missing road distance", 
+            message: "Actual driving road distance is required for fare calculation." 
+          }, 
+          { status: 400 }
+        );
+      }
 
       // Fetch dynamic platform, rate, radius, and balance settings in parallel
       const [feeSetting, rateSetting, searchRadiusSetting, minBalanceSetting] = await Promise.all([

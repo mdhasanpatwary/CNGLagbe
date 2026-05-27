@@ -1,25 +1,25 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { calculateDistance, calculateFare } from "@/lib/fare";
+import { calculateFare } from "@/lib/fare";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { pickupLat, pickupLng, destLat, destLng, distance: manualDistance } = body;
+    const { pickupLat, pickupLng, destLat, destLng, distance } = body;
 
     if (!pickupLat || !pickupLng || !destLat || !destLng) {
       return NextResponse.json({ error: "Missing coordinates" }, { status: 400 });
     }
 
-    // Use manually provided distance (e.g. from Google Maps route) or fallback to Haversine
-    const distance = manualDistance !== undefined 
-      ? Number(manualDistance)
-      : calculateDistance(
-          Number(pickupLat),
-          Number(pickupLng),
-          Number(destLat),
-          Number(destLng)
-        );
+    if (distance === undefined || distance === null || typeof distance !== "number" || distance <= 0) {
+      return NextResponse.json(
+        { 
+          error: "Missing road distance", 
+          message: "Actual driving road distance is required for fare calculation." 
+        }, 
+        { status: 400 }
+      );
+    }
 
     // Fetch dynamic platform fee setting
     const feeSetting = await prisma.systemSetting.findUnique({
