@@ -221,10 +221,10 @@ export default function LandingPage() {
             {/* Directional Gradient Overlays */}
             <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/70 to-transparent z-10" />
             <div className="absolute inset-0 bg-gradient-to-b from-slate-950/50 via-transparent to-slate-950/80 z-10" />
-            
+
             {/* Animated Glows */}
             <motion.div
-              animate={{ 
+              animate={{
                 scale: [1, 1.2, 1],
                 opacity: [0.4, 0.6, 0.4]
               }}
@@ -251,7 +251,7 @@ export default function LandingPage() {
                   <stop offset="1" stopColor="var(--primary)" stopOpacity="0" />
                 </linearGradient>
               </defs>
-              
+
               {/* Moving dot along path */}
               <motion.circle
                 r="6"
@@ -259,8 +259,8 @@ export default function LandingPage() {
                 initial={{ offsetDistance: "0%" }}
                 animate={{ offsetDistance: "100%" }}
                 transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                style={{ 
-                  offsetPath: "path('M-50,900 C150,850 200,600 400,550 C600,500 650,300 850,250 C1050,200 1100,0 1200,-50')" 
+                style={{
+                  offsetPath: "path('M-50,900 C150,850 200,600 400,550 C600,500 650,300 850,250 C1050,200 1100,0 1200,-50')"
                 }}
               />
             </svg>
@@ -268,7 +268,7 @@ export default function LandingPage() {
 
           <div className="container relative z-20 mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center h-full pt-28 pb-12 lg:pt-32 lg:pb-24">
             <div className="max-w-[1400px] w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center">
-              
+
               {/* Left Side: Content (55%) */}
               <div className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left">
                 {/* Eyebrow Badge */}
@@ -288,16 +288,16 @@ export default function LandingPage() {
                 </motion.div>
 
                 {/* Main Heading with Word Reveal */}
-                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.1] lg:leading-[0.95] mb-6 sm:mb-8 font-bn tracking-tight">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.3] lg:leading-[1.2] mb-6 sm:mb-8 font-bn tracking-tight">
                   {t("hero_headline").split(" ").map((word, i) => (
                     <span key={i} className="inline-block overflow-hidden mr-[0.15em] last:mr-0 pb-2 px-[0.1em]">
                       <motion.span
                         initial={{ y: "100%" }}
                         animate={{ y: 0 }}
-                        transition={{ 
-                          duration: 0.8, 
-                          delay: 0.2 + (i * 0.1), 
-                          ease: [0.16, 1, 0.3, 1] 
+                        transition={{
+                          duration: 0.8,
+                          delay: 0.2 + (i * 0.1),
+                          ease: [0.16, 1, 0.3, 1]
                         }}
                         className={cn(
                           "inline-block drop-shadow-[0_8px_24px_rgba(0,0,0,0.5)]",
@@ -407,7 +407,7 @@ export default function LandingPage() {
                 >
                   {/* Subtle edge highlight */}
                   <div className="absolute inset-0 rounded-[40px] bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-50 pointer-events-none" />
-                  
+
                   <div className="relative z-10">
                     <div className="flex items-center justify-between mb-6 sm:mb-8">
                       <h2 className="text-xl sm:text-2xl font-black text-white font-bn tracking-tight">
@@ -424,7 +424,7 @@ export default function LandingPage() {
                         { icon: <MapPin className="w-6 h-6" />, label: t("hero_pickup_ph") },
                         { icon: <Navigation className="w-6 h-6" />, label: t("hero_dest_ph") }
                       ].map((field, idx) => (
-                        <motion.div 
+                        <motion.div
                           key={idx}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -434,7 +434,7 @@ export default function LandingPage() {
                           <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary group-hover/field:scale-110 transition-transform">
                             {field.icon}
                           </div>
-                          <div 
+                          <div
                             onClick={handleBookNow}
                             className="w-full bg-white/5 border border-white/5 rounded-[16px] py-3.5 sm:py-4 pl-12 pr-4 text-white/40 text-sm sm:text-base font-bn cursor-pointer group-hover/field:border-primary/30 group-hover/field:bg-white/10 transition-all flex items-center justify-between"
                           >
@@ -448,7 +448,7 @@ export default function LandingPage() {
                     </div>
 
                     {/* Fare Display */}
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 1.4 }}
@@ -488,14 +488,14 @@ export default function LandingPage() {
           </div>
 
           {/* Scroll Hint */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 2, duration: 1 }}
             className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-3"
           >
             <div className="w-6 h-10 rounded-full border-2 border-white/20 p-1 flex justify-center">
-              <motion.div 
+              <motion.div
                 animate={{ y: [0, 16, 0] }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                 className="w-1 h-2 bg-primary rounded-full shadow-[0_0_10px_rgba(22,163,74,0.5)]"
@@ -828,9 +828,9 @@ export default function LandingPage() {
       {/* ── STICKY BOTTOM CTA (mobile) ────────────────────────────────────── */}
       <motion.div
         initial={{ y: 100, opacity: 0 }}
-        animate={{ 
-          y: showStickyCTA ? 0 : 100, 
-          opacity: showStickyCTA ? 1 : 0 
+        animate={{
+          y: showStickyCTA ? 0 : 100,
+          opacity: showStickyCTA ? 1 : 0
         }}
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 p-3 sm:p-4 bg-white/90 backdrop-blur-xl border-t border-slate-100 shadow-2xl safe-area-bottom"
@@ -855,7 +855,7 @@ export default function LandingPage() {
                 <div className="w-11 h-11 rounded-full bg-slate-950 flex items-center justify-center shrink-0 shadow-lg group-hover/sticky:scale-110 transition-transform duration-500">
                   <Navigation className="w-5 h-5 text-white fill-white" />
                 </div>
-                
+
                 <div className="flex flex-col items-start leading-tight">
                   <div className="flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-white/60" />
@@ -863,7 +863,7 @@ export default function LandingPage() {
                   </div>
                   <span className="text-xl font-black text-white leading-none tracking-tight">{t("app_name")}</span>
                 </div>
-                
+
                 {/* Arrow indicator */}
                 <div className="ml-auto w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
                   <Zap className="w-4 h-4 text-white fill-white" />
