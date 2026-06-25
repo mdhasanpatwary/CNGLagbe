@@ -68,6 +68,15 @@ export function getDriverUrl(path: string = "/", isDev: boolean = process.env.NO
  */
 export function isConfiguredProductionHost(host: string | null): boolean {
   const hostname = getHostname(host);
+  if (hostname.endsWith(".vercel.app")) {
+    return false;
+  }
+  
+  // Explicitly treat cnglagbe.com and its subdomains as configured production domains
+  if (hostname === "cnglagbe.com" || hostname === "driver.cnglagbe.com" || hostname.endsWith(".cnglagbe.com")) {
+    return true;
+  }
+  
   const userDomain = getHostname(USER_DOMAIN);
   const driverDomain = getHostname(DRIVER_DOMAIN);
 

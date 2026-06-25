@@ -27,14 +27,15 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Production Restriction: Only allow landing page and API on the main production domain
-  if (useConfiguredDomains && path !== "/" && !path.startsWith("/api")) {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
-
-  // 3. Auth checking
+  // 2. Auth checking
   const token = request.cookies.get("auth_token")?.value;
   const user = token ? await verifyToken(token) : null;
+
+  // 3. Production Restriction: Only allow landing page and API on the main production domain (user app)
+  const isMainProdDomain = useConfiguredDomains && appRole === "user";
+  if (isMainProdDomain && path !== "/" && !path.startsWith("/api")) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
 
   // 4. API Routes Protection
   if (path.startsWith("/api")) {
@@ -91,6 +92,11 @@ export async function proxy(request: NextRequest) {
     if (user && user.role === "DRIVER") {
       // If they were trying to access a driver path specifically
       if (path.startsWith("/driver")) {
+        // If not using configured domains (e.g. vercel.app), the driver app lives on the /driver path
+        if (!useConfiguredDomains) {
+          // Allow them to stay on the path without redirecting
+          return NextResponse.next();
+        }
         const cleanPath = path.replace("/driver", "") || "/";
         return NextResponse.redirect(driverUrl(cleanPath));
       }

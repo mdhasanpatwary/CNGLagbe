@@ -9,6 +9,7 @@ import { AppButton } from "@/components/ui/AppButton";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLang } from "@/hooks/useLang";
 import { cn } from "@/lib/utils";
+import { isConfiguredProductionHost } from "@/lib/subdomain";
 
 import { User as UserType } from "@/lib/types/user";
 
@@ -42,6 +43,15 @@ export function Header({
   const { t } = useLang();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [isConfiguredHost, setIsConfiguredHost] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsConfiguredHost(isConfiguredProductionHost(window.location.host));
+    }
+  }, []);
+
+  const showLogin = !isConfiguredHost || process.env.NODE_ENV !== "production";
 
   const isDriver = role === "driver";
   const isAdmin = role === "admin";
@@ -296,7 +306,7 @@ export function Header({
               )}
             </AnimatePresence>
           </div>
-        ) : role === "landing" && process.env.NODE_ENV !== "production" && (
+        ) : role === "landing" && showLogin && (
           <Link href="/login">
             <AppButton
               variant="outline"
