@@ -2,17 +2,16 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import {
   MapPin, Navigation, ShieldCheck,
   Star, Check, Zap, BadgeCheck,
-  Banknote, Users, Route
+  Banknote, Users, Route, Phone, X, Copy
 } from "lucide-react";
 import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
 import { cn } from "@/lib/utils";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
-import { motion, useScroll, useSpring } from "framer-motion";
+import { motion, useScroll, useSpring, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/layout/Header";
 import { User } from "@/lib/types/user";
 import { Section } from "@/components/ui/Section";
@@ -21,13 +20,17 @@ import { Magnetic } from "@/components/ui/Magnetic";
 import { Tilt } from "@/components/ui/Tilt";
 import { FeatureCard } from "@/components/landing/FeatureCard";
 import { ReviewCard } from "@/components/landing/ReviewCard";
-import { RouteCard } from "@/components/landing/RouteCard";
 import { FaqItem } from "@/components/landing/FaqItem";
 import { AppDownloadCard } from "@/components/landing/AppDownloadCard";
 import { toast } from "sonner";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { isConfiguredProductionHost } from "@/lib/subdomain";
 import { WaitlistSection } from "@/components/landing/WaitlistSection";
+
+const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={props.className} {...props}>
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+  </svg>
+);
 
 /**
  * Landing Page Component
@@ -50,9 +53,9 @@ import { WaitlistSection } from "@/components/landing/WaitlistSection";
  * @returns Landing page with all sections and sticky mobile CTA
  */
 export default function LandingPage() {
-  const router = useRouter();
   const { t } = useLang();
   const [user, setUser] = useState<User | null>(null);
+  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
 
   // Scroll Progress
@@ -120,6 +123,18 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsCallModalOpen(false);
+      }
+    };
+    if (isCallModalOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isCallModalOpen]);
+
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
@@ -127,25 +142,8 @@ export default function LandingPage() {
   };
 
   const handleBookNow = useCallback(() => {
-    const isProd = process.env.NODE_ENV === "production";
-    const isConfiguredHost = typeof window !== "undefined" && isConfiguredProductionHost(window.location.host);
-
-    if (isProd && isConfiguredHost) {
-      toast.info(t("booking_coming_soon"), {
-        description: t("access_restricted"),
-        duration: 5000,
-      });
-      return;
-    }
-
-    if (!user) {
-      router.push("/login?redirect=/user/map");
-    } else if (user.role === "DRIVER") {
-      router.push("/dashboard");
-    } else {
-      router.push("/user/map");
-    }
-  }, [user, router, t]);
+    setIsCallModalOpen(true);
+  }, []);
 
   const reviews = [
     { name: t("review_1_name"), location: t("review_1_loc"), text: t("review_1_text") },
@@ -399,7 +397,7 @@ export default function LandingPage() {
                 </motion.div>
               </div>
 
-              {/* Right Side: Booking Widget Card (45%) */}
+              {/* Right Side: Call Booking Widget Card (45%) */}
               <div className="lg:col-span-5 flex items-center justify-center lg:justify-end">
                 <motion.div
                   initial={{ opacity: 0, x: 60, rotateY: -10 }}
@@ -411,77 +409,63 @@ export default function LandingPage() {
                   <div className="absolute inset-0 rounded-[40px] bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-50 pointer-events-none" />
 
                   <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-6 sm:mb-8">
-                      <h2 className="text-xl sm:text-2xl font-black text-white font-bn tracking-tight">
-                        {t("book_your_cng")}
-                      </h2>
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
-                        <Route className="w-5 h-5 sm:w-6 sm:h-6" />
+                    {/* Pulsing Phone Icon */}
+                    <div className="flex justify-center mb-6">
+                      <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center text-primary relative">
+                        <span className="animate-ping absolute inline-flex h-10 w-10 rounded-full bg-primary/30 opacity-75"></span>
+                        <Phone className="w-8 h-8 relative z-10" />
                       </div>
                     </div>
 
-                    {/* Simulation Form */}
-                    <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
-                      {[
-                        { icon: <MapPin className="w-6 h-6" />, label: t("hero_pickup_ph") },
-                        { icon: <Navigation className="w-6 h-6" />, label: t("hero_dest_ph") }
-                      ].map((field, idx) => (
-                        <motion.div
-                          key={idx}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 1 + (idx * 0.15) }}
-                          className="relative group/field"
-                        >
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary group-hover/field:scale-110 transition-transform">
-                            {field.icon}
-                          </div>
-                          <div
-                            onClick={handleBookNow}
-                            className="w-full bg-white/5 border border-white/5 rounded-[16px] py-3.5 sm:py-4 pl-12 pr-4 text-white/40 text-sm sm:text-base font-bn cursor-pointer group-hover/field:border-primary/30 group-hover/field:bg-white/10 transition-all flex items-center justify-between"
-                          >
-                            <span>{field.label}</span>
-                            <span className="text-[10px] sm:text-[11px] font-medium tracking-wider bg-white/10 px-2 py-0.5 rounded-full text-white/20 group-hover/field:text-primary/40 transition-colors">
-                              {t("demo_tag")}
-                            </span>
-                          </div>
-                        </motion.div>
-                      ))}
+                    <div className="text-center mb-6">
+                      <h2 className="text-xl sm:text-2xl font-black text-white font-bn tracking-tight mb-2">
+                        {t("cng_hotline")}
+                      </h2>
+                      <p className="text-xs text-white/60 font-bn font-normal leading-relaxed">
+                        {t("cng_hotline_sub")}
+                      </p>
                     </div>
 
-                    {/* Fare Display */}
+                    {/* Hotline Number Display Card */}
+                    <div className="bg-white/5 border border-white/5 rounded-[20px] p-5 mb-6 text-center select-all group-hover:border-primary/20 transition-all">
+                      <span className="text-white/40 text-[9px] uppercase tracking-[0.2em] font-black block mb-2">{t("footer_contact")}</span>
+                      <a href="tel:01783721411" className="text-3xl sm:text-4xl font-mono font-black text-primary hover:text-green-400 transition-colors tracking-wider block">
+                        01783721411
+                      </a>
+                    </div>
+
+                    {/* Big Call Button & Facebook Option */}
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 1.4 }}
-                      className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-[20px] mb-6 sm:mb-8"
+                      className="space-y-4"
                     >
-                      <div className="flex flex-col">
-                        <span className="text-white/40 text-[10px] uppercase tracking-[0.2em] font-black mb-1.5">{t("fixed_fare")}</span>
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-3xl font-black text-white leading-none">৳</span>
-                          <span className="text-4xl font-black text-white leading-none tracking-tight">---</span>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <div className="bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full border border-primary/10">
-                          {t("hero_no_surprise")}
-                        </div>
-                      </div>
-                    </motion.div>
+                      <a href="tel:01783721411" className="block w-full">
+                        <AppButton
+                          className="w-full h-16 rounded-[20px] bg-primary text-white font-black text-lg shadow-2xl hover:bg-success hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 flex items-center justify-center gap-3"
+                          leftIcon={<Phone className="w-6 h-6" />}
+                        >
+                          {t("find_cng_now")}
+                        </AppButton>
+                      </a>
 
-                    {/* Big Button */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 1.6 }}
-                    >
-                      <AppButton
-                        onClick={handleBookNow}
-                        className="w-full h-20 rounded-[20px] bg-primary text-white font-black text-xl shadow-2xl hover:bg-success hover:scale-[1.02] active:scale-[0.98] transition-all duration-500"
-                      >
-                        {t("find_cng_now")}
-                      </AppButton>
+                      {/* OR Divider */}
+                      <div className="flex items-center gap-3 my-2 opacity-50 justify-center">
+                        <div className="h-px bg-white/20 flex-1" />
+                        <span className="text-[10px] text-white uppercase tracking-[0.2em] font-black">{t("or_text")}</span>
+                        <div className="h-px bg-white/20 flex-1" />
+                      </div>
+
+                      {/* Message Facebook Button */}
+                      <a href="https://m.me/61588788704424" target="_blank" rel="noopener noreferrer" className="block w-full">
+                        <AppButton
+                          className="w-full h-16 rounded-[20px] bg-[#1877F2] hover:bg-[#166FE5] text-white font-black text-lg shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 flex items-center justify-center gap-3 border-0"
+                          leftIcon={<FacebookIcon className="w-5 h-5" />}
+                        >
+                          {t("msg_facebook")}
+                        </AppButton>
+                      </a>
                     </motion.div>
                   </div>
                 </motion.div>
@@ -639,23 +623,6 @@ export default function LandingPage() {
           </motion.div>
         </Section>
 
-        {/* ── 5. POPULAR ROUTES ────────────────────────────────────────────── */}
-        {/* Note: Gradient overlay is intentional per design spec for subtle visual enhancement */}
-        <Section id="popular-routes" variant="white" className="bg-gradient-to-b from-white via-primary/[0.02] to-slate-50/50">
-          <SectionHeading title={t("routes_title")} />
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-            className="flex flex-wrap justify-center gap-3 w-full"
-          >
-            <RouteCard from={t("route_1_from")} to={t("route_1_to")} onClick={handleBookNow} />
-            <RouteCard from={t("route_2_from")} to={t("route_2_to")} onClick={handleBookNow} />
-            <RouteCard from={t("route_3_from")} to={t("route_3_to")} onClick={handleBookNow} />
-            <RouteCard from={t("route_4_from")} to={t("route_4_to")} onClick={handleBookNow} />
-          </motion.div>
-        </Section>
 
         {/* ── 6. FEATURES ──────────────────────────────────────────────────── */}
         <Section id="features" variant="mesh">
@@ -878,6 +845,110 @@ export default function LandingPage() {
           </motion.div>
         </div>
       </motion.div>
+
+      {/* ── CALL BOOKING MODAL ───────────────────────────────────────────── */}
+      <AnimatePresence>
+        {isCallModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsCallModalOpen(false)}
+              className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
+            />
+
+            {/* Modal Content */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              className="relative w-full max-w-md bg-slate-900 border border-white/10 rounded-[32px] p-6 sm:p-8 shadow-2xl overflow-hidden z-10"
+            >
+              {/* Top decoration glow */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-primary/20 rounded-full blur-[40px] pointer-events-none" />
+
+              {/* Close Button */}
+              <AppButton
+                variant="ghost"
+                onClick={() => setIsCallModalOpen(false)}
+                className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-primary p-0 min-h-[auto]"
+              >
+                <X className="w-4 h-4" />
+                <span className="sr-only">{t("close_btn")}</span>
+              </AppButton>
+
+              <div className="relative z-10 text-center mt-4">
+                {/* Icon */}
+                <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center text-primary mx-auto mb-6 relative">
+                  <span className="animate-ping absolute inline-flex h-10 w-10 rounded-full bg-primary/30 opacity-75"></span>
+                  <Phone className="w-8 h-8 relative z-10" />
+                </div>
+
+                {/* Title & Desc */}
+                <h3 className="text-2xl font-black text-white font-bn tracking-tight mb-3">
+                  {t("booking_modal_title")}
+                </h3>
+                <p className="text-sm text-slate-300 font-bn leading-relaxed mb-6">
+                  {t("booking_modal_desc")}
+                </p>
+
+                {/* Phone Card */}
+                <div className="bg-white/5 border border-white/5 rounded-2xl p-4 mb-6 flex flex-col items-center justify-center group/modal-number">
+                  <span className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-black mb-1.5">{t("footer_contact")}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl sm:text-4xl font-mono font-black text-primary tracking-wider">
+                      01783721411
+                    </span>
+                    <AppButton
+                      variant="ghost"
+                      onClick={() => {
+                        navigator.clipboard.writeText("01783721411");
+                        toast.success(t("update_success"));
+                      }}
+                      className="p-2 rounded-xl bg-white/5 border border-white/5 text-white/60 hover:text-white hover:bg-white/10 transition-all active:scale-95 min-h-[auto]"
+                      title={t("copy") || "Copy"}
+                    >
+                      <Copy className="w-4 h-4" />
+                    </AppButton>
+                  </div>
+                </div>
+
+                {/* Call & Facebook Buttons */}
+                <div className="space-y-4">
+                  <a href="tel:01783721411" className="block w-full">
+                    <AppButton
+                      className="w-full h-16 rounded-2xl bg-primary text-white font-black text-lg shadow-xl hover:bg-success hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2"
+                      leftIcon={<Phone className="w-5 h-5" />}
+                    >
+                      {t("find_cng_now")}
+                    </AppButton>
+                  </a>
+
+                  {/* OR Divider */}
+                  <div className="flex items-center gap-3 my-2 opacity-50 justify-center">
+                    <div className="h-px bg-white/20 flex-1" />
+                    <span className="text-[10px] text-white uppercase tracking-[0.2em] font-black">{t("or_text")}</span>
+                    <div className="h-px bg-white/20 flex-1" />
+                  </div>
+
+                  {/* Message Facebook Button */}
+                  <a href="https://m.me/61588788704424" target="_blank" rel="noopener noreferrer" className="block w-full">
+                    <AppButton
+                      className="w-full h-16 rounded-2xl bg-[#1877F2] hover:bg-[#166FE5] text-white font-black text-lg shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 border-0"
+                      leftIcon={<FacebookIcon className="w-5 h-5" />}
+                    >
+                      {t("msg_facebook")}
+                    </AppButton>
+                  </a>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -32,3 +32,16 @@
 | 28 | Extend useAdminDashboard hook with waitlist state and fetching logic | done | 2026-06-28 |
 | 29 | Create WaitlistTab UI component in app/admin/components/tabs/WaitlistTab.tsx | done | 2026-06-28 |
 | 30 | Integrate WaitlistTab in app/admin/AdminDashboard.tsx | done | 2026-06-28 |
+| 31 | Update translation keys in `constants/text.ts` for Call Booking | done | 2026-06-28 |
+| 32 | Implement Call Booking Modal and Refactor Hero Card in `app/page.tsx` | done | 2026-06-28 |
+| 33 | Verification and final build test | done | 2026-06-28 |
+| 34 | Explore project context & start brainstorming for waitlist counts | done | 2026-06-28 |
+| 35 | Brainstorming - Ask clarifying questions and define approaches | done | 2026-06-28 |
+| 36 | Brainstorming - Write design doc | done | 2026-06-28 |
+| 37 | Brainstorming - Transition to implementation & create implementation plan | done | 2026-06-28 |
+| 38 | Implement server-side waitlist count logic in GET route | done | 2026-06-28 |
+| 39 | Update useAdminDashboard hook to fetch and store waitlist counts | done | 2026-06-28 |
+| 40 | Update constants/text.ts with bilingual keys | done | 2026-06-28 |
+| 41 | Update WaitlistTab UI component with stats cards | done | 2026-06-28 |
+| 42 | Verify implementation and build | done | 2026-06-28 |
+

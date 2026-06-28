@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { AppButton } from "@/components/ui/AppButton";
 import { TextKey } from "@/constants/text";
 import { WaitlistEntry } from "../../hooks/useAdminDashboard";
+import { StatsCard } from "../shared";
 
 interface WaitlistTabProps {
   t: (key: TextKey) => string;
@@ -16,7 +17,12 @@ interface WaitlistTabProps {
   setWaitlistFilter: (filter: string) => void;
   waitlistPage: number;
   setWaitlistPage: (page: number | ((prev: number) => number)) => void;
-  waitlistMeta: { total: number; totalPages: number };
+  waitlistMeta: {
+    total: number;
+    totalPages: number;
+    driverCount: number;
+    passengerCount: number;
+  };
 }
 
 export const WaitlistTab: React.FC<WaitlistTabProps> = ({
@@ -32,6 +38,31 @@ export const WaitlistTab: React.FC<WaitlistTabProps> = ({
 }) => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      {/* Stats Cards Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatsCard
+          title={t("waitlist_total_count")}
+          value={waitlistMeta.driverCount + waitlistMeta.passengerCount}
+          desc={t("waitlist") || "Waitlist"}
+          icon={Users}
+          variant="primary"
+        />
+        <StatsCard
+          title={t("waitlist_driver_count")}
+          value={waitlistMeta.driverCount}
+          desc={t("waitlist_role_driver")}
+          icon={UserCheck}
+          variant="amber"
+        />
+        <StatsCard
+          title={t("waitlist_passenger_count")}
+          value={waitlistMeta.passengerCount}
+          desc={t("waitlist_role_passenger")}
+          icon={Users}
+          variant="blue"
+        />
+      </div>
+
       <Card className="border-none shadow-xl rounded-[2rem] overflow-hidden">
         <CardHeader className="bg-slate-50 border-b border-slate-100 p-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

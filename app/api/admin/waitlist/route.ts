@@ -28,7 +28,7 @@ export async function GET(request: Request) {
       whereClause.role = role;
     }
 
-    const [waitlist, total] = await Promise.all([
+    const [waitlist, total, driverCount, passengerCount] = await Promise.all([
       prisma.waitlist.findMany({
         where: whereClause,
         skip,
@@ -36,6 +36,8 @@ export async function GET(request: Request) {
         orderBy: { createdAt: "desc" }
       }),
       prisma.waitlist.count({ where: whereClause }),
+      prisma.waitlist.count({ where: { role: "DRIVER" } }),
+      prisma.waitlist.count({ where: { role: "USER" } }),
     ]);
 
     return NextResponse.json({
@@ -44,7 +46,9 @@ export async function GET(request: Request) {
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit)
+        totalPages: Math.ceil(total / limit),
+        driverCount,
+        passengerCount,
       }
     });
   } catch (error) {

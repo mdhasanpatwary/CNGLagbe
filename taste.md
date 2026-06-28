@@ -92,6 +92,8 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
   - **Contrast Standards (Accessibility):** Subtext/subheadings use `text-slate-600` (on light) or `text-slate-300` (on dark) to ensure WCAG compliance. Never use `slate-400` or `slate-500` for body text on light backgrounds.
   - **Trust Badges:** Always use high-contrast combinations (e.g., `bg-white text-slate-700` with a border) when rendering badges over light sections.
   - **Footer Layout:** Footer must always match the `max-w-[1200px]` width of other sections for visual alignment.
+  - **Phone-Call Booking Transition (2026-06-28):** Direct booking from the website is disabled. Clicking the booking buttons (Hero CTA, Mobile Sticky bottom CTA, Popular Route Pills, and Final CTA) triggers a Call Booking Modal showing hotline `01783721411` with a clipboard copy option and a direct click-to-call link. The mockup form in the Hero section is replaced with a static card displaying the hotline. "How It Works" and FAQs are aligned to explain call booking.
+
 
 - **Adaptive Branding (Logo):** To ensure WCAG-compliant contrast across themes, the app uses multiple logo variants: `/logo_white.png` for dark and primary backgrounds (Admin/Landing Footer), and `/logo_dark_text.png` for light backgrounds (Driver/General). All variants maintain a consistent 4:1 aspect ratio and transparent backgrounds.
 - **SolaimanLipi Font for Bengali:** The platform explicitly uses the **SolaimanLipi** font for all Bengali text (`--font-bangla`). This font provides superior readability and aesthetics for Bengali ligatures compared to standard Google Fonts like Hind Siliguri. It is self-hosted in `public/fonts/SolaimanLipi.woff`.
@@ -192,6 +194,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Shared Component Directory:** Common UI elements (badges, cards, modals) are centralized in `app/admin/components/shared/` and exposed via an `index.ts` file to ensure consistent styling and simplified imports across the dashboard.
 - **TabNavigation Standardization:** The dashboard uses a unified `TabNavigation` component to handle tab switching, ensuring a consistent UI and reducing redundant navigation logic in the main entry point.
 - **Type Safety Over `any`:** All component props in the admin dashboard use explicit TypeScript interfaces. The use of the `any` type is strictly avoided to ensure production stability.
+- **Waitlist Stats Cards (2026-06-28):** The Waitlist tab features three premium metrics cards at the top showing the total waitlist counts (Total Waiting, Waiting Drivers, and Waiting Passengers). The counts are fetched in parallel on the server (`/api/admin/waitlist`) using `Promise.all` and integrated into the existing `waitlistMeta` state to prevent unnecessary network calls or database overhead.
 
 ## ⚠️ Passenger Complaint & Issue Report System
 - **Authorized Reporter:** Only passengers are permitted to submit complaints against drivers. Driving partners cannot file reports against passengers to maintain the lightweight dispatch positioning.

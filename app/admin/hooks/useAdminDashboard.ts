@@ -77,7 +77,12 @@ export function useAdminDashboard() {
   const [debouncedWaitlistSearch, setDebouncedWaitlistSearch] = useState("");
   const [waitlistFilter, setWaitlistFilter] = useState("ALL");
   const [waitlistPage, setWaitlistPage] = useState(1);
-  const [waitlistMeta, setWaitlistMeta] = useState({ total: 0, totalPages: 0 });
+  const [waitlistMeta, setWaitlistMeta] = useState({
+    total: 0,
+    totalPages: 0,
+    driverCount: 0,
+    passengerCount: 0
+  });
 
   // Bookings/Logs Search State
   const [bookingSearch, setBookingSearch] = useState("");
@@ -184,7 +189,9 @@ export function useAdminDashboard() {
       setWaitlist(Array.isArray(data?.waitlist) ? data.waitlist : []);
       setWaitlistMeta({
         total: data?.meta?.total || 0,
-        totalPages: data?.meta?.totalPages || 0
+        totalPages: data?.meta?.totalPages || 0,
+        driverCount: data?.meta?.driverCount || 0,
+        passengerCount: data?.meta?.passengerCount || 0
       });
     } catch (e) {
       console.error("Fetch waitlist error:", e);

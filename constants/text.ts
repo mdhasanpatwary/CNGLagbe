@@ -140,6 +140,7 @@ export const TEXT = {
     bn: "এখনই"
   },
   id: { en: "ID", bn: "আইডি" },
+  role: { en: "Role", bn: "রোল" },
   status: { en: "Status", bn: "স্ট্যাটাস" },
   distance: { en: "Distance", bn: "দূরত্ব" },
   total_fare: { en: "Price", bn: "দাম" },
@@ -281,6 +282,7 @@ export const TEXT = {
   report_submitted_success: { en: "Your complaint has been submitted successfully.", bn: "আপনার অভিযোগটি সফলভাবে জমা দেওয়া হয়েছে।" },
   reported: { en: "Reported", bn: "অভিযোগ দায়ের করা হয়েছে" },
   close_btn: { en: "Close", bn: "বন্ধ করুন" },
+  copy: { en: "Copy", bn: "কপি করুন" },
   view_details: { en: "Details", bn: "বিস্তারিত" },
   pickup_point: { en: "From", bn: "কোথা থেকে" },
   drop_point: { en: "To", bn: "কোথায়" },
@@ -405,7 +407,7 @@ export const TEXT = {
   /* ── Landing Page: Hero ─────────────────────────────────────────────── */
   hero_headline: { en: "On-time CNG Booking Service in Chhagalnaiya", bn: "ছাগলনাইয়ায় অন-টাইম সিএনজি বুকিং সার্ভিস" },
   hero_sub: { en: "Fast Pickup • Fixed Fare • Reliable Local Dispatch Network", bn: "দ্রুত পিকআপ • ফিক্সড ভাড়া • নির্ভরযোগ্য লোকাল নেটওয়ার্ক" },
-  hero_book_now: { en: "Book Now", bn: "এখনই বুক করুন" },
+  hero_book_now: { en: "Call to Book", bn: "ফোনে বুক করুন" },
   hero_pickup_ph: { en: "Your pickup location", bn: "কোথায় আছেন?" },
   hero_dest_ph: { en: "Your destination", bn: "কোথায় যাবেন?" },
   hero_badge_drivers: { en: "100+ Local Drivers", bn: "১০০+ লোকাল ড্রাইভার" },
@@ -414,7 +416,16 @@ export const TEXT = {
   hero_cash_note: { en: "Cash payment", bn: "ক্যাশে পেমেন্ট" },
   hero_available_badge: { en: "Now Available in Chhagalnaiya", bn: "ছাগলনাইয়ায় চালু হয়েছে" },
   book_your_cng: { en: "Book Your CNG", bn: "সিএনজি বুক করুন" },
-  find_cng_now: { en: "Find CNG Now", bn: "সিএনজি খুঁজুন" },
+  find_cng_now: { en: "Call Now", bn: "কল করুন" },
+
+  /* ── Landing Page: Call Booking Modal & Widget ───────────────────────── */
+  booking_modal_title: { en: "Book via Hotline / Facebook", bn: "হটলাইন বা ফেসবুকে বুক করুন" },
+  booking_modal_desc: { en: "Website booking is temporarily unavailable. Please call our hotline or message our Facebook page to book your CNG on time. Our mobile app is coming soon!", bn: "ওয়েবসাইট থেকে সরাসরি বুকিং সাময়িকভাবে বন্ধ আছে। অন-টাইমে সিএনজি পেতে আমাদের হটলাইনে কল করুন অথবা ফেসবুক পেজে মেসেজ দিন। খুব শীঘ্রই আমাদের অ্যাপ আসছে!" },
+  hotline_number: { en: "01783721411", bn: "০১৭৮৩৭২১৪১১" },
+  cng_hotline: { en: "CNG Booking Hotline", bn: "সিএনজি বুকিং হটলাইন" },
+  cng_hotline_sub: { en: "Call or message our Facebook page to book your CNG instantly. Drivers are ready.", bn: "হটলাইনে কল করে অথবা ফেসবুক পেজে মেসেজ দিয়ে সাথে সাথে সিএনজি বুক করুন। ড্রাইভার প্রস্তুত আছে।" },
+  msg_facebook: { en: "Message Facebook Page", bn: "ফেসবুকে মেসেজ দিন" },
+  or_text: { en: "or", bn: "অথবা" },
 
   /* ── Landing Page: Local Trust ───────────────────────────────────────── */
   trust_title: { en: "For the People of Chhagalnaiya", bn: "ছাগলনাইয়া মানুষের জন্য" },
@@ -425,12 +436,12 @@ export const TEXT = {
 
   /* ── Landing Page: How It Works ─────────────────────────────────────── */
   how_title: { en: "How It Works", bn: "কিভাবে ব্যবহার করবেন" },
-  how_step1: { en: "Enter Location", bn: "লোকেশন দিন" },
-  how_step1_sub: { en: "Set pickup & drop", bn: "পিকআপ ও গন্তব্য দিন" },
-  how_step2: { en: "See Fare", bn: "ভাড়া দেখুন" },
-  how_step2_sub: { en: "Fixed price shown", bn: "সাথে সাথে ভাড়া দেখুন" },
-  how_step3: { en: "Confirm Booking", bn: "বুকিং কনফার্ম করুন" },
-  how_step3_sub: { en: "Driver comes to you", bn: "ড্রাইভার চলে আসবে" },
+  how_step1: { en: "Call Hotline", bn: "হটলাইনে কল করুন" },
+  how_step1_sub: { en: "Call 01783721411 to book", bn: "০১৭৮৩৭২১৪১১ নম্বরে কল করুন" },
+  how_step2: { en: "Tell Location", bn: "লোকেশন বলুন" },
+  how_step2_sub: { en: "Tell pickup and destination", bn: "আপনার পিকআপ ও গন্তব্য বলুন" },
+  how_step3: { en: "Driver Arrives", bn: "সিএনজি চলে আসবে" },
+  how_step3_sub: { en: "Driver reaches on time", bn: "ড্রাইভার সঠিক সময়ে পৌঁছে যাবে" },
 
   step_1: { en: "1", bn: "১" },
   step_2: { en: "2", bn: "২" },
@@ -478,8 +489,8 @@ export const TEXT = {
 
   /* ── Landing Page: Service Area ─────────────────────────────────────── */
   area_title: { en: "Our Service Area", bn: "আমাদের সার্ভিস এলাকা" },
-  area_desc: { en: "CNG booking service across Chhagalnaiya Upazila — local CNG service for all routes.", bn: "ছাগলনাইয়া উপজেলা জুড়ে CNG বুকিং সার্ভিস — সব রুটে লোকাল সিএনজি সার্ভিস।" },
-  area_coverage: { en: "Full Chhagalnaiya coverage", bn: "পুরো ছাগলনাইয়া কভার" },
+  area_desc: { en: "Full service is active in Boktarhat & Shubopur, and partial service is available across all other areas of Chhagalnaiya Upazila.", bn: "বক্তারহাট ও শুভপুরে আমাদের ফুল সার্ভিস চালু আছে এবং পুরো ছাগলনাইয়ায় আংশিক সার্ভিস চালু আছে।" },
+  area_coverage: { en: "Boktarhat & Shubopur (Full) • Chhagalnaiya (Partial)", bn: "বক্তারহাট ও শুভপুর (ফুল) • ছাগলনাইয়া (আংশিক)" },
 
   /* ── Landing Page: Testimonials ─────────────────────────────────────── */
   reviews_title: { en: "What People Say", bn: "সবাই কী বলছেন" },
@@ -496,11 +507,11 @@ export const TEXT = {
   /* ── Landing Page: FAQ ───────────────────────────────────────────────── */
   faq_title: { en: "Common Questions", bn: "সাধারণ প্রশ্ন" },
   faq_q1: { en: "How do I book a CNG?", bn: "কিভাবে CNG বুক করবো?" },
-  faq_a1: { en: "Open the app, enter your pickup and destination, see the fare, and confirm. A nearby driver will come to you.", bn: "অ্যাপ খুলুন, পিকআপ ও গন্তব্য দিন, ভাড়া দেখুন এবং কনফার্ম করুন। কাছের ড্রাইভার চলে আসবে।" },
+  faq_a1: { en: "Simply call our booking hotline at 01783721411. Tell our operator your pickup and drop-off points, and we will send a driver on time. Our mobile app is coming soon!", bn: "সরাসরি আমাদের বুকিং হটলাইন ০১৭৮৩৭২১৪১১ নম্বরে কল করুন। অপারেটরকে আপনার পিকআপ ও গন্তব্য বলুন, আমরা সঠিক সময়ে ড্রাইভার পাঠিয়ে দেব। আমাদের মোবাইল অ্যাপ খুব শীঘ্রই আসছে!" },
   faq_q2: { en: "Is the fare fixed?", bn: "ভাড়া কি ফিক্সড?" },
-  faq_a2: { en: "Yes, the fare is fixed and shown before you book. No bargaining needed.", bn: "হ্যাঁ, ভাড়া বুকিংয়ের আগেই জানানো হয়। দরাদরির দরকার নেই।" },
+  faq_a2: { en: "Yes, when you call to book, the operator will calculate the fixed fare based on our standard distance rate. No bargaining needed.", bn: "হ্যাঁ, কল করে বুক করার সময় অপারেটর দূরত্ব অনুযায়ী ফিক্সড ভাড়া জানিয়ে দেবেন। কোনো দরদাম করার প্রয়োজন নেই।" },
   faq_q3: { en: "How long to get a CNG?", bn: "কত সময় লাগে CNG পেতে?" },
-  faq_a3: { en: "Usually 3–7 minutes. With 100+ local drivers always active, you won't wait long.", bn: "সাধারণত ৩–৭ মিনিট। ১০০+ লোকাল ড্রাইভার সবসময় সক্রিয়, তাই বেশি অপেক্ষা নেই।" },
+  faq_a3: { en: "Usually 5-10 minutes. Once you confirm over the phone, our dispatcher immediately sends the nearest active local driver.", bn: "সাধারণত ৫–১০ মিনিট। ফোনে কনফার্ম করার সাথে সাথে আমাদের অপারেটর সবচেয়ে কাছে থাকা ড্রাইভারকে পাঠিয়ে দেন।" },
   faq_q4: { en: "Are drivers safe?", bn: "ড্রাইভার কি নিরাপদ?" },
   faq_a4: { en: "All drivers are verified with NID and license checks. Only approved locals can drive.", bn: "সব ড্রাইভার NID ও লাইসেন্স যাচাই করা। শুধু অনুমোদিত লোকাল ড্রাইভাররাই সার্ভিস দিতে পারেন।" },
   faq_q5: { en: "How do I pay?", bn: "পেমেন্ট কিভাবে করবো?" },
@@ -761,6 +772,18 @@ export const TEXT = {
   search_waitlist_placeholder: {
     en: "Search by name or phone...",
     bn: "নাম বা মোবাইল নম্বর দিয়ে খুঁজুন..."
+  },
+  waitlist_total_count: {
+    en: "Total Waiting",
+    bn: "মোট ওয়েটিং"
+  },
+  waitlist_driver_count: {
+    en: "Waiting Drivers",
+    bn: "অপেক্ষারত ড্রাইভার"
+  },
+  waitlist_passenger_count: {
+    en: "Waiting Passengers",
+    bn: "অপেক্ষারত যাত্রী"
   },
 } as const;
 
