@@ -47,7 +47,10 @@ export function Header({
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setIsConfiguredHost(isConfiguredProductionHost(window.location.host));
+      const host = window.location.host;
+      setTimeout(() => {
+        setIsConfiguredHost(isConfiguredProductionHost(host));
+      }, 0);
     }
   }, []);
 

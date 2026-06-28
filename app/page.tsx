@@ -27,6 +27,7 @@ import { AppDownloadCard } from "@/components/landing/AppDownloadCard";
 import { toast } from "sonner";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { isConfiguredProductionHost } from "@/lib/subdomain";
+import { WaitlistSection } from "@/components/landing/WaitlistSection";
 
 /**
  * Landing Page Component
@@ -215,6 +216,7 @@ export default function LandingPage() {
               src="/hero_bg.png"
               alt="Cinematic background showing a CNG auto-rickshaw on a road in Chhagalnaiya"
               fill
+              sizes="100vw"
               priority
               className="object-cover object-center scale-105 transition-transform duration-[20s] ease-out brightness-[0.6] grayscale-[0.1]"
             />
@@ -504,6 +506,9 @@ export default function LandingPage() {
             <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] font-sans ml-1">{t("explore") || "EXPLORE"}</span>
           </motion.div>
         </section>
+
+        {/* ── 1.5. WAITLIST ────────────────────────────────────────────────── */}
+        <WaitlistSection />
 
 
         {/* ── 2. LOCAL TRUST ───────────────────────────────────────────────── */}

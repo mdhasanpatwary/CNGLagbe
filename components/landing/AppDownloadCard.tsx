@@ -49,6 +49,7 @@ export function AppDownloadCard({ title, type, comingSoon }: AppDownloadCardProp
               src={type === "user" ? "/user_app_icon.png" : "/driver_app_icon.png"}
               alt={title}
               fill
+              sizes="80px"
               className="object-cover"
             />
           </div>
@@ -69,6 +70,7 @@ export function AppDownloadCard({ title, type, comingSoon }: AppDownloadCardProp
                 src="/app_qr.png" 
                 alt="App Download QR Code" 
                 fill 
+                sizes="112px"
                 className="object-cover opacity-80 group-hover/qr:opacity-100 transition-opacity duration-300"
               />
               <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover/qr:opacity-100 transition-opacity" />

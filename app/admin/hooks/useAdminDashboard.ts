@@ -5,7 +5,15 @@ import { User as UserType } from "@/lib/types/user";
 import { Booking } from "@/lib/types/booking";
 import { AdminStats, PendingDriver, IssueReportType } from "@/lib/types/admin";
 
-export type AdminTab = "overview" | "drivers" | "users" | "logs" | "bazars" | "settings" | "issues";
+export type AdminTab = "overview" | "drivers" | "users" | "logs" | "bazars" | "settings" | "issues" | "waitlist";
+
+export interface WaitlistEntry {
+  id: string;
+  name: string | null;
+  phone: string;
+  role: string;
+  createdAt: string;
+}
 
 interface SystemSetting {
   id: string;
@@ -63,6 +71,14 @@ export function useAdminDashboard() {
   const [userPage, setUserPage] = useState(1);
   const [userMeta, setUserMeta] = useState({ total: 0, totalPages: 0 });
 
+  // Waitlist State
+  const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
+  const [waitlistSearch, setWaitlistSearch] = useState("");
+  const [debouncedWaitlistSearch, setDebouncedWaitlistSearch] = useState("");
+  const [waitlistFilter, setWaitlistFilter] = useState("ALL");
+  const [waitlistPage, setWaitlistPage] = useState(1);
+  const [waitlistMeta, setWaitlistMeta] = useState({ total: 0, totalPages: 0 });
+
   // Bookings/Logs Search State
   const [bookingSearch, setBookingSearch] = useState("");
   const [debouncedBookingSearch, setDebouncedBookingSearch] = useState("");
@@ -95,6 +111,13 @@ export function useAdminDashboard() {
     }, 1000);
     return () => clearTimeout(handler);
   }, [bookingSearch]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedWaitlistSearch(waitlistSearch);
+    }, 1000);
+    return () => clearTimeout(handler);
+  }, [waitlistSearch]);
 
   const [driverSort, setDriverSort] = useState("latest");
   const [driverPage, setDriverPage] = useState(1);
@@ -151,6 +174,20 @@ export function useAdminDashboard() {
       });
     } catch (e) {
       console.error("Fetch users error:", e);
+    }
+  };
+
+  const fetchWaitlist = async (page = 1, search = "", role = "ALL") => {
+    try {
+      const res = await fetch(`/api/admin/waitlist?page=${page}&limit=20&search=${search}&role=${role}`);
+      const data = await res.json();
+      setWaitlist(Array.isArray(data?.waitlist) ? data.waitlist : []);
+      setWaitlistMeta({
+        total: data?.meta?.total || 0,
+        totalPages: data?.meta?.totalPages || 0
+      });
+    } catch (e) {
+      console.error("Fetch waitlist error:", e);
     }
   };
 
@@ -224,6 +261,10 @@ export function useAdminDashboard() {
         fetchUsers(userPage, debouncedUserSearch, userFilter);
       }
 
+      if (activeTab === "waitlist") {
+        fetchWaitlist(waitlistPage, debouncedWaitlistSearch, waitlistFilter);
+      }
+
       if (Array.isArray(dataBazars)) {
         setBazars(dataBazars);
       } else if (dataBazars && typeof dataBazars === 'object' && 'bazars' in dataBazars && Array.isArray((dataBazars as Record<string, unknown>).bazars)) {
@@ -267,6 +308,13 @@ export function useAdminDashboard() {
       fetchUsers(userPage, debouncedUserSearch, userFilter);
     }
   }, [userPage, debouncedUserSearch, userFilter, activeTab]);
+
+  useEffect(() => {
+    if (activeTab === "waitlist") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchWaitlist(waitlistPage, debouncedWaitlistSearch, waitlistFilter);
+    }
+  }, [waitlistPage, debouncedWaitlistSearch, waitlistFilter, activeTab]);
 
   const fetchBookings = async (page = 1, status = "ALL", search = "") => {
     setIsRefreshing(true);
@@ -544,5 +592,15 @@ export function useAdminDashboard() {
     userMeta,
     bookingSearch,
     setBookingSearch,
+    waitlist,
+    setWaitlist,
+    waitlistSearch,
+    setWaitlistSearch,
+    waitlistFilter,
+    setWaitlistFilter,
+    waitlistPage,
+    setWaitlistPage,
+    waitlistMeta,
+    fetchWaitlist,
   };
 }

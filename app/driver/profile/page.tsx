@@ -176,6 +176,7 @@ export default function DriverProfilePage() {
                         src={photoUrl}
                         alt="Profile"
                         fill
+                        sizes="128px"
                         className="object-cover object-top transition-all duration-500"
                       />
                     ) : (

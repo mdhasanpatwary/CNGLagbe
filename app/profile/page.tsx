@@ -171,6 +171,7 @@ export default function ProfilePage() {
                         src={photoUrl}
                         alt="Profile"
                         fill
+                        sizes="128px"
                         className="object-cover object-top transition-all duration-500"
                       />
                     ) : (

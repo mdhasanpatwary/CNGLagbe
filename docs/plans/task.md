@@ -25,3 +25,10 @@
 | 21 | Mandatory Distance Validation in /api/fare/calculate | done | 2026-05-27 |
 | 22 | Mandatory Distance Validation in /api/booking/create | done | 2026-05-27 |
 | 23 | Manual API Verification & Testing | done | 2026-05-27 |
+| 24 | Fix Next.js Image component sizes warnings in frontend components | done | 2026-06-28 |
+| 25 | Run Prisma migration to sync Waitlist table to the database | in_progress | 2026-06-28 |
+| 26 | Add translation keys for Waitlist Tab to constants/text.ts | done | 2026-06-28 |
+| 27 | Create app/api/admin/waitlist/route.ts API endpoint | done | 2026-06-28 |
+| 28 | Extend useAdminDashboard hook with waitlist state and fetching logic | done | 2026-06-28 |
+| 29 | Create WaitlistTab UI component in app/admin/components/tabs/WaitlistTab.tsx | done | 2026-06-28 |
+| 30 | Integrate WaitlistTab in app/admin/AdminDashboard.tsx | done | 2026-06-28 |

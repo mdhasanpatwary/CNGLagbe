@@ -531,11 +531,11 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                   </div>
                   <div className="absolute top-1/2 -translate-y-1/2 animate-drive-approach z-10">
                     <div className="relative w-12 h-12">
-
                       <Image 
                         src="/cng_side.png" 
                         alt="CNG" 
                         fill 
+                        sizes="48px"
                         className="object-contain -scale-x-100" 
                         priority 
                       />
@@ -731,7 +731,7 @@ export default function UserBookingPage({ params }: { params: Promise<{ id: stri
                     <div className="relative z-10 flex flex-col items-center translate-y-2">
 
                       <div className="relative w-[50px] h-[50px]">
-                        <Image src="/cng_side.png" alt="CNG" fill className="object-contain -scale-x-100" priority />
+                        <Image src="/cng_side.png" alt="CNG" fill sizes="50px" className="object-contain -scale-x-100" priority />
                       </div>
                     </div>
                     <div className="absolute bottom-5 left-1/2 -translate-x-6 flex gap-1.5 opacity-20">

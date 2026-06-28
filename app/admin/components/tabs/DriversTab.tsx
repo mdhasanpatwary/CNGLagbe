@@ -144,6 +144,7 @@ export const DriversTab: React.FC<DriversTabProps> = ({
                             src={driver.photoUrl}
                             alt={driver.name}
                             fill
+                            sizes="48px"
                             className="object-cover rounded-2xl object-top transition-all duration-500"
                           />
                         ) : (

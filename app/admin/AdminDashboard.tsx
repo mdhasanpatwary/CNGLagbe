@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Users, UserCheck, Store, History, AlertOctagon } from "lucide-react";
+import { Activity, Users, UserCheck, Store, History, AlertOctagon, UserPlus } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { PageHeading } from "@/components/ui/PageHeading";
 import { useAdminDashboard } from "./hooks/useAdminDashboard";
@@ -11,6 +11,7 @@ import { LogsTab } from "./components/tabs/LogsTab";
 import { BazarsTab } from "./components/tabs/BazarsTab";
 import { SettingsTab } from "./components/tabs/SettingsTab";
 import { IssuesTab } from "./components/tabs/IssuesTab";
+import { WaitlistTab } from "./components/tabs/WaitlistTab";
 import { 
   DriverManagementModal, 
   RechargeModal, 
@@ -99,12 +100,21 @@ export default function AdminDashboard() {
     userMeta,
     bookingSearch,
     setBookingSearch,
+    waitlist,
+    waitlistSearch,
+    setWaitlistSearch,
+    waitlistFilter,
+    setWaitlistFilter,
+    waitlistPage,
+    setWaitlistPage,
+    waitlistMeta,
   } = useAdminDashboard();
 
   const tabs = [
     { id: "overview" as const, label: t("overview"), icon: Activity },
     { id: "drivers" as const, label: t("drivers"), icon: Users },
     { id: "users" as const, label: t("users"), icon: UserCheck },
+    { id: "waitlist" as const, label: t("waitlist") || "Waitlist", icon: UserPlus },
     { id: "bazars" as const, label: t("bazars"), icon: Store },
     { id: "logs" as const, label: t("logs"), icon: History },
     { id: "issues" as const, label: t("report_issue") || "Complaints", icon: AlertOctagon },
@@ -188,6 +198,20 @@ export default function AdminDashboard() {
             userPage={userPage}
             setUserPage={setUserPage}
             userMeta={userMeta}
+            t={t}
+          />
+        )}
+
+        {activeTab === "waitlist" && (
+          <WaitlistTab
+            waitlist={waitlist}
+            waitlistSearch={waitlistSearch}
+            setWaitlistSearch={setWaitlistSearch}
+            waitlistFilter={waitlistFilter}
+            setWaitlistFilter={setWaitlistFilter}
+            waitlistPage={waitlistPage}
+            setWaitlistPage={setWaitlistPage}
+            waitlistMeta={waitlistMeta}
             t={t}
           />
         )}

@@ -229,3 +229,9 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
   - **Main-Domain-Only Redirection:** In `proxy.ts`, the production restriction that redirects non-landing and non-API requests back to the root page (`/`) is constrained to `useConfiguredDomains`. This ensures that alternate staging/preview domains (such as Vercel preview deployments `*.vercel.app` or custom testing domains) do not trigger redirection and can access all pages.
   - **Branded Cookie Restrictions:** Cookie domain assignment in `LanguageContext.tsx` is limited to configured domains (`cnglagbe.com` and its subdomains) in production. Browsing on staging/preview domains omits the hardcoded `.cnglagbe.com` domain parameter, allowing browsers to successfully store cookies.
   - **Dynamic Booking Accessibility:** The "Coming Soon" visual restriction on the landing page's main booking flow button in `app/page.tsx` is only active in production when accessing the configured production host. Tapping the booking button on alternative preview/staging domains immediately routes users to `/login` or `/user/map` to facilitate full functional testing of the booking system.
+
+## ⚡ Performance Optimization & Next.js Best Practices
+- **Next.js Image Sizes Prop (2026-06-28):** All `<Image />` components utilizing the `fill` attribute must specify a descriptive `sizes` prop. This optimizes the source set (srcset) generation and avoids default full-screen viewport scaling warnings (e.g. download cards, profile photos, background images, and icon banners).
+
+## 🗄️ Database & Schema Synchronization
+- **Waitlist Database Table Synchronization (2026-06-28):** The interactive waitlist requires the `Waitlist` model in `schema.prisma` to be synchronized with the remote PostgreSQL database. Ensure migrations or `npx prisma db push` are successfully executed to resolve runtime `table public.Waitlist does not exist` errors.

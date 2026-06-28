@@ -702,6 +702,66 @@ export const TEXT = {
     en: "Enable notifications to receive background ride alerts when the tab is closed!",
     bn: "বিজ্ঞপ্তি অনুমতি দিন যাতে ব্যাকগ্রাউন্ডেও রাইড রিকুয়েস্ট পান!"
   },
+  waitlist_title: {
+    en: "Are you interested in the CNGLagbe app?",
+    bn: "আপনি কি CNGLagbe অ্যাপে আগ্রহী?"
+  },
+  waitlist_subtitle: {
+    en: "We are coming soon. Join the waitlist to get early access and updates!",
+    bn: "আমরা খুব শীঘ্রই আসছি। সবার আগে নোটিফিকেশন পেতে ওয়েটিং লিস্টে যোগ দিন!"
+  },
+  waitlist_count: {
+    en: "{count} people are already waiting for the app!",
+    bn: "ইতিমধ্যে {count} জন মানুষ অ্যাপটির জন্য অপেক্ষা করছেন!"
+  },
+  waitlist_name_label: {
+    en: "Name (Optional)",
+    bn: "নাম (ঐচ্ছিক)"
+  },
+  waitlist_phone_label: {
+    en: "Mobile Number",
+    bn: "মোবাইল নম্বর"
+  },
+  waitlist_role_label: {
+    en: "Are you a passenger or driver?",
+    bn: "আপনি কি যাত্রী নাকি ড্রাইভার?"
+  },
+  waitlist_role_passenger: {
+    en: "Passenger",
+    bn: "যাত্রী"
+  },
+  waitlist_role_driver: {
+    en: "Driver",
+    bn: "ড্রাইভার"
+  },
+  waitlist_submit: {
+    en: "Join Waitlist",
+    bn: "ওয়েটিং লিস্টে যোগ দিন"
+  },
+  waitlist_success: {
+    en: "Successfully joined waitlist!",
+    bn: "ওয়েটিং লিস্টে সফলভাবে যোগ দিয়েছেন!"
+  },
+  waitlist_duplicate: {
+    en: "You are already registered on the waitlist!",
+    bn: "আপনি ইতিপূর্বেই ওয়েটিং লিস্টে যোগ দিয়েছেন!"
+  },
+  waitlist: {
+    en: "Waitlist",
+    bn: "ওয়েটিং লিস্ট"
+  },
+  waitlist_management: {
+    en: "Waitlist Management",
+    bn: "ওয়েটিং লিস্ট ব্যবস্থাপনা"
+  },
+  no_waitlist_users: {
+    en: "No subscribers found on the waitlist.",
+    bn: "ওয়েটিং লিস্টে কোনো গ্রাহক পাওয়া যায়নি।"
+  },
+  search_waitlist_placeholder: {
+    en: "Search by name or phone...",
+    bn: "নাম বা মোবাইল নম্বর দিয়ে খুঁজুন..."
+  },
 } as const;
 
 
