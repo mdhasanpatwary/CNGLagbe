@@ -44,4 +44,13 @@
 | 40 | Update constants/text.ts with bilingual keys | done | 2026-06-28 |
 | 41 | Update WaitlistTab UI component with stats cards | done | 2026-06-28 |
 | 42 | Verify implementation and build | done | 2026-06-28 |
+| 43 | Explore context and start brainstorming for collecting user location in waitlist form | done | 2026-06-28 |
+| 44 | Brainstorming - Ask clarifying questions and define approaches | done | 2026-06-29 |
+| 45 | Brainstorming - Write design doc | done | 2026-06-29 |
+| 46 | Update schema.prisma & run database migration / db push | done | 2026-06-29 |
+| 47 | Update waitlist schemas, routes, and hooks to support location field | done | 2026-06-29 |
+| 48 | Add translation keys for Location input in Waitlist form | done | 2026-06-29 |
+| 49 | Modify WaitlistSection UI to include Location input | done | 2026-06-29 |
+| 50 | Modify WaitlistTab in Admin dashboard to display Location data | done | 2026-06-29 |
+| 51 | Final verification and build test | done | 2026-06-29 |
 

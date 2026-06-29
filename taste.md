@@ -238,3 +238,4 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 
 ## 🗄️ Database & Schema Synchronization
 - **Waitlist Database Table Synchronization (2026-06-28):** The interactive waitlist requires the `Waitlist` model in `schema.prisma` to be synchronized with the remote PostgreSQL database. Ensure migrations or `npx prisma db push` are successfully executed to resolve runtime `table public.Waitlist does not exist` errors.
+- **Waitlist Location Field (2026-06-29):** The `Waitlist` schema includes a `location String?` field to record the user's area/bazar at signup. Zod validation ensures new signups submit a non-empty location, and the admin dashboard displays this location inline under the user's name/phone to optimize layout width on mobile screens.

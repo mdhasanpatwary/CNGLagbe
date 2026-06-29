@@ -232,5 +232,6 @@ model Waitlist {
   name      String?
   phone     String   @unique
   role      String   @default("USER") // "USER" or "DRIVER"
+  location  String?
   createdAt DateTime @default(now())
 }

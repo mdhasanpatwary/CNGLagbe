@@ -21,7 +21,8 @@ export async function GET(request: Request) {
     if (search) {
       whereClause.OR = [
         { name: { contains: search, mode: "insensitive" } },
-        { phone: { contains: search, mode: "insensitive" } }
+        { phone: { contains: search, mode: "insensitive" } },
+        { location: { contains: search, mode: "insensitive" } }
       ];
     }
     if (role && role !== "ALL") {

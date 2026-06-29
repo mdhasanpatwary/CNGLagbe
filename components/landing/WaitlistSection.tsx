@@ -118,6 +118,22 @@ export function WaitlistSection() {
                   </div>
                 </div>
 
+                {/* Location Input */}
+                <div className="flex flex-col">
+                  <label className="text-xs font-bold text-white/50 uppercase tracking-wider mb-2 font-bn pl-1">
+                    {t("waitlist_location_label") || "Your Area / Bazar"}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={t("waitlist_location_placeholder") || "e.g. Chhagalnaiya"}
+                    {...register("location")}
+                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white text-base font-bn focus:outline-none focus:border-primary/50 transition-colors"
+                  />
+                  {errors.location && (
+                    <span className="text-xs text-red-500 font-bold mt-1.5 pl-1">{errors.location.message}</span>
+                  )}
+                </div>
+
                 {/* Role Selector */}
                 <div className="flex flex-col">
                   <label className="text-xs font-bold text-white/50 uppercase tracking-wider mb-3 font-bn pl-1">

@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: validated.error.format() }, { status: 400 });
     }
 
-    const { name, phone, role } = validated.data;
+    const { name, phone, role, location } = validated.data;
 
     // Check for existing phone number
     const existing = await prisma.waitlist.findUnique({
@@ -36,7 +36,8 @@ export async function POST(req: NextRequest) {
       data: {
         name: name || null,
         phone,
-        role
+        role,
+        location,
       }
     });
 

@@ -122,6 +122,11 @@ export const WaitlistTab: React.FC<WaitlistTabProps> = ({
                     <div>
                       <p className="font-black text-slate-900">{item.phone}</p>
                       <p className="text-xs font-medium text-slate-400">{item.name || "N/A"}</p>
+                      {item.location && (
+                        <p className="text-xs font-medium text-slate-400 mt-0.5">
+                          <span className="font-bold text-slate-500">{t("location") || "Location"}:</span> {item.location}
+                        </p>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>

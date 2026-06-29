@@ -12,6 +12,7 @@ export interface WaitlistEntry {
   name: string | null;
   phone: string;
   role: string;
+  location: string | null;
   createdAt: string;
 }
 

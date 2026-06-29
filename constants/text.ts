@@ -785,6 +785,18 @@ export const TEXT = {
     en: "Waiting Passengers",
     bn: "অপেক্ষারত যাত্রী"
   },
+  waitlist_location_label: {
+    en: "Your Area / Bazar",
+    bn: "আপনার এলাকা / বাজার"
+  },
+  waitlist_location_placeholder: {
+    en: "e.g. Chhagalnaiya",
+    bn: "উদা: ছাগলনাইয়া"
+  },
+  location: {
+    en: "Location",
+    bn: "লোকেশন"
+  },
 } as const;
 
 
