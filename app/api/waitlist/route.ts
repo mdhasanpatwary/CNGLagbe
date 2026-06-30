@@ -6,9 +6,12 @@ export async function GET() {
   try {
     const count = await prisma.waitlist.count();
     return NextResponse.json({ count });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Fetch waitlist count error:", error);
-    return NextResponse.json({ error: "Failed to fetch waitlist count" }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Failed to fetch waitlist count",
+      message: error?.message || String(error)
+    }, { status: 500 });
   }
 }
 
@@ -43,8 +46,12 @@ export async function POST(req: NextRequest) {
 
     const count = await prisma.waitlist.count();
     return NextResponse.json({ success: true, count });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Waitlist error:", error);
-    return NextResponse.json({ error: "Failed to join waitlist" }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Failed to join waitlist",
+      message: error?.message || String(error)
+    }, { status: 500 });
   }
 }
+
