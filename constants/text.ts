@@ -797,6 +797,10 @@ export const TEXT = {
     en: "Location",
     bn: "লোকেশন"
   },
+  waitlist_delete_warning: {
+    en: "Are you sure you want to remove this person from the waitlist?",
+    bn: "আপনি কি নিশ্চিত যে আপনি এই ব্যক্তিকে ওয়েটিং লিস্ট থেকে মুছে ফেলতে চান?"
+  },
 } as const;
 
 

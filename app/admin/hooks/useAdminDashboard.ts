@@ -469,6 +469,22 @@ export function useAdminDashboard() {
     }
   };
 
+  const handleDeleteWaitlist = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/waitlist/${id}`, {
+        method: "DELETE"
+      });
+      if (res.ok) {
+        fetchWaitlist(waitlistPage, debouncedWaitlistSearch, waitlistFilter);
+        const resStats = await fetch("/api/admin/stats");
+        const dataStats = await resStats.json().catch(() => ({}));
+        if (dataStats?.stats) setStats(dataStats.stats);
+      }
+    } catch (e) {
+      console.error("Delete waitlist entry error:", e);
+    }
+  };
+
   const handleUpdateSetting = async (key: string, value: string) => {
     try {
       const res = await fetch("/api/admin/settings", {
@@ -610,5 +626,6 @@ export function useAdminDashboard() {
     setWaitlistPage,
     waitlistMeta,
     fetchWaitlist,
+    handleDeleteWaitlist,
   };
 }

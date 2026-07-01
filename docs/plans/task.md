@@ -53,4 +53,10 @@
 | 49 | Modify WaitlistSection UI to include Location input | done | 2026-06-29 |
 | 50 | Modify WaitlistTab in Admin dashboard to display Location data | done | 2026-06-29 |
 | 51 | Final verification and build test | done | 2026-06-29 |
+| 52 | Create API endpoint for waitlist deletion | done | 2026-07-02 |
+| 53 | Add translation keys for waitlist deletion | done | 2026-07-02 |
+| 54 | Update useAdminDashboard hook to handle waitlist deletion | done | 2026-07-02 |
+| 55 | Update UI elements in WaitlistTab | done | 2026-07-02 |
+| 56 | Pass the handler from dashboard to WaitlistTab | done | 2026-07-02 |
+| 57 | Verify implementation and build | done | 2026-07-02 |
 

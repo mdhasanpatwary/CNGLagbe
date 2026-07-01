@@ -108,6 +108,7 @@ export default function AdminDashboard() {
     waitlistPage,
     setWaitlistPage,
     waitlistMeta,
+    handleDeleteWaitlist,
   } = useAdminDashboard();
 
   const tabs = [
@@ -213,6 +214,7 @@ export default function AdminDashboard() {
             setWaitlistPage={setWaitlistPage}
             waitlistMeta={waitlistMeta}
             t={t}
+            handleDeleteWaitlist={handleDeleteWaitlist}
           />
         )}
 
