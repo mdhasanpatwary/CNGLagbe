@@ -31,11 +31,6 @@ export async function proxy(request: NextRequest) {
   const token = request.cookies.get("auth_token")?.value;
   const user = token ? await verifyToken(token) : null;
 
-  // 3. Production Restriction: Only allow landing page and API on the main production domain (user app)
-  const isMainProdDomain = useConfiguredDomains && appRole === "user";
-  if (isMainProdDomain && path !== "/" && !path.startsWith("/api")) {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
 
   // 4. API Routes Protection
   if (path.startsWith("/api")) {
