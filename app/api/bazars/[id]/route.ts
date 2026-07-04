@@ -7,7 +7,7 @@ export async function PATCH(
 ) {
   const { id } = await params;
   try {
-    const { name } = await request.json();
+    const { name, isApproved } = await request.json();
     
     // Wrap in transaction for atomicity: if driver update fails, bazar rename is rolled back
     const bazar = await prisma.$transaction(async (tx) => {
@@ -20,16 +20,22 @@ export async function PATCH(
         throw new Error("BAZAR_NOT_FOUND");
       }
 
+      const dataToUpdate: { name?: string; isApproved?: boolean } = {};
+      if (name !== undefined) dataToUpdate.name = name;
+      if (isApproved !== undefined) dataToUpdate.isApproved = isApproved;
+
       const updated = await tx.bazar.update({
         where: { id },
-        data: { name },
+        data: dataToUpdate,
       });
 
-      // Update all drivers who have this bazar as their nearbyBazar
-      await tx.driver.updateMany({
-        where: { nearbyBazar: oldBazar.name },
-        data: { nearbyBazar: name },
-      });
+      // Update all drivers who have this bazar as their nearbyBazar, if name changed
+      if (name && name !== oldBazar.name) {
+        await tx.driver.updateMany({
+          where: { nearbyBazar: oldBazar.name },
+          data: { nearbyBazar: name },
+        });
+      }
 
       return updated;
     });

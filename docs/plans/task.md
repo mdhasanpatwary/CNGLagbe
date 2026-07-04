@@ -59,4 +59,33 @@
 | 55 | Update UI elements in WaitlistTab | done | 2026-07-02 |
 | 56 | Pass the handler from dashboard to WaitlistTab | done | 2026-07-02 |
 | 57 | Verify implementation and build | done | 2026-07-02 |
+| 58 | Explore context and start brainstorming for removing production host restriction | done | 2026-07-03 |
+| 59 | Brainstorming - Ask clarifying questions and define approaches | done | 2026-07-03 |
+| 60 | Brainstorming - Write design doc | done | 2026-07-03 |
+| 61 | Brainstorming - Transition to implementation & create implementation plan | done | 2026-07-03 |
+| 62 | Remove production main domain host restriction from proxy.ts | done | 2026-07-03 |
+| 64 | Explore context and start brainstorming for driver directory and contribution | done | 2026-07-04 |
+| 65 | Brainstorming - Ask clarifying questions and define approaches | done | 2026-07-04 |
+| 66 | Brainstorming - Write design doc | done | 2026-07-04 |
+| 67 | Brainstorming - Transition to implementation & create implementation plan | done | 2026-07-04 |
+| 68 | Database Migration & Schema Update | done | 2026-07-04 |
+| 69 | Add Translations & UI Text Constants | done | 2026-07-04 |
+| 70 | Create Validation Schema | done | 2026-07-04 |
+| 71 | Implement Public API Endpoints | done | 2026-07-04 |
+| 72 | Implement Admin API Endpoints | done | 2026-07-04 |
+| 73 | Add Auto-Approve Toggle in Settings Tab | done | 2026-07-04 |
+| 74 | Update Admin Dashboard Hook | done | 2026-07-04 |
+| 75 | Create Contributed Drivers Admin Tab | done | 2026-07-04 |
+| 76 | Integrate Contributed Drivers Tab into Dashboard | done | 2026-07-04 |
+| 77 | Create Driver Directory Section | done | 2026-07-04 |
+| 78 | Integrate Directory Section into Landing Page | done | 2026-07-04 |
+| 79 | Verification and final build test | done | 2026-07-04 |
+| 80 | Update Bazar model in schema.prisma and generate Client | done | 2026-07-04 |
+| 81 | Add translation keys for new bazar and searchable select | done | 2026-07-04 |
+| 82 | Update Bazars API GET, POST and PATCH routes | done | 2026-07-04 |
+| 83 | Create SearchableBazarSelect reusable UI component | done | 2026-07-04 |
+| 84 | Integrate SearchableBazarSelect into DriverDirectorySection contribution modal | done | 2026-07-04 |
+| 85 | Update useAdminDashboard hook for Bazar approvals | done | 2026-07-04 |
+| 86 | Update BazarsTab component & AdminDashboard page for Bazar approvals | done | 2026-07-04 |
+| 87 | Final verification and build test | done | 2026-07-04 |
 

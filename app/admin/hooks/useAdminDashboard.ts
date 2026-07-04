@@ -5,7 +5,7 @@ import { User as UserType } from "@/lib/types/user";
 import { Booking } from "@/lib/types/booking";
 import { AdminStats, PendingDriver, IssueReportType } from "@/lib/types/admin";
 
-export type AdminTab = "overview" | "drivers" | "users" | "logs" | "bazars" | "settings" | "issues" | "waitlist";
+export type AdminTab = "overview" | "drivers" | "users" | "logs" | "bazars" | "settings" | "issues" | "waitlist" | "contributed-drivers";
 
 export interface WaitlistEntry {
   id: string;
@@ -13,6 +13,16 @@ export interface WaitlistEntry {
   phone: string;
   role: string;
   location: string | null;
+  createdAt: string;
+}
+
+export interface ContributedDriver {
+  id: string;
+  name: string;
+  phone: string;
+  address: string | null;
+  nearbyBazar: string | null;
+  isApproved: boolean;
   createdAt: string;
 }
 
@@ -28,7 +38,7 @@ export function useAdminDashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [activeBookings, setActiveBookings] = useState<Booking[]>([]);
   const [allUsers, setAllUsers] = useState<UserType[]>([]);
-  const [bazars, setBazars] = useState<{ id: string, name: string, driverCount?: number }[]>([]);
+  const [bazars, setBazars] = useState<{ id: string, name: string, isApproved: boolean, driverCount?: number }[]>([]);
   const [newBazarName, setNewBazarName] = useState("");
   const [editingBazar, setEditingBazar] = useState<{ id: string, name: string } | null>(null);
   const [activeTabStr, setActiveTabStr] = useQueryState("tab", { defaultValue: "overview" });
@@ -89,6 +99,9 @@ export function useAdminDashboard() {
   const [bookingSearch, setBookingSearch] = useState("");
   const [debouncedBookingSearch, setDebouncedBookingSearch] = useState("");
   const [totalPages, setTotalPages] = useState(1);
+  const [contributedDrivers, setContributedDrivers] = useState<ContributedDriver[]>([]);
+  const [contributedSearch, setContributedSearch] = useState("");
+  const [contributedFilter, setContributedFilter] = useState("all");
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -225,15 +238,16 @@ export function useAdminDashboard() {
     try {
       const url = `/api/admin/bookings?page=${currentPage}&limit=20&status=${logFilter}&search=${debouncedBookingSearch}`;
 
-      const [resStats, resBookings, resDrivers, resActive, resOnline, resAllUsers, resBazars, resSettings] = await Promise.all([
+      const [resStats, resBookings, resDrivers, resActive, resOnline, resAllUsers, resBazars, resSettings, resContributed] = await Promise.all([
         fetch("/api/admin/stats"),
         fetch(url),
         fetch("/api/admin/drivers/approve"),
         fetch("/api/admin/bookings?type=active"),
         fetch("/api/admin/drivers/online"),
         fetch(`/api/admin/users?page=${userPage}&limit=20&search=${debouncedUserSearch}&role=${userFilter}`),
-        fetch("/api/bazars"),
-        fetch("/api/admin/settings")
+        fetch("/api/bazars?all=true"),
+        fetch("/api/admin/settings"),
+        fetch("/api/admin/contributed-drivers")
       ]);
 
       const dataStats = await resStats.json().catch(() => ({}));
@@ -244,6 +258,7 @@ export function useAdminDashboard() {
       const dataAllUsers = await resAllUsers.json().catch(() => ({}));
       const dataBazars = await resBazars.json().catch(() => ([]));
       const dataSettings = await resSettings.json().catch(() => ([]));
+      const dataContributed = await resContributed.json().catch(() => ([]));
 
       setStats(dataStats?.stats || null);
       setBookings(Array.isArray(dataBookings?.bookings) ? dataBookings.bookings : []);
@@ -252,6 +267,7 @@ export function useAdminDashboard() {
       setActiveBookings(Array.isArray(dataActive?.bookings) ? dataActive.bookings : []);
       setOnlineDrivers(Array.isArray(dataOnline?.drivers) ? dataOnline.drivers : []);
       setAllUsers(Array.isArray(dataAllUsers?.users) ? dataAllUsers.users : []);
+      setContributedDrivers(Array.isArray(dataContributed) ? dataContributed : []);
       setUserMeta({
         total: dataAllUsers?.meta?.total || 0,
         totalPages: dataAllUsers?.meta?.totalPages || 0
@@ -276,7 +292,7 @@ export function useAdminDashboard() {
       if (Array.isArray(dataBazars)) {
         setBazars(dataBazars);
       } else if (dataBazars && typeof dataBazars === 'object' && 'bazars' in dataBazars && Array.isArray((dataBazars as Record<string, unknown>).bazars)) {
-        setBazars((dataBazars as { bazars: { id: string; name: string; driverCount?: number }[] }).bazars);
+        setBazars((dataBazars as { bazars: { id: string; name: string; isApproved: boolean; driverCount?: number }[] }).bazars);
       } else {
         setBazars([]);
       }
@@ -485,6 +501,50 @@ export function useAdminDashboard() {
     }
   };
 
+  const handleApproveContributedDriver = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/contributed-drivers/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isApproved: true })
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setContributedDrivers(prev => prev.map(d => d.id === id ? updated : d));
+      }
+    } catch (e) {
+      console.error("Approve contributed driver error:", e);
+    }
+  };
+
+  const handleDeleteContributedDriver = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/contributed-drivers/${id}`, {
+        method: "DELETE"
+      });
+      if (res.ok) {
+        setContributedDrivers(prev => prev.filter(d => d.id !== id));
+      }
+    } catch (e) {
+      console.error("Delete contributed driver error:", e);
+    }
+  };
+
+  const handleApproveBazar = async (id: string) => {
+    try {
+      const res = await fetch(`/api/bazars/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isApproved: true })
+      });
+      if (res.ok) {
+        setBazars(prev => prev.map(b => b.id === id ? { ...b, isApproved: true } : b));
+      }
+    } catch (e) {
+      console.error("Approve bazar error:", e);
+    }
+  };
+
   const handleUpdateSetting = async (key: string, value: string) => {
     try {
       const res = await fetch("/api/admin/settings", {
@@ -627,5 +687,13 @@ export function useAdminDashboard() {
     waitlistMeta,
     fetchWaitlist,
     handleDeleteWaitlist,
+    contributedDrivers,
+    contributedSearch,
+    setContributedSearch,
+    contributedFilter,
+    setContributedFilter,
+    handleApproveContributedDriver,
+    handleDeleteContributedDriver,
+    handleApproveBazar,
   };
 }

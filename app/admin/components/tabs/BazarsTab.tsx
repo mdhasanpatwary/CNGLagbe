@@ -2,12 +2,12 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AppButton } from "@/components/ui/AppButton";
-import { Store, Plus, Users, Edit2, Trash2, Search } from "lucide-react";
+import { Store, Plus, Users, Edit2, Trash2, Search, Check } from "lucide-react";
 
 import { TextKey } from "@/constants/text";
 
 interface BazarsTabProps {
-  bazars: { id: string; name: string; driverCount?: number }[];
+  bazars: { id: string; name: string; isApproved: boolean; driverCount?: number }[];
   newBazarName: string;
   setNewBazarName: (name: string) => void;
   editingBazar: { id: string; name: string } | null;
@@ -15,6 +15,7 @@ interface BazarsTabProps {
   handleAddBazar: () => void;
   handleDeleteBazar: (id: string) => void;
   handleUpdateBazar: () => void;
+  handleApproveBazar: (id: string) => void;
   t: (key: TextKey) => string;
 }
 
@@ -27,13 +28,24 @@ export function BazarsTab({
   handleAddBazar,
   handleDeleteBazar,
   handleUpdateBazar,
+  handleApproveBazar,
   t,
 }: BazarsTabProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
 
   const filteredBazars = bazars.filter((bazar) =>
     bazar.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const onApprove = async (id: string) => {
+    setActionLoading((prev) => ({ ...prev, [id]: true }));
+    try {
+      await handleApproveBazar(id);
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [id]: false }));
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -82,6 +94,7 @@ export function BazarsTab({
             <TableHeader>
               <TableRow className="hover:bg-transparent border-none">
                 <TableHead className="px-8 py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("bazar_name")}</TableHead>
+                <TableHead className="px-8 py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("bazar_status" as TextKey) || "Status"}</TableHead>
                 <TableHead className="px-8 py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("drivers")}</TableHead>
                 <TableHead className="px-8 py-5 text-right text-xs font-black uppercase tracking-widest text-slate-400">{t("actions")}</TableHead>
               </TableRow>
@@ -107,6 +120,17 @@ export function BazarsTab({
                     )}
                   </TableCell>
                   <TableCell className="px-8 py-6">
+                    {bazar.isApproved ? (
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700">
+                        {t("contributed_approved" as TextKey) || "Approved"}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700">
+                        {t("contributed_pending" as TextKey) || "Pending"}
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="px-8 py-6">
                     <div className="flex items-center gap-2">
                       <Users size={14} className="text-slate-400" />
                       <span className="font-bold text-slate-700">{bazar.driverCount || 0}</span>
@@ -114,6 +138,18 @@ export function BazarsTab({
                   </TableCell>
                   <TableCell className="px-8 py-6 text-right">
                     <div className="flex items-center justify-end gap-2">
+                      {!bazar.isApproved && (
+                        <AppButton
+                          onClick={() => onApprove(bazar.id)}
+                          loading={actionLoading[bazar.id]}
+                          variant="success"
+                          size="sm"
+                          className="h-9 px-3 rounded-xl font-bold uppercase text-[10px] tracking-wider"
+                          leftIcon={<Check size={14} />}
+                        >
+                          {t("approve" as TextKey) || "Approve"}
+                        </AppButton>
+                      )}
                       {editingBazar?.id === bazar.id ? (
                         <>
                           <AppButton
@@ -136,13 +172,13 @@ export function BazarsTab({
                           <AppButton
                             onClick={() => setEditingBazar(bazar)}
                             variant="ghost"
-                            className="h-9 w-9 p-0 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl"
+                            className="h-9 w-9 p-0 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl flex items-center justify-center shrink-0"
                             leftIcon={<Edit2 size={16} />}
                           />
                           <AppButton
                             onClick={() => handleDeleteBazar(bazar.id)}
                             variant="ghost"
-                            className="h-9 w-9 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
+                            className="h-9 w-9 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl flex items-center justify-center shrink-0"
                             leftIcon={<Trash2 size={16} />}
                           />
                         </>
@@ -153,7 +189,7 @@ export function BazarsTab({
               ))}
               {filteredBazars.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={3} className="py-20 text-center">
+                  <TableCell colSpan={4} className="py-20 text-center">
                     <div className="flex flex-col items-center justify-center gap-3 text-slate-400 italic">
                       <Store size={40} className="opacity-10" />
                       <p className="text-sm">{t("not_found")}</p>

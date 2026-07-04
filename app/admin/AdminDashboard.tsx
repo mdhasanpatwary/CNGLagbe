@@ -12,6 +12,8 @@ import { BazarsTab } from "./components/tabs/BazarsTab";
 import { SettingsTab } from "./components/tabs/SettingsTab";
 import { IssuesTab } from "./components/tabs/IssuesTab";
 import { WaitlistTab } from "./components/tabs/WaitlistTab";
+import { ContributedDriversTab } from "./components/tabs/ContributedDriversTab";
+import { TextKey } from "@/constants/text";
 import { 
   DriverManagementModal, 
   RechargeModal, 
@@ -74,6 +76,7 @@ export default function AdminDashboard() {
     handleAddBazar,
     handleDeleteBazar,
     handleUpdateBazar,
+    handleApproveBazar,
     handleRecharge,
     handleDeleteDriver,
     settings,
@@ -109,6 +112,13 @@ export default function AdminDashboard() {
     setWaitlistPage,
     waitlistMeta,
     handleDeleteWaitlist,
+    contributedDrivers,
+    contributedSearch,
+    setContributedSearch,
+    contributedFilter,
+    setContributedFilter,
+    handleApproveContributedDriver,
+    handleDeleteContributedDriver,
   } = useAdminDashboard();
 
   const tabs = [
@@ -116,6 +126,7 @@ export default function AdminDashboard() {
     { id: "drivers" as const, label: t("drivers"), icon: Users },
     { id: "users" as const, label: t("users"), icon: UserCheck },
     { id: "waitlist" as const, label: t("waitlist") || "Waitlist", icon: UserPlus },
+    { id: "contributed-drivers" as const, label: t("contributed_drivers_tab" as TextKey) || "Contributed Drivers", icon: Users },
     { id: "bazars" as const, label: t("bazars"), icon: Store },
     { id: "logs" as const, label: t("logs"), icon: History },
     { id: "issues" as const, label: t("report_issue") || "Complaints", icon: AlertOctagon },
@@ -218,6 +229,19 @@ export default function AdminDashboard() {
           />
         )}
 
+        {activeTab === "contributed-drivers" && (
+          <ContributedDriversTab
+            drivers={contributedDrivers}
+            search={contributedSearch}
+            setSearch={setContributedSearch}
+            filter={contributedFilter}
+            setFilter={setContributedFilter}
+            onApprove={handleApproveContributedDriver}
+            onDelete={handleDeleteContributedDriver}
+            t={t}
+          />
+        )}
+
         {activeTab === "logs" && (
           <LogsTab
             stats={stats}
@@ -246,6 +270,7 @@ export default function AdminDashboard() {
             handleAddBazar={handleAddBazar}
             handleDeleteBazar={handleDeleteBazar}
             handleUpdateBazar={handleUpdateBazar}
+            handleApproveBazar={handleApproveBazar}
             t={t}
           />
         )}

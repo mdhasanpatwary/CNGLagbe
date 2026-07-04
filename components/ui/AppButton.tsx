@@ -8,7 +8,8 @@ import { cn } from "@/lib/utils";
 import { useLang } from "@/hooks/useLang";
 
 interface AppButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost" | "outline";
+  variant?: "primary" | "secondary" | "ghost" | "outline" | "success" | "danger";
+  size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
   loading?: boolean;
   loadingTextKey?: TextKey;
@@ -19,6 +20,7 @@ interface AppButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 export function AppButton({
   className,
   variant = "primary",
+  size = "md",
   fullWidth = false,
   loading = false,
   loadingTextKey = "finding",
@@ -31,13 +33,21 @@ export function AppButton({
 }: AppButtonProps) {
   const { t } = useLang();
 
-  const baseStyles = "h-12 px-4 rounded-lg font-medium text-base flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-offset-2";
+  const baseStyles = "rounded-lg font-medium flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-offset-2";
   
+  const sizes = {
+    sm: "h-9 px-3 text-sm",
+    md: "h-12 px-4 text-base",
+    lg: "h-14 px-6 text-lg",
+  };
+
   const variants = {
     primary: "bg-primary text-white hover:bg-primary/90 focus:ring-primary",
     secondary: "bg-gray-100 text-gray-800 hover:bg-gray-200 focus:ring-gray-300",
     ghost: "bg-transparent text-primary hover:bg-primary/10 focus:ring-primary/30",
     outline: "bg-transparent border-2 border-primary text-primary hover:bg-primary/5 focus:ring-primary/30",
+    success: "bg-success text-white hover:bg-success/90 focus:ring-success",
+    danger: "bg-error text-white hover:bg-error/90 focus:ring-error",
   };
 
   return (
@@ -47,6 +57,7 @@ export function AppButton({
       className={cn(
         baseStyles,
         variants[variant],
+        sizes[size],
         fullWidth && "w-full",
         className
       )}

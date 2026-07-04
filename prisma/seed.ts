@@ -303,7 +303,17 @@ async function main() {
     },
   })
 
+  await prisma.systemSetting.upsert({
+    where: { key: 'AUTO_APPROVE_CONTRIBUTED_DRIVERS' },
+    update: {},
+    create: {
+      key: 'AUTO_APPROVE_CONTRIBUTED_DRIVERS',
+      value: 'true',
+    },
+  })
+
   console.log('Database seeded successfully.')
+
 }
 
 main()

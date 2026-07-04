@@ -261,6 +261,41 @@ export function SettingsTab({
               </AppButton>
             </div>
           </div>
+
+          {/* Auto Approve Contributed Drivers */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50">
+            <div>
+              <h4 className="font-semibold text-slate-900">
+                {t("auto_approve_setting_title" as TextKey) || "Auto Approve Contributed Drivers"}
+              </h4>
+              <p className="text-sm text-slate-500 mt-1">
+                {t("auto_approve_setting_desc" as TextKey) || "If enabled, newly added drivers by users will be visible immediately."}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <select
+                value={getSettingValue("AUTO_APPROVE_CONTRIBUTED_DRIVERS", "true")}
+                onChange={(e) =>
+                  handleValueChange(
+                    "AUTO_APPROVE_CONTRIBUTED_DRIVERS",
+                    e.target.value
+                  )
+                }
+                className="w-32 px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium text-slate-900 bg-white"
+              >
+                <option value="true">Enable (Auto)</option>
+                <option value="false">Disable (Pending)</option>
+              </select>
+              <AppButton
+                onClick={() => handleSave("AUTO_APPROVE_CONTRIBUTED_DRIVERS")}
+                loading={isSaving["AUTO_APPROVE_CONTRIBUTED_DRIVERS"]}
+                leftIcon={<Save className="w-4 h-4" />}
+                className="whitespace-nowrap"
+              >
+                {t("save_changes" as TextKey) || "Save"}
+              </AppButton>
+            </div>
+          </div>
         </div>
       </div>
     </div>

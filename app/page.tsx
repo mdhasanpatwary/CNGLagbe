@@ -25,6 +25,7 @@ import { AppDownloadCard } from "@/components/landing/AppDownloadCard";
 import { toast } from "sonner";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { WaitlistSection } from "@/components/landing/WaitlistSection";
+import { DriverDirectorySection } from "@/components/landing/DriverDirectorySection";
 
 const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={props.className} {...props}>
@@ -494,6 +495,9 @@ export default function LandingPage() {
         {/* ── 1.5. WAITLIST ────────────────────────────────────────────────── */}
         <WaitlistSection />
 
+        {/* ── 1.6. DRIVER DIRECTORY ────────────────────────────────────────── */}
+        <DriverDirectorySection />
+
 
         {/* ── 2. LOCAL TRUST ───────────────────────────────────────────────── */}
         {/* Note: Gradient overlay is intentional per design spec for subtle visual enhancement */}
@@ -800,46 +804,23 @@ export default function LandingPage() {
       {/* ── STICKY BOTTOM CTA (mobile) ────────────────────────────────────── */}
       <motion.div
         initial={{ y: 100, opacity: 0 }}
-        animate={{
-          y: showStickyCTA ? 0 : 100,
-          opacity: showStickyCTA ? 1 : 0
+        animate={{ 
+          y: showStickyCTA ? 0 : 100, 
+          opacity: showStickyCTA ? 1 : 0 
         }}
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 p-3 sm:p-4 bg-white/90 backdrop-blur-xl border-t border-slate-100 shadow-2xl safe-area-bottom"
       >
         <div className="max-w-sm mx-auto w-full">
-          <motion.div
-            animate={prefersReducedMotion ? {} : {
-              scale: [1, 1.02, 1],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          >
+          <motion.div whileTap={{ scale: 0.98 }}>
             <AppButton
               onClick={handleBookNow}
-              className="w-full min-h-[64px] h-16 text-sm sm:text-base rounded-2xl font-bold shadow-2xl shadow-primary/30 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none touch-manipulation bg-primary text-white border-0 overflow-hidden relative group/sticky"
+              className="w-full min-h-[56px] h-14 text-white rounded-2xl font-bold shadow-lg shadow-primary/20 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none touch-manipulation"
+              leftIcon={<MapPin className="w-5 h-5 text-white" />}
             >
-              <div className="flex items-center gap-4 w-full">
-                {/* Premium Logo Mark */}
-                <div className="w-11 h-11 rounded-full bg-slate-950 flex items-center justify-center shrink-0 shadow-lg group-hover/sticky:scale-110 transition-transform duration-500">
-                  <Navigation className="w-5 h-5 text-white fill-white" />
-                </div>
-
-                <div className="flex flex-col items-start leading-tight">
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-white/60" />
-                    <span className="text-white/70 text-[10px] uppercase tracking-[0.2em] font-black">{t("hero_book_now")}</span>
-                  </div>
-                  <span className="text-xl font-black text-white leading-none tracking-tight">{t("app_name")}</span>
-                </div>
-
-                {/* Arrow indicator */}
-                <div className="ml-auto w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                  <Zap className="w-4 h-4 text-white fill-white" />
-                </div>
+              <div className="flex flex-col items-start leading-tight text-white">
+                <span className="text-white/80 text-[10px] uppercase tracking-widest font-bold">{t("hero_book_now")}</span>
+                <span className="text-lg font-black leading-none">{t("app_name")}</span>
               </div>
             </AppButton>
           </motion.div>

@@ -33,7 +33,7 @@ export const TEXT = {
   },
   cng_desc: {
     en: "Quick book. Fixed price.",
-    bn: "সহজেই সিএনজি ডাকুন"
+    bn: "আপনার এলাকার সিএনজি ড্রাইভার খুজুন"
   },
   set_pickup: {
     en: "Pickup",
@@ -800,6 +800,118 @@ export const TEXT = {
   waitlist_delete_warning: {
     en: "Are you sure you want to remove this person from the waitlist?",
     bn: "আপনি কি নিশ্চিত যে আপনি এই ব্যক্তিকে ওয়েটিং লিস্ট থেকে মুছে ফেলতে চান?"
+  },
+  driver_directory: {
+    en: "CNG Driver List",
+    bn: "সিএনজি ড্রাইভার লিস্ট"
+  },
+  search_driver_placeholder: {
+    en: "Search by name, phone or address...",
+    bn: "নাম, ফোন বা ঠিকানা দিয়ে খুঁজুন..."
+  },
+  select_bazar_placeholder: {
+    en: "Select Stand/Bazar",
+    bn: "স্ট্যান্ড/বাজার সিলেক্ট করুন"
+  },
+  add_driver_local: {
+    en: "Add Driver",
+    bn: "আপনার এলাকার ড্রাইভার যুক্ত করুন"
+  },
+  contribute_title: {
+    en: "Contribute Driver Information",
+    bn: "নতুন ড্রাইভার যুক্ত করুন"
+  },
+  contribute_desc: {
+    en: "Help passengers by providing active CNG driver numbers in this bazaar.",
+    bn: "এই বাজারের সচল সিএনজি ড্রাইভারের নাম্বার শেয়ার করে যাত্রীদের সাহায্য করুন।"
+  },
+  driver_name: {
+    en: "Driver Name",
+    bn: "ড্রাইভারের নাম"
+  },
+  driver_phone: {
+    en: "Mobile Number",
+    bn: "মোবাইল নাম্বার"
+  },
+  driver_address: {
+    en: "Address (Optional)",
+    bn: "ঠিকানা (ঐচ্ছিক)"
+  },
+  select_bazar: {
+    en: "Nearby Bazar/Stand",
+    bn: "নিকটস্থ বাজার/স্ট্যান্ড"
+  },
+  auto_approve_setting_title: {
+    en: "Auto Approve Contributed Drivers",
+    bn: "কন্ট্রিবিউট করা ড্রাইভার অটো-অ্যাপ্রুভ করুন"
+  },
+  auto_approve_setting_desc: {
+    en: "If enabled, newly added drivers by users will be visible immediately.",
+    bn: "এটি অন থাকলে ব্যবহারকারীদের যুক্ত করা ড্রাইভার সরাসরি দৃশ্যমান হবে।"
+  },
+  success_contribute: {
+    en: "Driver successfully contributed!",
+    bn: "ড্রাইভার সফলভাবে যুক্ত করা হয়েছে!"
+  },
+  success_contribute_pending: {
+    en: "Driver submitted for admin approval!",
+    bn: "ড্রাইভারটি অ্যাডমিন অ্যাপ্রুভালের জন্য পাঠানো হয়েছে!"
+  },
+  error_phone_exists: {
+    en: "This mobile number is already in the directory.",
+    bn: "এই মোবাইল নাম্বারটি ইতিমধ্যে তালিকায় রয়েছে।"
+  },
+  no_drivers_found: {
+    en: "No drivers found for this search.",
+    bn: "কোনো ড্রাইভার পাওয়া যায়নি।"
+  },
+  call: {
+    en: "Call",
+    bn: "কল করুন"
+  },
+  contributed_drivers_tab: {
+    en: "Contributed Drivers",
+    bn: "কন্ট্রিবিউটেড ড্রাইভার"
+  },
+  contributed_pending: {
+    en: "Pending",
+    bn: "পেন্ডিং"
+  },
+  contributed_approved: {
+    en: "Approved",
+    bn: "অনুমোদিত"
+  },
+  approve: {
+    en: "Approve",
+    bn: "অনুমোদন দিন"
+  },
+  delete: {
+    en: "Delete",
+    bn: "মুছে ফেলুন"
+  },
+  add_new_bazar: {
+    en: "Add Stand/Bazar",
+    bn: "স্ট্যান্ড/বাজার যুক্ত করুন"
+  },
+  success_bazar_added: {
+    en: "Bazar added and pending admin approval!",
+    bn: "স্ট্যান্ডটি সফলভাবে যুক্ত হয়েছে এবং অ্যাডমিন অ্যাপ্রুভালের জন্য পাঠানো হয়েছে!"
+  },
+  error_bazar_exists: {
+    en: "This bazar name already exists.",
+    bn: "এই স্ট্যান্ডটি ইতিমধ্যে তালিকায় রয়েছে।"
+  },
+  search_bazar: {
+    en: "Search bazar...",
+    bn: "স্ট্যান্ড খুঁজুন..."
+  },
+  cant_find_bazar: {
+    en: "Can't find your bazar?",
+    bn: "আপনার বাজার খুঁজে পাচ্ছেন না?"
+  },
+  bazar_status: {
+    en: "Status",
+    bn: "স্ট্যাটাস"
   },
 } as const;
 

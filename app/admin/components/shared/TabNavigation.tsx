@@ -3,7 +3,8 @@
 import { AppButton } from "@/components/ui/AppButton";
 import { LucideIcon } from "lucide-react";
 
-export type AdminTab = "overview" | "drivers" | "users" | "logs" | "bazars" | "settings" | "issues" | "waitlist";
+import { AdminTab } from "../../hooks/useAdminDashboard";
+export type { AdminTab };
 
 interface TabItem {
   id: AdminTab;
