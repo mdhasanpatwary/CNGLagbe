@@ -9,11 +9,16 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const bazar = searchParams.get("bazar");
     const search = searchParams.get("search");
+    const vehicleType = searchParams.get("vehicleType");
 
     const where: Prisma.ContributedDriverWhereInput = { isApproved: true };
 
     if (bazar && bazar !== "ALL") {
       where.nearbyBazar = bazar;
+    }
+
+    if (vehicleType && vehicleType !== "ALL") {
+      where.vehicleType = vehicleType;
     }
 
     if (search) {
@@ -46,7 +51,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: result.error.format() }, { status: 400 });
     }
 
-    const { name, phone, address, nearbyBazar } = result.data;
+    const { name, phone, address, nearbyBazar, vehicleType } = result.data;
 
     // Check uniqueness across ContributedDriver
     const existingContributed = await prisma.contributedDriver.findUnique({
@@ -67,6 +72,7 @@ export async function POST(request: Request) {
         phone,
         address: address || null,
         nearbyBazar,
+        vehicleType,
         isApproved
       }
     });

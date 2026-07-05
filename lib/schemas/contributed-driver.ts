@@ -5,6 +5,8 @@ export const contributedDriverSchema = z.object({
   phone: z.string().regex(/^01[3-9]\d{8}$/, "Please enter a valid 11-digit Bangladeshi mobile number (e.g. 01712345678)"),
   address: z.string().optional().or(z.literal("")),
   nearbyBazar: z.string().min(1, "Please select a bazar/stand"),
+  vehicleType: z.enum(["CNG", "TOTO"]).default("CNG"),
 });
 
-export type ContributedDriverInput = z.infer<typeof contributedDriverSchema>;
+export type ContributedDriverInput = z.input<typeof contributedDriverSchema>;
+

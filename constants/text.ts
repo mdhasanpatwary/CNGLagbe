@@ -287,6 +287,12 @@ export const TEXT = {
   pickup_point: { en: "From", bn: "কোথা থেকে" },
   drop_point: { en: "To", bn: "কোথায়" },
   vehicle_type: { en: "Vehicle Type", bn: "গাড়ির ধরন" },
+  vehicle_type_label: { en: "Vehicle Type", bn: "গাড়ির ধরন" },
+  vehicle_cng: { en: "CNG", bn: "সিএনজি" },
+  vehicle_toto: { en: "Toto / Auto Rickshaw", bn: "টোটো / অটো রিকশা" },
+  vehicle_all: { en: "All Vehicles", bn: "সব গাড়ি" },
+  filter_cng: { en: "CNG Only", bn: "শুধু সিএনজি" },
+  filter_toto: { en: "Toto Only", bn: "শুধু টোটো" },
   cng_gas: { en: "CNG", bn: "সিএনজি" },
   cng_electric: { en: "Electric", bn: "ইলেকট্রিক" },
   upload_photo: { en: "Upload Photo", bn: "ছবি আপলোড করুন" },
@@ -802,8 +808,12 @@ export const TEXT = {
     bn: "আপনি কি নিশ্চিত যে আপনি এই ব্যক্তিকে ওয়েটিং লিস্ট থেকে মুছে ফেলতে চান?"
   },
   driver_directory: {
-    en: "CNG Driver List",
-    bn: "সিএনজি ড্রাইভার লিস্ট"
+    en: "CNG & Toto Driver List",
+    bn: "সিএনজি ও টোটো ড্রাইভার লিস্ট"
+  },
+  directory_subtitle: {
+    en: "Find CNG and Toto driver numbers in your area.",
+    bn: "আপনার এলাকার সিএনজি ও টোটো ড্রাইভারদের খুঁজুন"
   },
   search_driver_placeholder: {
     en: "Search by name, phone or address...",

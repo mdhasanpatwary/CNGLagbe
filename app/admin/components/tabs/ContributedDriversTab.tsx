@@ -98,6 +98,7 @@ export function ContributedDriversTab({
                 <th className="p-4 pl-6">Name</th>
                 <th className="p-4">Phone</th>
                 <th className="p-4">Bazar</th>
+                <th className="p-4">Vehicle</th>
                 <th className="p-4">Address</th>
                 <th className="p-4">Status</th>
                 <th className="p-4 pr-6 text-right">Actions</th>
@@ -106,7 +107,7 @@ export function ContributedDriversTab({
             <tbody className="divide-y divide-slate-100 text-sm text-slate-700 font-medium">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-400">
+                  <td colSpan={7} className="p-8 text-center text-slate-400">
                     No contributed drivers found.
                   </td>
                 </tr>
@@ -126,7 +127,18 @@ export function ContributedDriversTab({
                         <span>{driver.nearbyBazar}</span>
                       </div>
                     </td>
-                    <td className="p-4 text-slate-500 font-normal">{driver.address || "—"}</td>
+                    <td className="p-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                        driver.vehicleType === "TOTO"
+                          ? "bg-blue-50 text-blue-700 border border-blue-100"
+                          : "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                      }`}>
+                        {driver.vehicleType === "TOTO"
+                          ? (t("vehicle_toto" as TextKey) || "Toto")
+                          : (t("vehicle_cng" as TextKey) || "CNG")}
+                      </span>
+                    </td>
+                    <td className="p-4 text-slate-500 font-normal">{driver.address || driver.nearbyBazar || "—"}</td>
                     <td className="p-4">
                       {driver.isApproved ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700">

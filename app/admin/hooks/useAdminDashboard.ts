@@ -22,8 +22,10 @@ export interface ContributedDriver {
   phone: string;
   address: string | null;
   nearbyBazar: string | null;
+  vehicleType: string;
   isApproved: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
 interface SystemSetting {
