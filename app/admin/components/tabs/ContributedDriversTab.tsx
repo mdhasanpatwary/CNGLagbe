@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Trash2, Search, Filter, Phone, MapPin } from "lucide-react";
+import { Check, Trash2, Search, Filter, Phone, MapPin, Edit } from "lucide-react";
 import { AppButton } from "@/components/ui/AppButton";
 import { ContributedDriver } from "../../hooks/useAdminDashboard";
 import { TextKey } from "@/constants/text";
@@ -12,6 +12,7 @@ interface ContributedDriversTabProps {
   setFilter: (val: string) => void;
   onApprove: (id: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onEdit: (driver: ContributedDriver) => void;
   t: (key: TextKey) => string | undefined;
 }
 
@@ -23,6 +24,7 @@ export function ContributedDriversTab({
   setFilter,
   onApprove,
   onDelete,
+  onEdit,
   t,
 }: ContributedDriversTabProps) {
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
@@ -100,6 +102,7 @@ export function ContributedDriversTab({
                 <th className="p-4">Bazar</th>
                 <th className="p-4">Vehicle</th>
                 <th className="p-4">Address</th>
+                <th className="p-4">Contributor</th>
                 <th className="p-4">Status</th>
                 <th className="p-4 pr-6 text-right">Actions</th>
               </tr>
@@ -107,7 +110,7 @@ export function ContributedDriversTab({
             <tbody className="divide-y divide-slate-100 text-sm text-slate-700 font-medium">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-400">
+                  <td colSpan={8} className="p-8 text-center text-slate-400">
                     No contributed drivers found.
                   </td>
                 </tr>
@@ -140,6 +143,16 @@ export function ContributedDriversTab({
                     </td>
                     <td className="p-4 text-slate-500 font-normal">{driver.address || driver.nearbyBazar || "—"}</td>
                     <td className="p-4">
+                      {driver.contributorName ? (
+                        <div className="flex flex-col">
+                          <span className="font-bold text-slate-800">{driver.contributorName}</span>
+                          {driver.contributorPhone && <span className="text-xs text-slate-400 font-normal">{driver.contributorPhone}</span>}
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 font-normal">—</span>
+                      )}
+                    </td>
+                    <td className="p-4">
                       {driver.isApproved ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700">
                           {t("contributed_approved" as TextKey) || "Approved"}
@@ -163,6 +176,14 @@ export function ContributedDriversTab({
                             Approve
                           </AppButton>
                         )}
+                        <AppButton
+                          onClick={() => onEdit(driver)}
+                          variant="outline"
+                          size="sm"
+                          leftIcon={<Edit className="w-3.5 h-3.5" />}
+                        >
+                          Edit
+                        </AppButton>
                         <AppButton
                           onClick={() => handleDelete(driver.id)}
                           loading={actionLoading[driver.id]}

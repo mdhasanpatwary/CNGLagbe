@@ -64,6 +64,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Sticky CTA Contrast:** Always use `text-white` for all elements inside the green sticky button to ensure WCAG compliance against the brand primary color. Added a premium black logo mark for visual hierarchy.
 - **No Call-to-Book:** The system strictly uses app-based booking to ensure proper booking tracking and safety. All "Call to Book" buttons have been removed.
 - **No Driver Login Button:** The driver login button has been removed from the main landing page header to keep the primary landing page strictly user-focused.
+- **No Login Button in Production Header:** The user login button is completely removed from the landing page header in the production environment (to hide login access from the general public on production), while remaining visible in local development for developer testing.
 - **Hero Section Height:** The hero section must have a `min-h-[740px]` to ensure all content (badges, text, image) fits perfectly without layout shifts.
 - **Trust Badges in Hero:** The hero section must display badges: "১০০+ লোকাল ড্রাইভার", "নিরাপদ ও যাচাইকৃত", "দ্রুত পিকআপ", "ক্যাশে পেমেন্ট" to build immediate trust.
 - **Animated Driver Count:** An animated green pulsing dot with "১০০+ ড্রাইভার সক্রিয়" must appear at the top of the hero to signal live service.
@@ -93,6 +94,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
   - **Trust Badges:** Always use high-contrast combinations (e.g., `bg-white text-slate-700` with a border) when rendering badges over light sections.
   - **Footer Layout:** Footer must always match the `max-w-[1200px]` width of other sections for visual alignment.
   - **Phone-Call Booking Transition (2026-06-28):** Direct booking from the website is disabled. Clicking the booking buttons (Hero CTA, Mobile Sticky bottom CTA, Popular Route Pills, and Final CTA) triggers a Call Booking Modal showing hotline `01783721411` with a clipboard copy option and a direct click-to-call link. The mockup form in the Hero section is replaced with a static card displaying the hotline. "How It Works" and FAQs are aligned to explain call booking.
+  - **Driver Directory Limit (2026-07-06):** The homepage Driver Directory is limited to displaying a maximum of 9 cards. If the number of matching approved drivers is greater than 9, a "View All Drivers" (সব ড্রাইভার দেখুন) button is rendered at the bottom, linking to a dedicated `/directory` page that renders the full, unfiltered list.
 
 
 - **Adaptive Branding (Logo):** To ensure WCAG-compliant contrast across themes, the app uses multiple logo variants: `/logo_white.png` for dark and primary backgrounds (Admin/Landing Footer), and `/logo_dark_text.png` for light backgrounds (Driver/General). All variants maintain a consistent 4:1 aspect ratio and transparent backgrounds.
@@ -259,3 +261,43 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
   - **Localization:** All labels use keys registered in the central `TEXT` translation dictionary to satisfy the "No Hardcoded Strings" rule.
   - **Address Fallback:** If the driver's address is empty or null, the UI dynamically displays the driver's nearby bazar (`nearbyBazar`) in place of the address on both the landing page directory cards and the admin dashboard contributed drivers table to ensure information is never blank.
   - **Card Watermark Styling:** Driver cards use hover-animated vehicle watermark images (green CNG rickshaw / yellow-blue electric Toto) positioned on the right side directly beneath the bazar badge (`right-6 top-[56px]`) at `0.15` opacity. The watermark scales (`scale-110`) and rotates (`rotate-6`) smoothly on hover for a highly interactive and premium feel.
+
+## 🏆 Contributor Leaderboard (2026-07-06)
+- **Aggregated Contributor Recognition:** Implemented a public leaderboard to recognize and inspire driver directory contributors.
+  - **Prisma & Schema:** The `ContributedDriver` model contains `contributorName`, `contributorPhone`, and `contributorPhotoUrl` fields.
+  - **Aggregated Leaderboard API:** The GET `/api/contributed-drivers/leaderboard` API loads approved driver contributions, aggregates count in-memory using JavaScript grouped by contributor phone to prevent count splitting, masks phone numbers (e.g. `0171***5678`), and returns the top 10.
+  - **Contributor Profile Picture:** Contributors can upload an optional profile photo (uploaded to path `contributor-photos/` inside the Supabase `drivers` storage bucket). Next.js images specify `sizes="48px"` for optimization.
+  - **Design System compliant UI:**
+    - Tab Switcher: A toggle tab ("সব ড্রাইভার" / "সেরা অবদানকারী") renders the directory or leaderboard, utilizing design-system compliant `<AppButton variant="ghost">` elements instead of native buttons.
+    - Rankings UI: Display rank badges (Gold, Silver, Bronze color styling for top 3), contributor avatar (photo or name initial fallback with pastel color background), and contribution counts.
+
+## 🧑‍✈️ Contributed Driver Editing & Contributor Assignment (2026-07-06)
+- **Granular Editing & Verification:**
+  - **Prisma & Schema:** The `ContributedDriver` PUT API `/api/admin/contributed-drivers/[id]` validates the body utilizing a Zod schema where contributor information is optional/nullable, verifies that the updated phone number does not collide with other drivers, and updates the database record.
+  - **Interactive Admin Modal:** Admins can edit both driver details (Name, Phone, Nearby Bazar, Address, Vehicle Type, and Approval status) and contributor details. When editing, a dropdown selector is rendered displaying the unique, derived list of existing contributors (extracted by matching contributor phone numbers in the database) as well as options for "No Contributor (None)" and "Add New Contributor". Selecting an existing contributor automatically fills and locks (disables) Name, Phone, and Photo fields to maintain data integrity across contributions, while selecting "Add New Contributor" clears and unlocks these inputs for custom entry. Photo uploading is handled via the Supabase Storage bucket `drivers` path `contributor-photos/`.
+  - **Hooks & State Sync:** State is updated in-place inside `useAdminDashboard` to immediately reflect edits without requiring full page refetches.
+
+## 🧑‍✈️ Driver Contributor Auto-login & Field Prefill (2026-07-06)
+- **Auto-Login for First-Time Contributors:**
+  - **Prisma & Auth Integration:** In POST `/api/contributed-drivers`, if a contributor is not logged in, the backend checks for an existing `User` matching the `contributorPhone`. If not found, it automatically provisions a new `User` record (with `passwordHash: null`), generates a JWT session token, and sets the `auth_token` cookie.
+  - **Frontend Page Reload:** When the backend registers auto-login, the frontend triggers `window.location.reload()` 1 second after a successful contribution to refresh the application-wide auth context and navigation Header.
+- **Prefill and Field Lock for Logged-In Users:**
+  - **Session-Based Autofill & Hiding:** In `DriverDirectorySection.tsx`, the current session `/api/auth/me` is fetched on mount. When the "Add Driver" modal is opened by a logged-in user, their `name`, `phone`, and `photoUrl` are automatically prefilled in the form. The entire contributor info section is hidden using CSS (`className="... hidden"`) since they don't need to see or modify it.
+  - **Form Validation & Submission Override:** Contributor inputs remain registered in the DOM (hidden) so that React Hook Form can validate the form against the Zod schema. In `onSubmit`, we manually override/inject the `currentUser` details into the request payload.
+
+## 👤 Profile Dropdown Simplification (2026-07-06)
+- **Menu Items Clean-Up:** Removed `Settings`, `Booking History` (booking_history), and `Home` (dashboard) links from the header profile dropdown menu to streamline user navigation.
+  - **Clean Code:** Cleaned up unused imports (`Settings`, `History`, `LayoutDashboard`) from the `Header.tsx` file.
+
+## 🔗 Header Logo Destination Customization (2026-07-06)
+- **Profile Page Redirect:** Configured the header logo to link to the main landing page (`"/"`) when clicked from the user profile (`"/profile"`) or driver profile (`"/driver/profile"`) pages, rather than linking back to `/user` or `/driver` dashboards.
+  - **Implementation:** Imported `usePathname` from `next/navigation` in `Header.tsx` to conditionally resolve the logo `href`.
+
+## 🚪 User Login Landing Page Redirect (2026-07-06)
+- **Landing Page Fallback:** Modified the default post-login redirect destination for users in `app/login/page.tsx` from `"/user"` to the main landing page (`"/"`). This aligns with user expectation to land back on the public directories/booking homepage after a successful authentication.
+
+## 🧹 Lint and Codebase Cleanup (2026-07-06)
+- **Warning & Error Fixes:**
+  - **Header.tsx**: Removed the unused `isConfiguredHost` state, `isConfiguredProductionHost` import, and their associated hook triggers.
+  - **ContributedDriverEditModal.tsx**: Removed unused `Bike` icon import, updated native `<button>` element to design system compliant `<AppButton variant="ghost">`, and refactored error catch blocks to use `err: unknown` typecasting instead of `any`. Bypassed a static `set-state-in-effect` rule on a Synchronous state setting with inline eslint overrides.
+

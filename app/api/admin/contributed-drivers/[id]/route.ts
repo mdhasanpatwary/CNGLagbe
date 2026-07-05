@@ -2,6 +2,23 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedAdmin } from "@/lib/auth";
 
+import { z } from "zod";
+
+const updateSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  phone: z.string().regex(/^01[3-9]\d{8}$/, "Please enter a valid 11-digit Bangladeshi mobile number"),
+  address: z.string().optional().nullable(),
+  nearbyBazar: z.string().min(1, "Please select a bazar/stand"),
+  vehicleType: z.enum(["CNG", "TOTO"]),
+  isApproved: z.boolean().optional(),
+  contributorName: z.string().optional().nullable().or(z.literal("")),
+  contributorPhone: z.string().optional().nullable().or(z.literal("")).refine(val => {
+    if (!val) return true;
+    return /^01[3-9]\d{8}$/.test(val);
+  }, { message: "Please enter a valid 11-digit Bangladeshi mobile number" }),
+  contributorPhotoUrl: z.string().optional().nullable().or(z.literal("")),
+});
+
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -14,11 +31,49 @@ export async function PUT(
   const { id } = await params;
   try {
     const body = await request.json();
-    const { isApproved } = body;
+    const result = updateSchema.safeParse(body);
+
+    if (!result.success) {
+      return NextResponse.json({ error: result.error.format() }, { status: 400 });
+    }
+
+    const {
+      name,
+      phone,
+      address,
+      nearbyBazar,
+      vehicleType,
+      isApproved,
+      contributorName,
+      contributorPhone,
+      contributorPhotoUrl,
+    } = result.data;
+
+    // Check phone uniqueness among other drivers (excluding current one)
+    const existingContributed = await prisma.contributedDriver.findFirst({
+      where: {
+        phone,
+        NOT: { id }
+      }
+    });
+
+    if (existingContributed) {
+      return NextResponse.json({ error: "PHONE_EXISTS" }, { status: 400 });
+    }
 
     const updated = await prisma.contributedDriver.update({
       where: { id },
-      data: { isApproved }
+      data: {
+        name,
+        phone,
+        address: address || null,
+        nearbyBazar,
+        vehicleType,
+        isApproved,
+        contributorName: contributorName || null,
+        contributorPhone: contributorPhone || null,
+        contributorPhotoUrl: contributorPhotoUrl || null,
+      }
     });
 
     return NextResponse.json(updated);

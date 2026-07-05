@@ -496,7 +496,7 @@ export default function LandingPage() {
         <WaitlistSection />
 
         {/* ── 1.6. DRIVER DIRECTORY ────────────────────────────────────────── */}
-        <DriverDirectorySection />
+        <DriverDirectorySection isLanding={true} />
 
 
         {/* ── 2. LOCAL TRUST ───────────────────────────────────────────────── */}

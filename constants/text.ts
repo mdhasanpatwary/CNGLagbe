@@ -83,6 +83,10 @@ export const TEXT = {
     en: "Explore",
     bn: "ঘুরে দেখুন"
   },
+  view_all_drivers: {
+    en: "View All Drivers",
+    bn: "সব ড্রাইভার দেখুন"
+  },
   total_revenue: {
     en: "Total Income",
     bn: "মোট আয়"
@@ -922,6 +926,70 @@ export const TEXT = {
   bazar_status: {
     en: "Status",
     bn: "স্ট্যাটাস"
+  },
+  contributor_name_label: {
+    en: "Your Name",
+    bn: "আপনার নাম"
+  },
+  contributor_phone_label: {
+    en: "Your Mobile Number",
+    bn: "আপনার মোবাইল নম্বর"
+  },
+  contributor_phone_disclaimer: {
+    en: "Mobile number will be masked on the leaderboard for privacy",
+    bn: "গোপনীয়তার স্বার্থে লিডারবোর্ডে মোবাইল নম্বর আংশিক গোপন রাখা হবে"
+  },
+  contributor_photo_label: {
+    en: "Your Photo (Optional)",
+    bn: "আপনার ছবি (ঐচ্ছিক)"
+  },
+  tab_all_drivers: {
+    en: "Drivers List",
+    bn: "ড্রাইভার তালিকা"
+  },
+  tab_leaderboard: {
+    en: "Leaderboard",
+    bn: "অবদানকারী লিডারবোর্ড"
+  },
+  leaderboard_contributions: {
+    en: "contributions",
+    bn: "টি অবদান"
+  },
+  leaderboard_empty: {
+    en: "No contributors yet.",
+    bn: "এখনো কোনো অবদানকারী নেই।"
+  },
+  edit_contributed_driver: {
+    en: "Edit Contributed Driver",
+    bn: "অবদানকারী ড্রাইভার এডিট"
+  },
+  driver_info: {
+    en: "Driver Info",
+    bn: "ড্রাইভারের তথ্য"
+  },
+  contributor_info: {
+    en: "Contributor Info",
+    bn: "অবদানকারীর তথ্য"
+  },
+  assign_contributor: {
+    en: "Assign Contributor",
+    bn: "অবদানকারী অ্যাসাইন করুন"
+  },
+  choose_contributor: {
+    en: "Choose Contributor",
+    bn: "অবদানকারী নির্বাচন করুন"
+  },
+  new_contributor: {
+    en: "Add New Contributor",
+    bn: "নতুন অবদানকারী যোগ করুন"
+  },
+  no_contributor: {
+    en: "No Contributor (None)",
+    bn: "কোনো অবদানকারী নেই"
+  },
+  contributed_by: {
+    en: "Contributed by",
+    bn: "নম্বরটি যুক্ত করেছেন"
   },
 } as const;
 

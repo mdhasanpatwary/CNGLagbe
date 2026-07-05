@@ -24,7 +24,7 @@ export default function UserLogin() {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/user";
+  const redirect = searchParams.get("redirect") || "/";
   const { t } = useLang();
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);

@@ -19,7 +19,8 @@ import {
   RechargeModal, 
   TabNavigation, 
   AdminTab,
-  DriverHistoryModal
+  DriverHistoryModal,
+  ContributedDriverEditModal
 } from "./components/shared";
 import { Settings as SettingsIcon } from "lucide-react";
 
@@ -119,7 +120,27 @@ export default function AdminDashboard() {
     setContributedFilter,
     handleApproveContributedDriver,
     handleDeleteContributedDriver,
+    handleUpdateContributedDriver,
+    isContributedEditModalOpen,
+    setIsContributedEditModalOpen,
+    editingContributedDriverData,
+    setEditingContributedDriverData,
   } = useAdminDashboard();
+
+  const contributors = Array.from(
+    new Map(
+      contributedDrivers
+        .filter((d) => d.contributorPhone)
+        .map((d) => [
+          d.contributorPhone,
+          {
+            name: d.contributorName || "",
+            phone: d.contributorPhone || "",
+            photoUrl: d.contributorPhotoUrl || null,
+          },
+        ])
+    ).values()
+  );
 
   const tabs = [
     { id: "overview" as const, label: t("overview"), icon: Activity },
@@ -238,6 +259,10 @@ export default function AdminDashboard() {
             setFilter={setContributedFilter}
             onApprove={handleApproveContributedDriver}
             onDelete={handleDeleteContributedDriver}
+            onEdit={(driver) => {
+              setEditingContributedDriverData(driver);
+              setIsContributedEditModalOpen(true);
+            }}
             t={t}
           />
         )}
@@ -325,6 +350,15 @@ export default function AdminDashboard() {
         isOpen={isHistoryModalOpen}
         onOpenChange={setIsHistoryModalOpen}
         driver={historyDriver}
+      />
+      <ContributedDriverEditModal
+        isOpen={isContributedEditModalOpen}
+        onClose={() => setIsContributedEditModalOpen(false)}
+        driver={editingContributedDriverData}
+        bazars={bazars.map((b) => b.name)}
+        contributors={contributors}
+        onUpdate={handleUpdateContributedDriver}
+        onSuccess={() => {}}
       />
     </div>
   );

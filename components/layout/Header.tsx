@@ -3,13 +3,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { LogOut, User, ChevronLeft, RefreshCcw, Navigation, Settings, UserCircle, History, Wallet, LayoutDashboard } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { LogOut, User, ChevronLeft, RefreshCcw, Navigation, UserCircle, Wallet } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppButton } from "@/components/ui/AppButton";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLang } from "@/hooks/useLang";
 import { cn } from "@/lib/utils";
-import { isConfiguredProductionHost } from "@/lib/subdomain";
+
 
 import { User as UserType } from "@/lib/types/user";
 
@@ -43,23 +44,18 @@ export function Header({
   const { t } = useLang();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const [isConfiguredHost, setIsConfiguredHost] = useState(false);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const host = window.location.host;
-      setTimeout(() => {
-        setIsConfiguredHost(isConfiguredProductionHost(host));
-      }, 0);
-    }
-  }, []);
 
-  const showLogin = !isConfiguredHost || process.env.NODE_ENV !== "production";
+  const showLogin = process.env.NODE_ENV !== "production";
 
   const isDriver = role === "driver";
   const isAdmin = role === "admin";
   const isFloating = variant === "floating";
   const isFixed = variant === "fixed";
+
+  const pathname = usePathname();
+  const isProfilePage = pathname === "/profile" || pathname === "/driver/profile";
+  const logoHref = isProfilePage ? "/" : (isDriver ? "/driver" : isAdmin ? "/admin" : user ? "/user" : "/");
 
   // Close menu on click outside
   useEffect(() => {
@@ -104,7 +100,7 @@ export function Header({
 
 
         <div className="flex items-center gap-3">
-          <Link href={isDriver ? "/driver" : isAdmin ? "/admin" : user ? "/user" : "/"} className="flex items-center gap-2 group">
+          <Link href={logoHref} className="flex items-center gap-2 group">
             <div className="flex items-center group-hover:opacity-80 transition-opacity h-9 md:h-11">
               <Image
                 src={logoSrc}
@@ -210,20 +206,6 @@ export function Header({
 
                   {/* Menu Items */}
                   <div className="p-1.5">
-                    {(isDriver || (!isDriver && !isAdmin)) && (
-                      <Link
-                        href={isDriver ? "/driver" : "/user"}
-                        onClick={() => setIsMenuOpen(false)}
-                        className={cn(
-                          "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-colors group text-primary min-h-[44px]",
-                          effectiveTheme === "primary" || effectiveTheme === "dark" ? "hover:bg-white/10" : "hover:bg-primary/5"
-                        )}
-                      >
-                        <LayoutDashboard size={18} className="opacity-100" />
-                        <span>{t("dashboard")}</span>
-                      </Link>
-                    )}
-
                     {isDriver && (
                       <Link
                         href="/driver/wallet"
@@ -248,32 +230,6 @@ export function Header({
                     >
                       <UserCircle size={18} className="opacity-60 group-hover:opacity-100 transition-opacity" />
                       <span>{t("profile")}</span>
-                    </Link>
-
-                    {!isDriver && !isAdmin && (
-                      <Link
-                        href="/user/history"
-                        onClick={() => setIsMenuOpen(false)}
-                        className={cn(
-                          "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-colors group min-h-[44px]",
-                          effectiveTheme === "primary" || effectiveTheme === "dark" ? "hover:bg-white/10" : "hover:bg-slate-100"
-                        )}
-                      >
-                        <History size={18} className="opacity-60 group-hover:opacity-100 transition-opacity" />
-                        <span>{t("booking_history")}</span>
-                      </Link>
-                    )}
-
-                    <Link
-                      href={isDriver ? "/driver/profile" : "/profile"} // Fallback to profile for now as settings is usually inside
-                      onClick={() => setIsMenuOpen(false)}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-colors group min-h-[44px]",
-                        effectiveTheme === "primary" || effectiveTheme === "dark" ? "hover:bg-white/10" : "hover:bg-slate-100"
-                      )}
-                    >
-                      <Settings size={18} className="opacity-60 group-hover:opacity-100 transition-opacity" />
-                      <span>{t("settings")}</span>
                     </Link>
 
                     <div className={cn(

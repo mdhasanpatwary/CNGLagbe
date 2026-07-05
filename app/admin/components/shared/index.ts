@@ -4,3 +4,4 @@ export * from "./TabNavigation";
 export * from "./RechargeModal";
 export * from "./DriverManagementModal";
 export * from "./DriverHistoryModal";
+export * from "./ContributedDriverEditModal";

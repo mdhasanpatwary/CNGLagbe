@@ -26,6 +26,9 @@ export interface ContributedDriver {
   isApproved: boolean;
   createdAt: string;
   updatedAt: string;
+  contributorName?: string | null;
+  contributorPhone?: string | null;
+  contributorPhotoUrl?: string | null;
 }
 
 interface SystemSetting {
@@ -104,6 +107,8 @@ export function useAdminDashboard() {
   const [contributedDrivers, setContributedDrivers] = useState<ContributedDriver[]>([]);
   const [contributedSearch, setContributedSearch] = useState("");
   const [contributedFilter, setContributedFilter] = useState("all");
+  const [isContributedEditModalOpen, setIsContributedEditModalOpen] = useState(false);
+  const [editingContributedDriverData, setEditingContributedDriverData] = useState<ContributedDriver | null>(null);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -532,6 +537,22 @@ export function useAdminDashboard() {
     }
   };
 
+  const handleUpdateContributedDriver = async (id: string, data: Partial<ContributedDriver>) => {
+    const res = await fetch(`/api/admin/contributed-drivers/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      setContributedDrivers(prev => prev.map(d => d.id === id ? updated : d));
+      return true;
+    } else {
+      const errorData = await res.json();
+      throw new Error(errorData.error || "Failed to update driver");
+    }
+  };
+
   const handleApproveBazar = async (id: string) => {
     try {
       const res = await fetch(`/api/bazars/${id}`, {
@@ -696,6 +717,11 @@ export function useAdminDashboard() {
     setContributedFilter,
     handleApproveContributedDriver,
     handleDeleteContributedDriver,
+    handleUpdateContributedDriver,
+    isContributedEditModalOpen,
+    setIsContributedEditModalOpen,
+    editingContributedDriverData,
+    setEditingContributedDriverData,
     handleApproveBazar,
   };
 }
