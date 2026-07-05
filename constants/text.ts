@@ -411,7 +411,7 @@ export const TEXT = {
   loc_paused: { en: "Location paused", bn: "লোকেশন বন্ধ" },
 
   /* ── Landing Page: Hero ─────────────────────────────────────────────── */
-  hero_headline: { en: "On-time CNG Booking Service in Chhagalnaiya", bn: "ছাগলনাইয়ায় অন-টাইম সিএনজি বুকিং সার্ভিস" },
+  hero_headline: { en: "On-time CNG Booking Service in Feni", bn: "ফেনীতে অন-টাইম সিএনজি বুকিং সার্ভিস" },
   hero_sub: { en: "Fast Pickup • Fixed Fare • Reliable Local Dispatch Network", bn: "দ্রুত পিকআপ • ফিক্সড ভাড়া • নির্ভরযোগ্য লোকাল নেটওয়ার্ক" },
   hero_book_now: { en: "Call to Book", bn: "ফোনে বুক করুন" },
   hero_pickup_ph: { en: "Your pickup location", bn: "কোথায় আছেন?" },
@@ -434,7 +434,7 @@ export const TEXT = {
   or_text: { en: "or", bn: "অথবা" },
 
   /* ── Landing Page: Local Trust ───────────────────────────────────────── */
-  trust_title: { en: "For the People of Chhagalnaiya", bn: "ছাগলনাইয়া মানুষের জন্য" },
+  trust_title: { en: "For the People of Feni", bn: "ফেনীর মানুষের জন্য" },
   trust_local_drivers: { en: "Our drivers are from this very area", bn: "আমাদের ড্রাইভাররা এই এলাকারই" },
   trust_familiar_roads: { en: "Fast service on roads you know well", bn: "আপনার পরিচিত রাস্তায় দ্রুত সার্ভিস" },
   trust_reliable: { en: "Trustworthy and safe travel", bn: "বিশ্বাসযোগ্য ও নিরাপদ যাতায়াত" },

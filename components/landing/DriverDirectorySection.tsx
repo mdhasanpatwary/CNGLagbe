@@ -13,6 +13,7 @@ import { useLang } from "@/hooks/useLang";
 import { TextKey } from "@/constants/text";
 import { Section } from "@/components/ui/Section";
 import { SearchableBazarSelect } from "@/components/ui/SearchableBazarSelect";
+import Image from "next/image";
 
 interface ContributedDriver {
   id: string;
@@ -350,11 +351,14 @@ export function DriverDirectorySection() {
                       ? (t("vehicle_cng" as TextKey) || "CNG")
                       : (t("vehicle_toto" as TextKey) || "Toto / Auto Rickshaw");
                     const isSelected = watchedVehicleType === type;
+                    const imgSrc = type === "TOTO"
+                      ? "/images/toto_watermark.avif"
+                      : "/images/cng_watermark.png";
                     return (
                       <label
                         key={type}
-                        className={`flex-1 flex items-center justify-center gap-2 p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-200 text-center font-bold text-sm select-none ${isSelected
-                          ? "border-primary bg-emerald-50/40 text-emerald-800"
+                        className={`flex-1 flex items-center justify-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 font-bold text-sm select-none ${isSelected
+                          ? "border-primary bg-emerald-50/30 text-emerald-800 shadow-sm"
                           : "border-slate-200 hover:border-slate-300 text-slate-600 hover:bg-slate-50/50"
                           }`}
                       >
@@ -364,7 +368,18 @@ export function DriverDirectorySection() {
                           className="sr-only"
                           {...register("vehicleType")}
                         />
-                        <span>{label}</span>
+                        <div className={`relative w-8 h-8 flex items-center justify-center rounded-lg p-1 transition-transform duration-200 ${
+                          isSelected ? "scale-110 bg-white shadow-sm" : "opacity-80"
+                        }`}>
+                          <Image
+                            src={imgSrc}
+                            alt={type}
+                            width={24}
+                            height={24}
+                            className="object-contain"
+                          />
+                        </div>
+                        <span className="leading-tight">{label}</span>
                       </label>
                     );
                   })}

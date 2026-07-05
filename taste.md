@@ -254,6 +254,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
   - **Prisma & Schema:** The `ContributedDriver` model tracks `vehicleType` (with default `"CNG"`). The schema is validated using `vehicleType: z.enum(["CNG", "TOTO"]).default("CNG")` in `contributedDriverSchema`.
   - **UI Segmented Filter & Badges:** A segmented picker (All / CNG / Toto) allows filtering of drivers. Driver cards display customized, color-coded badges indicating their vehicle type (emerald for CNG, blue for Toto). Native `<button>` elements are avoided in favor of the design system's `<AppButton>`.
   - **Form modal selector:** The addition modal displays an interactive selector to choose the vehicle type.
+    - **Image Icons:** Vehicle image icons (green CNG / yellow-blue Toto) are displayed next to the text labels. When selected, the icons scale smoothly (`scale-110`) and gain a white background container with a subtle shadow, while non-selected options are styled with a clean `opacity-80` state.
   - **Admin Dashboard Table:** Added a "Vehicle" column to the admin's Contributed Drivers table for review.
   - **Localization:** All labels use keys registered in the central `TEXT` translation dictionary to satisfy the "No Hardcoded Strings" rule.
   - **Address Fallback:** If the driver's address is empty or null, the UI dynamically displays the driver's nearby bazar (`nearbyBazar`) in place of the address on both the landing page directory cards and the admin dashboard contributed drivers table to ensure information is never blank.
