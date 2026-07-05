@@ -4,7 +4,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
@@ -35,14 +35,14 @@ export async function generateMetadata(): Promise<Metadata> {
   const host = headersList.get("host");
   const role = getAppRole(host);
   const isDriver = role === "driver";
-  
+
   const baseUrl = "https://www.cnglagbe.com";
   const fullTitle = isDriver
     ? "CNGLagbe Driver | Manage Your Bookings"
-    : "CNG Booking in Chhagalnaiya | Fast, Fixed Fare, Local Service";
+    : "CNG Booking in Feni | Fast, Fixed Fare, Local Service";
   const fullDescription = isDriver
     ? "Manage your CNG bookings — accept requests, navigate, and track your earnings."
-    : "Book CNG instantly in Chhagalnaiya. 100+ local drivers, fixed fare, fast pickup. Cash payment available. CNG near me.";
+    : "Book CNG instantly in Feni. 100+ local drivers, fixed fare, fast pickup. Cash payment available. CNG near me.";
 
   return {
     metadataBase: new URL(baseUrl),
@@ -57,7 +57,7 @@ export async function generateMetadata(): Promise<Metadata> {
     manifest: "/manifest.json",
     keywords: isDriver
       ? ["CNG driver", "CNGLagbe", "booking service Bangladesh", "driver app", "CNG app"]
-      : ["CNG booking Chhagalnaiya", "local CNG", "CNG near me", "fixed fare CNG", "ছাগলনাইয়া CNG", "সিএনজি বুকিং", "Chhagalnaiya transport", "Feni CNG"],
+      : ["CNG booking Feni", "local CNG", "CNG near me", "fixed fare CNG", "ছাগলনাইয়া CNG", "সিএনজি বুকিং", "Feni transport", "Feni CNG"],
     appleWebApp: {
       capable: true,
       title: isDriver ? "CNG Driver" : "CNGLagbe",

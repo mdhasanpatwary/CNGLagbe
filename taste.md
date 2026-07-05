@@ -50,6 +50,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Design System Tokens:** Prioritize using design system tokens (e.g., `primary`, `secondary`, `primary-foreground`) over hardcoded Tailwind color classes (e.g., `emerald-500`). This ensures that if the brand color changes, it can be updated in a single place (`globals.css`) rather than across hundreds of files.
 - **Header Logo Purity:** The header logo should stand alone without additional identifying text (like "Admin Dashboard") next to it, maintaining a clean and minimalist brand presence across all panels.
 - **Bangladesh CNG Color Consistency:** Bangladesh CNGs are culturally and legally recognized by their green color. To maintain authenticity and trust, all CNG vehicle assets (icons, illustrations, 3D models) used in the application MUST be full-body green.
+- **PWA Manifest App Icons:** The dynamic PWA manifests (`app/manifest.json/route.ts`) serve roles-specific PNG logo icons of size `1024x1024` with maskable purpose: `/user_app_icon.png` for the user domain and `/driver_app_icon.png` for the driver domain, ensuring branding consistency and correct installation assets. (Added 2026-07-06)
 - **UI Checklist:** Before implementing any UI, verify compliance with the checklist in [/docs/ui-rules.md](file:///Users/patwary/Projects/CNGLagbe/docs/ui-rules.md).
 
 ## ⚙️ Performance & Database
@@ -70,7 +71,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Animated Driver Count:** An animated green pulsing dot with "১০০+ ড্রাইভার সক্রিয়" must appear at the top of the hero to signal live service.
 - **Popular Routes Section:** Quick-tap route cards (Bazar→Hospital, Home→School, etc.) directly call `handleBookNow`, giving users a fast path to booking.
 - **FAQ Accordion:** The FAQ section uses a client-side accordion (no library) for SEO and UX. Questions are in Bangla-first, answers explain cash payment clearly.
-- **Service Area SEO Block:** A dark section includes visible keywords ("CNG booking in Chhagalnaiya", "local CNG service", "CNG near me") for Google and AI search indexing.
+- **Service Area SEO Block:** A dark section includes visible keywords ("CNG booking in Feni", "local CNG service", "CNG near me") for Google and AI search indexing.
 - **Text Dictionary Compliance:** All landing page text lives in `constants/text.ts`. No hardcoded Bangla/English strings in `page.tsx`.
 - **Testimonials Localization:** Testimonials in `app/page.tsx` are fully localized via `constants/text.ts`.
 - **React.cloneElement Typing:** When using `React.cloneElement` with dynamic icons, always cast the element to `React.ReactElement<any>` to ensure compatibility with additional props like `className`.

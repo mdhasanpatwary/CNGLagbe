@@ -213,7 +213,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 z-0">
             <Image
               src="/hero_bg.png"
-              alt="Cinematic background showing a CNG auto-rickshaw on a road in Chhagalnaiya"
+              alt="Cinematic background showing a CNG auto-rickshaw on a road in Feni"
               fill
               sizes="100vw"
               priority
@@ -804,9 +804,9 @@ export default function LandingPage() {
       {/* ── STICKY BOTTOM CTA (mobile) ────────────────────────────────────── */}
       <motion.div
         initial={{ y: 100, opacity: 0 }}
-        animate={{ 
-          y: showStickyCTA ? 0 : 100, 
-          opacity: showStickyCTA ? 1 : 0 
+        animate={{
+          y: showStickyCTA ? 0 : 100,
+          opacity: showStickyCTA ? 1 : 0
         }}
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 p-3 sm:p-4 bg-white/90 backdrop-blur-xl border-t border-slate-100 shadow-2xl safe-area-bottom"

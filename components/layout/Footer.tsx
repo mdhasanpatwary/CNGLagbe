@@ -65,7 +65,7 @@ export function Footer({ showMobileCTAOffset, className }: FooterProps) {
             <div className="flex items-center mb-6">
               <Image
                 src="/logo_white.png"
-                alt="CNGLagbe logo - On-time CNG booking service for Chhagalnaiya"
+                alt="CNGLagbe logo - On-time CNG booking service for Feni"
                 width={300}
                 height={80}
                 sizes="(max-width: 768px) 300px, 300px"

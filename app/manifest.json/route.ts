@@ -41,27 +41,17 @@ export async function GET(request: Request) {
     theme_color: COLORS.primary,
     icons: isDriver ? [
       {
-        src: "/icons/driver-icon-512.svg",
-        sizes: "512x512",
-        type: "image/svg+xml",
+        src: "/driver_app_icon.png",
+        sizes: "1024x1024",
+        type: "image/png",
         purpose: "any maskable"
-      },
-      {
-        src: "/icon.png",
-        sizes: "512x512",
-        type: "image/png"
       }
     ] : [
       {
-        src: "/icons/user-icon-512.svg",
-        sizes: "512x512",
-        type: "image/svg+xml",
+        src: "/user_app_icon.png",
+        sizes: "1024x1024",
+        type: "image/png",
         purpose: "any maskable"
-      },
-      {
-        src: "/icon.png",
-        sizes: "512x512",
-        type: "image/png"
       }
     ]
   };
