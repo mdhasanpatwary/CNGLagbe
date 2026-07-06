@@ -829,7 +829,7 @@ export const TEXT = {
   },
   add_driver_local: {
     en: "Add Driver",
-    bn: "আপনার এলাকার ড্রাইভার যুক্ত করুন"
+    bn: "ড্রাইভার যোগ করুন"
   },
   contribute_title: {
     en: "Contribute Driver Information",
@@ -990,6 +990,14 @@ export const TEXT = {
   contributed_by: {
     en: "Contributed by",
     bn: "নম্বরটি যুক্ত করেছেন"
+  },
+  clear_all: {
+    en: "Clear All",
+    bn: "ফিল্টার মুছুন"
+  },
+  search_label: {
+    en: "Search",
+    bn: "অনুসন্ধান"
   },
 } as const;
 

@@ -55,7 +55,8 @@ export function Header({
 
   const pathname = usePathname();
   const isProfilePage = pathname === "/profile" || pathname === "/driver/profile";
-  const logoHref = isProfilePage ? "/" : (isDriver ? "/driver" : isAdmin ? "/admin" : user ? "/user" : "/");
+  const isDirectoryPage = pathname === "/directory";
+  const logoHref = isProfilePage || isDirectoryPage ? "/" : (isDriver ? "/driver" : isAdmin ? "/admin" : user ? "/user" : "/");
 
   // Close menu on click outside
   useEffect(() => {

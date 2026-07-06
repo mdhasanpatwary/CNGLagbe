@@ -5,6 +5,11 @@ import { contributedDriverSchema } from "@/lib/schemas/contributed-driver";
 import { getSystemSetting } from "@/lib/settings";
 import { getAuthUser, signToken, setAuthCookie } from "@/lib/auth";
 import { normalizePhone } from "@/lib/utils";
+import { createHash } from "crypto";
+
+function getPhoneHash(phone: string): string {
+  return createHash("sha256").update(phone).digest("hex");
+}
 
 export async function GET(request: Request) {
   try {
@@ -13,6 +18,7 @@ export async function GET(request: Request) {
     const search = searchParams.get("search");
     const vehicleType = searchParams.get("vehicleType");
     const limitParam = searchParams.get("limit");
+    const contributorHash = searchParams.get("contributorHash");
 
     const where: Prisma.ContributedDriverWhereInput = { isApproved: true };
 
@@ -30,6 +36,22 @@ export async function GET(request: Request) {
         { phone: { contains: search } },
         { address: { contains: search, mode: "insensitive" } },
       ];
+    }
+
+    if (contributorHash) {
+      const distinctContributors = await prisma.contributedDriver.findMany({
+        where: { isApproved: true, contributorPhone: { not: null } },
+        select: { contributorPhone: true },
+        distinct: ["contributorPhone"],
+      });
+      const match = distinctContributors.find(
+        (c) => c.contributorPhone && getPhoneHash(c.contributorPhone) === contributorHash
+      );
+      if (match) {
+        where.contributorPhone = match.contributorPhone;
+      } else {
+        where.contributorPhone = "non-existent-phone";
+      }
     }
 
     const pageParam = searchParams.get("page");
@@ -60,7 +82,16 @@ export async function GET(request: Request) {
       ...(skip !== undefined ? { skip } : {}),
     });
 
-    return NextResponse.json(drivers);
+    // Strip raw contributorPhone for privacy and include contributorHash
+    const safeDrivers = drivers.map((d) => {
+      const { contributorPhone, ...rest } = d;
+      return {
+        ...rest,
+        contributorHash: contributorPhone ? getPhoneHash(contributorPhone) : null,
+      };
+    });
+
+    return NextResponse.json(safeDrivers);
   } catch (error) {
     console.error("Fetch contributed drivers error:", error);
     return NextResponse.json({ error: "Failed to fetch drivers" }, { status: 500 });

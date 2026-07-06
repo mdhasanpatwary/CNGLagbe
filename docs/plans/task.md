@@ -1,5 +1,7 @@
 | Task ID | Task Description | Status |
 |---|---|---|
-| Task 1 | Update API Route to Support Page Offset | [x] Completed |
-| Task 2 | Refactor DriverDirectorySection Pagination Logic | [x] Completed |
-| Task 3 | Implement Intersection Observer UI & Loading indicators | [x] Completed |
+| Task 1 | Update Translation Key in text.ts | [x] Completed |
+| Task 2 | Add size support to SearchableBazarSelect | [x] Completed |
+| Task 3 | Adjust Filters layout and heights in DriverDirectorySection | [x] Completed |
+| Task 4 | Polish Leaderboard and Driver Cards | [x] Completed |
+| Task 5 | Verification & Cleanup | [x] Completed |

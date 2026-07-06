@@ -26,7 +26,7 @@ interface ContributedDriver {
   nearbyBazar: string | null;
   vehicleType: string;
   contributorName?: string | null;
-  contributorPhone?: string | null;
+  contributorHash?: string | null;
   contributorPhotoUrl?: string | null;
 }
 
@@ -35,6 +35,7 @@ interface LeaderboardEntry {
   phone: string;
   photoUrl: string | null;
   count: number;
+  hash: string;
 }
 
 interface DriverDirectorySectionProps {
@@ -55,6 +56,7 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
   const [hasMore, setHasMore] = useState(true);
   const [isFetchingNext, setIsFetchingNext] = useState(false);
   const observerRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Leaderboard states
   const [activeTab, setActiveTab] = useState<"DRIVERS" | "LEADERBOARD">("DRIVERS");
@@ -62,6 +64,7 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
   const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [selectedContributor, setSelectedContributor] = useState<{ name: string; hash: string } | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -161,7 +164,7 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
   }, [activeTab, fetchLeaderboard]);
 
   // Fetch Drivers based on filters
-  const fetchDrivers = useCallback(async (pageNum: number) => {
+  const fetchDrivers = useCallback(async (pageNum: number, signal?: AbortSignal) => {
     if (pageNum === 1) {
       setIsLoading(true);
     } else {
@@ -173,6 +176,7 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
       if (selectedBazar !== "ALL") params.append("bazar", selectedBazar);
       if (selectedVehicleType !== "ALL") params.append("vehicleType", selectedVehicleType);
       if (searchQuery) params.append("search", searchQuery);
+      if (selectedContributor) params.append("contributorHash", selectedContributor.hash);
 
       if (isLanding) {
         params.append("limit", "10");
@@ -182,7 +186,7 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
         params.append("page", pageNum.toString());
       }
 
-      const res = await fetch(`/api/contributed-drivers?${params.toString()}`);
+      const res = await fetch(`/api/contributed-drivers?${params.toString()}`, { signal });
       if (res.ok) {
         const data = await res.json();
         if (isLanding) {
@@ -198,12 +202,16 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
         }
       }
     } catch (e) {
-      console.error(e);
+      if (e instanceof Error && e.name !== "AbortError") {
+        console.error(e);
+      }
     } finally {
-      setIsLoading(false);
-      setIsFetchingNext(false);
+      if (!signal || !signal.aborted) {
+        setIsLoading(false);
+        setIsFetchingNext(false);
+      }
     }
-  }, [selectedBazar, selectedVehicleType, searchQuery, isLanding]);
+  }, [selectedBazar, selectedVehicleType, searchQuery, isLanding, selectedContributor]);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -221,15 +229,31 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
   useEffect(() => {
     setPage(1);
     setHasMore(true);
-  }, [selectedBazar, selectedVehicleType, searchQuery]);
+  }, [selectedBazar, selectedVehicleType, searchQuery, selectedContributor]);
 
   // Fetch drivers on page or filter changes
   useEffect(() => {
-    const handler = setTimeout(() => {
-      fetchDrivers(page);
-    }, 300);
-    return () => clearTimeout(handler);
-  }, [page, selectedBazar, selectedVehicleType, searchQuery, fetchDrivers]);
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    let handler: NodeJS.Timeout;
+
+    if (page === 1) {
+      handler = setTimeout(() => {
+        fetchDrivers(1, controller.signal);
+      }, 300);
+    } else {
+      fetchDrivers(page, controller.signal);
+    }
+
+    return () => {
+      if (handler) clearTimeout(handler);
+      controller.abort();
+    };
+  }, [page, selectedBazar, selectedVehicleType, searchQuery, selectedContributor, fetchDrivers]);
 
   // Setup Intersection Observer for Infinite Scroll
   useEffect(() => {
@@ -316,7 +340,7 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
           <AppButton
             onClick={() => setIsSubmitModalOpen(true)}
             leftIcon={<Plus className="w-5 h-5" />}
-            className="h-12 px-6 rounded-xl bg-primary hover:bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-500/10 hover:shadow-emerald-600/20 transition-all shrink-0 self-start md:self-end"
+            className="w-full sm:w-auto h-12 px-6 rounded-xl bg-primary hover:bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-500/10 hover:shadow-emerald-600/20 transition-all shrink-0"
           >
             {t("add_driver_local" as TextKey) || "Add Driver"}
           </AppButton>
@@ -327,11 +351,10 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
           <AppButton
             variant="ghost"
             onClick={() => setActiveTab("DRIVERS")}
-            className={`pb-3 rounded-none border-b-2 hover:bg-transparent transition-all font-bold text-sm sm:text-base ${
-              activeTab === "DRIVERS"
+            className={`pb-3 rounded-none border-b-2 hover:bg-transparent transition-all font-bold text-sm sm:text-base ${activeTab === "DRIVERS"
                 ? "text-primary border-primary"
                 : "text-slate-500 border-transparent hover:text-slate-800"
-            }`}
+              }`}
           >
             {t("tab_all_drivers" as TextKey) || "Drivers List"}
           </AppButton>
@@ -339,11 +362,10 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
             variant="ghost"
             onClick={() => setActiveTab("LEADERBOARD")}
             leftIcon={<Trophy className="w-4.5 h-4.5 text-amber-500" />}
-            className={`pb-3 rounded-none border-b-2 hover:bg-transparent transition-all font-bold text-sm sm:text-base ${
-              activeTab === "LEADERBOARD"
+            className={`pb-3 rounded-none border-b-2 hover:bg-transparent transition-all font-bold text-sm sm:text-base ${activeTab === "LEADERBOARD"
                 ? "text-primary border-primary"
                 : "text-slate-500 border-transparent hover:text-slate-800"
-            }`}
+              }`}
           >
             {t("tab_leaderboard" as TextKey) || "Leaderboard"}
           </AppButton>
@@ -360,7 +382,7 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t("search_driver_placeholder" as TextKey) || "Search..."}
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium text-slate-900"
+                  className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium text-slate-900 text-base"
                 />
               </div>
               <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
@@ -369,10 +391,11 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
                     value={selectedBazar}
                     onChange={setSelectedBazar}
                     allowAll={true}
+                    size="md"
                   />
                 </div>
                 {/* Vehicle Type Filter */}
-                <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0 select-none w-full sm:w-auto justify-between sm:justify-start">
+                <div className="flex h-12 bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0 select-none w-full sm:w-auto justify-between sm:justify-start items-center">
                   {(["ALL", "CNG", "TOTO"] as const).map((type) => {
                     const isActive = selectedVehicleType === type;
                     const label =
@@ -388,7 +411,7 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
                         variant="ghost"
                         size="sm"
                         onClick={() => setSelectedVehicleType(type)}
-                        className={`flex-1 sm:flex-none h-auto px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 text-center active:scale-100 ${isActive
+                        className={`flex-1 sm:flex-none h-full px-4 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 text-center active:scale-100 ${isActive
                           ? "bg-white text-slate-900 shadow-sm hover:bg-white focus:ring-transparent focus:ring-offset-0"
                           : "text-slate-500 hover:text-slate-700 hover:bg-slate-50/50 focus:ring-transparent focus:ring-offset-0"
                           }`}
@@ -400,6 +423,97 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
                 </div>
               </div>
             </div>
+
+            {/* Active Filters Row */}
+            {(selectedBazar !== "ALL" || selectedVehicleType !== "ALL" || searchQuery !== "" || selectedContributor) && (
+              <div className="flex flex-wrap items-center gap-2 mb-8 select-none">
+                {/* Search Filter Badge */}
+                {searchQuery && (
+                  <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 text-emerald-800 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold shadow-sm animate-in fade-in duration-200">
+                    <span>{t("search_label" as TextKey) || "Search"}: &quot;{searchQuery}&quot;</span>
+                    <AppButton
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSearchQuery("")}
+                      className="h-auto w-auto p-0.5 hover:bg-emerald-100 rounded-full text-emerald-700 bg-transparent flex items-center justify-center focus:ring-0 focus:ring-offset-0 active:scale-95 min-h-0 min-w-0"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </AppButton>
+                  </div>
+                )}
+
+                {/* Bazar Filter Badge */}
+                {selectedBazar !== "ALL" && (
+                  <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 text-emerald-800 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold shadow-sm animate-in fade-in duration-200">
+                    <span>{t("nearby_bazar" as TextKey) || "Bazar"}: {selectedBazar}</span>
+                    <AppButton
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedBazar("ALL")}
+                      className="h-auto w-auto p-0.5 hover:bg-emerald-100 rounded-full text-emerald-700 bg-transparent flex items-center justify-center focus:ring-0 focus:ring-offset-0 active:scale-95 min-h-0 min-w-0"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </AppButton>
+                  </div>
+                )}
+
+                {/* Vehicle Type Filter Badge */}
+                {selectedVehicleType !== "ALL" && (
+                  <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 text-emerald-800 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold shadow-sm animate-in fade-in duration-200">
+                    <span>
+                      {t("vehicle_type" as TextKey) || "Vehicle"}:{" "}
+                      {selectedVehicleType === "TOTO"
+                        ? (t("vehicle_toto" as TextKey) || "Toto")
+                        : (t("vehicle_cng" as TextKey) || "CNG")}
+                    </span>
+                    <AppButton
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedVehicleType("ALL")}
+                      className="h-auto w-auto p-0.5 hover:bg-emerald-100 rounded-full text-emerald-700 bg-transparent flex items-center justify-center focus:ring-0 focus:ring-offset-0 active:scale-95 min-h-0 min-w-0"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </AppButton>
+                  </div>
+                )}
+
+                {/* Contributor Filter Badge */}
+                {selectedContributor && (
+                  <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 text-emerald-800 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold shadow-sm animate-in fade-in duration-200">
+                    <span>{t("contributed_by" as TextKey) || "Contributor"}: {selectedContributor.name}</span>
+                    <AppButton
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedContributor(null)}
+                      className="h-auto w-auto p-0.5 hover:bg-emerald-100 rounded-full text-emerald-700 bg-transparent flex items-center justify-center focus:ring-0 focus:ring-offset-0 active:scale-95 min-h-0 min-w-0"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </AppButton>
+                  </div>
+                )}
+
+                {/* Clear All Button */}
+                <AppButton
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedBazar("ALL");
+                    setSelectedVehicleType("ALL");
+                    setSelectedContributor(null);
+                  }}
+                  className="h-auto w-auto px-2 py-1 text-xs sm:text-sm font-bold text-slate-500 hover:text-primary hover:bg-transparent hover:underline bg-transparent active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0"
+                >
+                  {t("clear_all" as TextKey) || "Clear All"}
+                </AppButton>
+              </div>
+            )}
+
 
             {/* Directory List Grid */}
             {isLoading ? (
@@ -423,7 +537,7 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
                     >
                       {/* Background Watermark Image */}
                       <div
-                        className="absolute right-6 top-[56px] w-16 h-16 opacity-[0.5] pointer-events-none transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 bg-contain bg-no-repeat bg-right-top"
+                        className="absolute right-6 top-[56px] w-16 h-16 opacity-[0.25] md:opacity-[0.5] pointer-events-none transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 bg-contain bg-no-repeat bg-right-top"
                         style={{
                           backgroundImage: `url(${driver.vehicleType === "TOTO"
                             ? "/images/toto_watermark.avif"
@@ -434,10 +548,10 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
                       <div>
                         <div className="flex items-start justify-between gap-4 mb-3">
                           <div>
-                            <h4 className="text-lg font-bold text-slate-900 group-hover:text-primary transition-colors leading-tight mb-1">
+                            <h4 className="text-base md:text-lg font-bold text-slate-900 group-hover:text-primary transition-colors leading-tight mb-1">
                               {driver.name}
                             </h4>
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase ${driver.vehicleType === "TOTO"
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase ${driver.vehicleType === "TOTO"
                               ? "bg-blue-50 text-blue-700 border border-blue-100"
                               : "bg-emerald-50 text-emerald-700 border border-emerald-100"
                               }`}>
@@ -446,23 +560,48 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
                                 : (t("vehicle_cng" as TextKey) || "CNG")}
                             </span>
                           </div>
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200/60 shrink-0">
-                            {driver.nearbyBazar}
-                          </span>
+                          {driver.nearbyBazar && (
+                            <AppButton
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSelectedBazar(driver.nearbyBazar || "ALL")}
+                              className="h-auto w-auto inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200/60 hover:bg-slate-200 hover:text-slate-800 transition-colors shrink-0 active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0"
+                            >
+                              {driver.nearbyBazar}
+                            </AppButton>
+                          )}
                         </div>
-                        <p className={`text-sm text-slate-500 flex items-center gap-1.5 ${driver.contributorName ? "mb-2" : "mb-4"}`}>
+                        <p className={`text-xs sm:text-sm text-slate-500 flex items-center gap-1.5 ${driver.contributorName ? "mb-2" : "mb-4"}`}>
                           <MapPin className="w-4 h-4 text-slate-400" />
                           <span>{driver.address || driver.nearbyBazar || "—"}</span>
                         </p>
                         {driver.contributorName && (
-                          <p className="text-xs text-slate-400 mb-4 flex items-center gap-1 pl-[22px]">
+                          <p className="text-xs text-slate-400 mb-4 flex items-center gap-1">
                             <span className="font-medium">{t("contributed_by" as TextKey) || "Contributed by"}:</span>
-                            <span className="font-semibold text-slate-600">{driver.contributorName}</span>
+                            {driver.contributorHash ? (
+                              <AppButton
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedContributor({
+                                    name: driver.contributorName || "",
+                                    hash: driver.contributorHash || "",
+                                  });
+                                }}
+                                className="h-auto w-auto p-0 font-semibold text-slate-600 hover:text-primary hover:bg-transparent hover:underline transition-colors text-left active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0"
+                              >
+                                {driver.contributorName}
+                              </AppButton>
+                            ) : (
+                              <span className="font-semibold text-slate-600">{driver.contributorName}</span>
+                            )}
                           </p>
                         )}
                       </div>
                       <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-1.5 font-mono text-slate-700 font-bold text-base">
+                        <div className="flex items-center gap-1.5 font-mono text-slate-700 font-bold text-sm sm:text-base">
                           <Phone className="w-4 h-4 text-slate-400" />
                           <span>{driver.phone}</span>
                         </div>
@@ -538,7 +677,8 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
                         ? "bg-orange-100 text-orange-700 border border-orange-200"
                         : "bg-slate-50 text-slate-500 border border-slate-100";
 
-                const initials = entry.name.slice(0, 1).toUpperCase();
+                const safeName = entry.name || "Anonymous";
+                const initials = safeName.slice(0, 1).toUpperCase() || "?";
 
                 const colors = [
                   "bg-emerald-100 text-emerald-800",
@@ -548,41 +688,54 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
                   "bg-amber-100 text-amber-800",
                   "bg-indigo-100 text-indigo-800"
                 ];
-                const colorIndex = entry.name.charCodeAt(0) % colors.length;
+                const charCode = safeName.charCodeAt(0);
+                const colorIndex = isNaN(charCode) ? 0 : charCode % colors.length;
                 const avatarColor = colors[colorIndex];
 
                 return (
-                  <div
+                  <AppButton
                     key={entry.phone}
-                    className="flex items-center justify-between p-5 hover:bg-slate-50/50 transition-colors"
+                    type="button"
+                    variant="ghost"
+                    size="md"
+                    onClick={() => {
+                      if (entry.hash) {
+                        setSelectedContributor({
+                          name: entry.name,
+                          hash: entry.hash
+                        });
+                        setActiveTab("DRIVERS");
+                      }
+                    }}
+                    className="w-full h-auto p-4 sm:p-5 flex items-center justify-between gap-3 text-slate-900 hover:bg-slate-50/50 transition-colors text-left font-normal bg-transparent active:scale-100 rounded-none focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0"
                   >
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
                       {/* Rank Badge */}
-                      <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${badgeColor}`}>
+                      <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${badgeColor}`}>
                         {rank}
                       </span>
 
                       {/* Profile Picture */}
                       {entry.photoUrl ? (
-                        <div className="relative w-12 h-12 rounded-2xl overflow-hidden border border-slate-100 shrink-0">
+                        <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl overflow-hidden border border-slate-100 shrink-0">
                           <Image
                             src={entry.photoUrl}
                             alt={entry.name}
                             fill
-                            sizes="48px"
+                            sizes="(max-width: 640px) 40px, 48px"
                             className="object-cover"
                           />
                         </div>
                       ) : (
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-extrabold text-lg shadow-inner shrink-0 ${avatarColor}`}>
+                        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center font-extrabold text-sm sm:text-lg shadow-inner shrink-0 ${avatarColor}`}>
                           {initials}
                         </div>
                       )}
 
                       {/* Contributor Name & Masked Phone */}
-                      <div>
-                        <h4 className="font-bold text-slate-900 leading-snug flex items-center gap-2">
-                          {entry.name}
+                      <div className="min-w-0">
+                        <h4 className="font-bold text-slate-900 leading-snug flex items-center gap-1.5 text-sm sm:text-base truncate">
+                          <span className="truncate">{entry.name}</span>
                           {rank === 1 && <Trophy className="w-4 h-4 text-amber-500 fill-amber-500 shrink-0" />}
                         </h4>
                         <p className="text-xs text-slate-400 font-mono font-medium">{entry.phone}</p>
@@ -590,13 +743,13 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
                     </div>
 
                     {/* Contribution Count */}
-                    <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-800 px-3.5 py-1.5 rounded-xl border border-emerald-100/50 font-bold text-xs sm:text-sm">
-                      <Plus className="w-3.5 h-3.5" />
+                    <div className="flex items-center gap-1 bg-emerald-50 text-emerald-800 px-2.5 py-1.5 sm:px-3.5 sm:py-1.5 rounded-xl border border-emerald-100/50 font-bold text-[10px] sm:text-xs md:text-sm shrink-0">
+                      <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                       <span>
                         {entry.count} {t("leaderboard_contributions" as TextKey) || "contributions"}
                       </span>
                     </div>
-                  </div>
+                  </AppButton>
                 );
               })}
             </div>
@@ -691,9 +844,8 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
                           className="sr-only"
                           {...register("vehicleType")}
                         />
-                        <div className={`relative w-8 h-8 flex items-center justify-center rounded-lg p-1 transition-transform duration-200 ${
-                          isSelected ? "scale-110 bg-white shadow-sm" : "opacity-80"
-                        }`}>
+                        <div className={`relative w-8 h-8 flex items-center justify-center rounded-lg p-1 transition-transform duration-200 ${isSelected ? "scale-110 bg-white shadow-sm" : "opacity-80"
+                          }`}>
                           <Image
                             src={imgSrc}
                             alt={type}
@@ -715,7 +867,7 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
                   <Trophy className="w-4 h-4 text-amber-500" />
                   <span>অবদানকারীর তথ্য (Contributor Info)</span>
                 </h4>
-                
+
                 {/* Profile Photo Upload */}
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-slate-700 block">
@@ -802,6 +954,7 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
                 <AppButton
                   type="submit"
                   loading={isSubmitting}
+                  disabled={uploading}
                   className="flex-1 h-12 rounded-xl bg-primary text-white font-bold hover:bg-success shadow-lg transition-all"
                 >
                   {t("submit" as TextKey) || "Submit"}

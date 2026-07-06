@@ -492,12 +492,11 @@ export default function LandingPage() {
           </motion.div>
         </section>
 
-        {/* ── 1.5. WAITLIST ────────────────────────────────────────────────── */}
-        <WaitlistSection />
-
         {/* ── 1.6. DRIVER DIRECTORY ────────────────────────────────────────── */}
         <DriverDirectorySection isLanding={true} />
 
+        {/* ── 1.5. WAITLIST ────────────────────────────────────────────────── */}
+        <WaitlistSection />
 
         {/* ── 2. LOCAL TRUST ───────────────────────────────────────────────── */}
         {/* Note: Gradient overlay is intentional per design spec for subtle visual enhancement */}

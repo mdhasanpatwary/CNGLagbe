@@ -20,6 +20,7 @@ interface SearchableBazarSelectProps {
   label?: string;
   required?: boolean;
   allowAll?: boolean;
+  size?: "sm" | "md" | "lg";
 }
 
 export function SearchableBazarSelect({
@@ -29,6 +30,7 @@ export function SearchableBazarSelect({
   label,
   required,
   allowAll,
+  size = "lg",
 }: SearchableBazarSelectProps) {
   const { t } = useLang();
   const [bazars, setBazars] = useState<Bazar[]>([]);
@@ -121,17 +123,22 @@ export function SearchableBazarSelect({
       <div 
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "h-14 px-4 rounded-2xl border transition-all flex items-center justify-between cursor-pointer text-slate-900 select-none",
+          "px-4 border transition-all flex items-center justify-between cursor-pointer text-slate-900 select-none",
+          size === "sm" ? "h-9 rounded-xl" : size === "md" ? "h-12 rounded-xl" : "h-14 rounded-2xl",
           error ? "bg-red-50/50 border-red-200" : "bg-slate-50 border-slate-200 hover:border-slate-300",
           isOpen && "border-primary bg-white focus:ring-2 focus:ring-primary/20"
         )}
       >
-        <span className={cn("text-lg font-medium", !value && "text-slate-400")}>
+        <span className={cn(
+          "font-medium",
+          size === "sm" ? "text-sm" : size === "md" ? "text-base" : "text-lg",
+          !value && "text-slate-400"
+        )}>
           {value === "ALL"
             ? (t("select_bazar_placeholder" as TextKey) || "All Stand/Bazar")
             : (value || t("select_bazar_placeholder" as TextKey) || "Select Bazar")}
         </span>
-        <ChevronDown className="w-5 h-5 text-slate-400" />
+        <ChevronDown className={cn("text-slate-400", size === "sm" ? "w-4 h-4" : "w-5 h-5")} />
       </div>
 
       {error && (
@@ -142,7 +149,7 @@ export function SearchableBazarSelect({
 
       {/* Dropdown Container */}
       {isOpen && (
-        <div className="absolute top-[80px] left-0 right-0 bg-white border border-slate-200 shadow-2xl rounded-2xl z-50 overflow-hidden animate-in fade-in duration-100 p-2">
+        <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-slate-200 shadow-2xl rounded-2xl z-50 overflow-hidden animate-in fade-in duration-100 p-2">
           {/* Search box inside dropdown */}
           <div className="relative mb-2">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />

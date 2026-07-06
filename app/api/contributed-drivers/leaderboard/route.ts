@@ -1,8 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { createHash } from "crypto";
 
-export async function GET() {
+function getPhoneHash(phone: string): string {
+  return createHash("sha256").update(phone).digest("hex");
+}
+
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const limitParam = searchParams.get("limit");
+    const limit = limitParam ? parseInt(limitParam, 10) : 10;
+
     const approvedContributions = await prisma.contributedDriver.findMany({
       where: {
         isApproved: true,
@@ -19,7 +28,7 @@ export async function GET() {
       },
     });
 
-    const contributorMap = new Map<string, { name: string; phone: string; photoUrl: string | null; count: number }>();
+    const contributorMap = new Map<string, { name: string; phone: string; photoUrl: string | null; count: number; hash: string }>();
 
     for (const contrib of approvedContributions) {
       const phone = contrib.contributorPhone!;
@@ -40,13 +49,17 @@ export async function GET() {
           phone: maskedPhone,
           photoUrl,
           count: 1,
+          hash: getPhoneHash(phone),
         });
       }
     }
 
-    const leaderboard = Array.from(contributorMap.values())
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
+    let leaderboard = Array.from(contributorMap.values())
+      .sort((a, b) => b.count - a.count);
+
+    if (!isNaN(limit) && limit > 0) {
+      leaderboard = leaderboard.slice(0, limit);
+    }
 
     return NextResponse.json(leaderboard);
   } catch (error) {

@@ -96,6 +96,10 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
   - **Footer Layout:** Footer must always match the `max-w-[1200px]` width of other sections for visual alignment.
   - **Phone-Call Booking Transition (2026-06-28):** Direct booking from the website is disabled. Clicking the booking buttons (Hero CTA, Mobile Sticky bottom CTA, Popular Route Pills, and Final CTA) triggers a Call Booking Modal showing hotline `01783721411` with a clipboard copy option and a direct click-to-call link. The mockup form in the Hero section is replaced with a static card displaying the hotline. "How It Works" and FAQs are aligned to explain call booking.
   - **Driver Directory Limit (2026-07-06):** The homepage Driver Directory is limited to displaying a maximum of 9 cards. If the number of matching approved drivers is greater than 9, a "View All Drivers" (সব ড্রাইভার দেখুন) button is rendered at the bottom, linking to a dedicated `/directory` page that renders the full, unfiltered list.
+  - **Driver Directory Optimizations (2026-07-06):** Added AbortController to fetchDrivers to prevent race conditions during rapid search input typing. Decoupled page increments (infinite scroll) from the 300ms debounce timer so that scrolling immediately fetches the next page while search inputs remain debounced. Fixed an avatar rendering crash risk in the leaderboard where blank contributor names would resolve to `NaN` and crash the color index. Fixed the search filter active badge translation key in Bengali from `"কোথায় যাবেন?"` to a proper `"অনুসন্ধান"` label. Added a disabled state to the submit button while photo uploading is in progress to prevent partial submissions.
+  - **Directory Page Logo Link (2026-07-06):** Configured the logo navigation link (`logoHref`) inside the Header component to always point to `/` (the main landing page) instead of the logged-in user dashboard (`/user`) when the user is on the `/directory` page, keeping the public directory browsing flow aligned with the public landing ecosystem.
+
+
 
 
 - **Adaptive Branding (Logo):** To ensure WCAG-compliant contrast across themes, the app uses multiple logo variants: `/logo_white.png` for dark and primary backgrounds (Admin/Landing Footer), and `/logo_dark_text.png` for light backgrounds (Driver/General). All variants maintain a consistent 4:1 aspect ratio and transparent backgrounds.
@@ -301,4 +305,28 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Warning & Error Fixes:**
   - **Header.tsx**: Removed the unused `isConfiguredHost` state, `isConfiguredProductionHost` import, and their associated hook triggers.
   - **ContributedDriverEditModal.tsx**: Removed unused `Bike` icon import, updated native `<button>` element to design system compliant `<AppButton variant="ghost">`, and refactored error catch blocks to use `err: unknown` typecasting instead of `any`. Bypassed a static `set-state-in-effect` rule on a Synchronous state setting with inline eslint overrides.
+
+## 🏆 Driver List Contributor Filtering & Hashing (2026-07-06)
+- **Privacy Hashing & Interactive Filtering:** Added ability to filter the landing page driver list by contributor.
+  - **SHA-256 Hashing for Privacy:** To protect contributor phone numbers on the public homepage, the backend generates a deterministic SHA-256 hash (`contributorHash`) of the contributor's phone. This hash is returned in `/api/contributed-drivers` and `/api/contributed-drivers/leaderboard` responses, and raw `contributorPhone` is stripped from public responses.
+  - **Hash Filtering Route:** The GET `/api/contributed-drivers` endpoint accepts `contributorHash` parameter, queries database for unique phone numbers, hashes them to locate the match, and performs the database filter.
+  - **Dynamic Interactive UI:**
+    - Driver cards display a clickable "Contributed by: [Name]" button linking to filter.
+    - Leaderboard rows are interactive buttons. Clicking a contributor transitions the tab to "Drivers List" and filters in place.
+    - Stand/Bazar badges in driver cards are clickable. Clicking one filters the directory list by that Stand/Bazar.
+    - Active filters are shown using green, high-contrast, accessibility-compliant cross badges (Search query, Stand/Bazar, Vehicle Type, Contributor) with a "Clear All" button. Clicking the cross icon or the Clear All button clears and resets the filters.
+    - Triggers automatically reset the directory pagination page number to `1` on change.
+
+
+## 📱 Driver Directory Mobile Design Polish (2026-07-06)
+- **Label & Height Standardization:**
+  - Simplified the Bengali translation of `add_driver_local` to "ড্রাইভার যোগ করুন" (3 words) to satisfy the 2-3 word label constraint.
+  - Standardized the heights of the Search Input, `SearchableBazarSelect` (using `size="md"` prop), and the Vehicle Type filter container to exactly `h-12` (`48px`) on mobile for a unified and clean appearance.
+  - Made the "Add Driver" button fill the layout (`w-full sm:w-auto`) on mobile viewports.
+- **Leaderboard & Driver Card Responsiveness:**
+  - Configured contributor row elements (rank circle, name/phone text, and contribution badges) to dynamically scale and wrap without overlapping on narrow screens (under `380px`), using flex `min-w-0` and name `truncate` classes.
+  - Reduced mobile card padding from `p-4` (and `p-5` on desktop) and avatar size from `w-12 h-12` to `w-10 h-10` on mobile.
+  - Enforced a maximum of 3 font sizes on mobile (`text-base` for card title/name, `text-sm` for call buttons and phone numbers, and `text-xs`/`text-[10px]` for supporting details and tags).
+  - Reduced the driver card vehicle watermark opacity to `0.25` on mobile to ensure optimal background contrast and readability.
+
 
