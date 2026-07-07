@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Search, MapPin, Phone, Users, Plus, X, Trophy, Camera } from "lucide-react";
+import { Search, MapPin, Phone, Users, Plus, X, Trophy, Camera, Trash2 } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contributedDriverSchema, ContributedDriverInput } from "@/lib/schemas/contributed-driver";
@@ -65,6 +65,9 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
   const [uploading, setUploading] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [selectedContributor, setSelectedContributor] = useState<{ name: string; hash: string } | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [driverToDelete, setDriverToDelete] = useState<ContributedDriver | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -325,6 +328,30 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
     }
   };
 
+  const handleDeleteDriver = async () => {
+    if (!driverToDelete) return;
+    setIsDeleting(true);
+    const toastId = toast.loading(t("loading" as TextKey) || "Deleting...");
+    try {
+      const res = await fetch(`/api/contributed-drivers/${driverToDelete.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        toast.success(t("delete_success" as TextKey) || "Driver deleted!", { id: toastId });
+        setIsDeleteModalOpen(false);
+        setDriverToDelete(null);
+        fetchDrivers(1);
+      } else {
+        toast.error(t("delete_failed" as TextKey) || "Failed to delete driver.", { id: toastId });
+      }
+    } catch (e) {
+      console.error("Delete error:", e);
+      toast.error("Error deleting driver.", { id: toastId });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <Section id="driver-directory" variant="slate" className="bg-slate-100/50 py-12 border-b border-slate-200">
       <div className="container mx-auto px-4 max-w-6xl">
@@ -560,17 +587,34 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
                                 : (t("vehicle_cng" as TextKey) || "CNG")}
                             </span>
                           </div>
-                          {driver.nearbyBazar && (
-                            <AppButton
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setSelectedBazar(driver.nearbyBazar || "ALL")}
-                              className="h-auto w-auto inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200/60 hover:bg-slate-200 hover:text-slate-800 transition-colors shrink-0 active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0"
-                            >
-                              {driver.nearbyBazar}
-                            </AppButton>
-                          )}
+                          <div className="flex flex-col items-end gap-2 shrink-0">
+                            {driver.nearbyBazar && (
+                              <AppButton
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSelectedBazar(driver.nearbyBazar || "ALL")}
+                                className="h-auto w-auto inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200/60 hover:bg-slate-200 hover:text-slate-800 transition-colors active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0"
+                              >
+                                {driver.nearbyBazar}
+                              </AppButton>
+                            )}
+                            {currentUser && driver.contributorHash === currentUser.phoneHash && (
+                              <AppButton
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDriverToDelete(driver);
+                                  setIsDeleteModalOpen(true);
+                                }}
+                                className="h-auto w-auto p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 bg-transparent active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0"
+                              >
+                                <Trash2 className="w-4.5 h-4.5" />
+                              </AppButton>
+                            )}
+                          </div>
                         </div>
                         <p className={`text-xs sm:text-sm text-slate-500 flex items-center gap-1.5 ${driver.contributorName ? "mb-2" : "mb-4"}`}>
                           <MapPin className="w-4 h-4 text-slate-400" />
@@ -965,6 +1009,42 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
         </div>,
         document.body
       )}
-    </Section>
-  );
-}
+        {isDeleteModalOpen && driverToDelete && createPortal(
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-white w-full max-w-md rounded-2xl border border-slate-100 shadow-2xl p-6 relative animate-in zoom-in-95 duration-200">
+              <h3 className="text-lg font-bold text-slate-900 mb-2 font-bn">
+                {t("delete_confirm_title" as TextKey)}
+              </h3>
+              <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+                {t("delete_confirm_desc" as TextKey)}
+              </p>
+              <div className="flex gap-3 justify-end">
+                <AppButton
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setIsDeleteModalOpen(false);
+                    setDriverToDelete(null);
+                  }}
+                  disabled={isDeleting}
+                  className="font-bold border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl px-4 py-2.5 h-11"
+                >
+                  {t("cancel" as TextKey) || "Cancel"}
+                </AppButton>
+                <AppButton
+                  type="button"
+                  variant="outline"
+                  onClick={handleDeleteDriver}
+                  disabled={isDeleting}
+                  className="font-bold bg-rose-600 text-white hover:bg-rose-700 border-transparent hover:border-transparent rounded-xl px-4 py-2.5 h-11"
+                >
+                  {isDeleting ? (t("loading" as TextKey) || "Deleting...") : (t("delete" as TextKey) || "Delete")}
+                </AppButton>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+      </Section>
+    );
+  }

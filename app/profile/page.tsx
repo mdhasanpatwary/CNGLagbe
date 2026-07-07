@@ -156,7 +156,7 @@ export default function ProfilePage() {
         <PageHeading
           title={t("profile")}
           subtitle={t("app_name")}
-          backHref="/user"
+          backHref="/"
         />
         <Card className="shadow-2xl shadow-slate-200/50 border-none rounded-3xl overflow-hidden mb-8">
           <div className="bg-primary h-2 w-full" />

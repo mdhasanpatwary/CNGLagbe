@@ -18,8 +18,7 @@ export function Footer({ showMobileCTAOffset, className }: FooterProps) {
   const { t } = useLang();
   const pathname = usePathname();
 
-  // Do not render footer on map pages
-  if (pathname === "/user/map") return null;
+
 
   // Automatically show offset on landing page if not explicitly provided
   const effectiveShowOffset = showMobileCTAOffset ?? pathname === "/";
@@ -91,14 +90,7 @@ export function Footer({ showMobileCTAOffset, className }: FooterProps) {
                   {t("user_login")}
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/driver/login"
-                  className="hover:text-primary transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-slate-900 inline-flex items-center py-3 rounded-md min-h-[44px]"
-                >
-                  {t("driver_login")}
-                </Link>
-              </li>
+
             </ul>
           </motion.div>
 

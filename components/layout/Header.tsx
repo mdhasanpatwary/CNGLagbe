@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { LogOut, User, ChevronLeft, RefreshCcw, Navigation, UserCircle, Wallet } from "lucide-react";
+import { LogOut, User, ChevronLeft, RefreshCcw, Navigation, UserCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppButton } from "@/components/ui/AppButton";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -48,15 +48,15 @@ export function Header({
 
   const showLogin = process.env.NODE_ENV !== "production";
 
-  const isDriver = role === "driver";
+  const isDriver = false;
   const isAdmin = role === "admin";
   const isFloating = variant === "floating";
   const isFixed = variant === "fixed";
 
   const pathname = usePathname();
-  const isProfilePage = pathname === "/profile" || pathname === "/driver/profile";
+  const isProfilePage = pathname === "/profile";
   const isDirectoryPage = pathname === "/directory";
-  const logoHref = isProfilePage || isDirectoryPage ? "/" : (isDriver ? "/driver" : isAdmin ? "/admin" : user ? "/user" : "/");
+  const logoHref = isProfilePage || isDirectoryPage ? "/" : (isAdmin ? "/admin" : "/");
 
   // Close menu on click outside
   useEffect(() => {
@@ -70,7 +70,7 @@ export function Header({
   }, []);
 
   // Determine effective theme
-  const effectiveTheme = theme || (isAdmin ? "dark" : isDriver ? "light" : "primary");
+  const effectiveTheme = theme || (isAdmin ? "dark" : "primary");
 
   const themes = {
     primary: "bg-primary text-primary-foreground shadow-md",
@@ -207,22 +207,8 @@ export function Header({
 
                   {/* Menu Items */}
                   <div className="p-1.5">
-                    {isDriver && (
-                      <Link
-                        href="/driver/wallet"
-                        onClick={() => setIsMenuOpen(false)}
-                        className={cn(
-                          "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-colors group text-primary min-h-[44px]",
-                          effectiveTheme === "primary" || effectiveTheme === "dark" ? "hover:bg-white/10" : "hover:bg-primary/5"
-                        )}
-                      >
-                        <Wallet size={18} className="opacity-100" />
-                        <span>{t("wallet")}</span>
-                      </Link>
-                    )}
-
                     <Link
-                      href={isDriver ? "/driver/profile" : "/profile"}
+                      href="/profile"
                       onClick={() => setIsMenuOpen(false)}
                       className={cn(
                         "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-colors group min-h-[44px]",

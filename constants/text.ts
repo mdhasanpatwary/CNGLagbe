@@ -903,6 +903,22 @@ export const TEXT = {
     en: "Delete",
     bn: "মুছে ফেলুন"
   },
+  delete_confirm_title: {
+    en: "Delete Driver?",
+    bn: "ড্রাইভার মুছবেন?"
+  },
+  delete_confirm_desc: {
+    en: "Are you sure you want to delete this driver? This action cannot be undone.",
+    bn: "আপনি কি নিশ্চিত যে এই ড্রাইভারটি মুছে ফেলতে চান? এই কাজটি আর ফেরত নেওয়া যাবে না।"
+  },
+  delete_success: {
+    en: "Driver successfully deleted!",
+    bn: "ড্রাইভার সফলভাবে মুছে ফেলা হয়েছে!"
+  },
+  delete_failed: {
+    en: "Failed to delete driver.",
+    bn: "ড্রাইভার মুছে ফেলতে ব্যর্থ হয়েছে।"
+  },
   add_new_bazar: {
     en: "Add Stand/Bazar",
     bn: "স্ট্যান্ড/বাজার যুক্ত করুন"

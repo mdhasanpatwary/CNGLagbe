@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { createHash } from "crypto";
+
+function getPhoneHash(phone: string): string {
+  return createHash("sha256").update(phone).digest("hex");
+}
+
 
 export async function GET() {
   try {
@@ -57,6 +63,7 @@ export async function GET() {
       user: {
         ...userData,
         role: session.role,
+        phoneHash: userData.phone ? getPhoneHash(userData.phone) : null,
       },
     });
   } catch (error) {

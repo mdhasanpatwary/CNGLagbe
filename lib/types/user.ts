@@ -8,6 +8,7 @@ export interface User {
   createdAt: string;
   updatedAt?: string;
   birthday?: string | null;
+  phoneHash?: string | null;
   
   // Driver specific fields
   isApproved?: boolean;

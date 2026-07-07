@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 import { useQueryState } from "nuqs";
 import { useLang } from "@/hooks/useLang";
 import { User as UserType } from "@/lib/types/user";
-import { Booking } from "@/lib/types/booking";
-import { AdminStats, PendingDriver, IssueReportType } from "@/lib/types/admin";
+import { TextKey } from "@/constants/text";
 
-export type AdminTab = "overview" | "drivers" | "users" | "logs" | "bazars" | "settings" | "issues" | "waitlist" | "contributed-drivers";
+export type AdminTab = "overview" | "users" | "waitlist" | "contributed-drivers" | "bazars" | "settings";
 
 export interface WaitlistEntry {
   id: string;
@@ -37,48 +36,26 @@ interface SystemSetting {
   value: string;
 }
 
+interface AdminStats {
+  totalUsers: number;
+  totalWaitlist: number;
+  totalContributedDrivers: number;
+  pendingContributedDrivers: number;
+  totalBazars: number;
+}
+
 export function useAdminDashboard() {
   const { t } = useLang();
   const [stats, setStats] = useState<AdminStats | null>(null);
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [activeBookings, setActiveBookings] = useState<Booking[]>([]);
   const [allUsers, setAllUsers] = useState<UserType[]>([]);
-  const [bazars, setBazars] = useState<{ id: string, name: string, isApproved: boolean, driverCount?: number }[]>([]);
+  const [bazars, setBazars] = useState<{ id: string; name: string; isApproved: boolean }[]>([]);
   const [newBazarName, setNewBazarName] = useState("");
-  const [editingBazar, setEditingBazar] = useState<{ id: string, name: string } | null>(null);
+  const [editingBazar, setEditingBazar] = useState<{ id: string; name: string } | null>(null);
   const [activeTabStr, setActiveTabStr] = useQueryState("tab", { defaultValue: "overview" });
   const activeTab = (activeTabStr as AdminTab) || "overview";
   const setActiveTab = (val: AdminTab) => setActiveTabStr(val);
   const [isRefreshing, setIsRefreshing] = useState(true);
-  const [logFilter, setLogFilter] = useState<string>("ALL");
   const [settings, setSettings] = useState<SystemSetting[]>([]);
-
-  // Sorting & Pagination state
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Booking | "fee" | "driver_payout"; direction: "asc" | "desc" } | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
-
-  // Wallet Recharge State
-  const [selectedDriver, setSelectedDriver] = useState<PendingDriver | null>(null);
-  const [isRechargeModalOpen, setIsRechargeModalOpen] = useState(false);
-  const [rechargeAmount, setRechargeAmount] = useState("");
-  const [rechargeNote, setRechargeNote] = useState("");
-  const [isRecharging, setIsRecharging] = useState(false);
-  const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
-  const [editingDriverData, setEditingDriverData] = useState<PendingDriver | null>(null);
-  const [driverSearch, setDriverSearch] = useState("");
-  const [debouncedDriverSearch, setDebouncedDriverSearch] = useState("");
-  const [driverFilter, setDriverFilter] = useState("all");
-  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-  const [historyDriver, setHistoryDriver] = useState<PendingDriver | null>(null);
-
-  // Issues State
-  const [issues, setIssues] = useState<IssueReportType[]>([]);
-  const [issueSearch, setIssueSearch] = useState("");
-  const [debouncedIssueSearch, setDebouncedIssueSearch] = useState("");
-  const [issueFilter, setIssueFilter] = useState("ALL");
-  const [issuePage, setIssuePage] = useState(1);
-  const [issueMeta, setIssueMeta] = useState({ total: 0, totalPages: 0 });
 
   // Users State
   const [userSearch, setUserSearch] = useState("");
@@ -97,33 +74,18 @@ export function useAdminDashboard() {
     total: 0,
     totalPages: 0,
     driverCount: 0,
-    passengerCount: 0
+    passengerCount: 0,
   });
 
-  // Bookings/Logs Search State
-  const [bookingSearch, setBookingSearch] = useState("");
-  const [debouncedBookingSearch, setDebouncedBookingSearch] = useState("");
-  const [totalPages, setTotalPages] = useState(1);
+  // Contributed Drivers State
   const [contributedDrivers, setContributedDrivers] = useState<ContributedDriver[]>([]);
   const [contributedSearch, setContributedSearch] = useState("");
+  const [debouncedContributedSearch, setDebouncedContributedSearch] = useState("");
   const [contributedFilter, setContributedFilter] = useState("all");
   const [isContributedEditModalOpen, setIsContributedEditModalOpen] = useState(false);
   const [editingContributedDriverData, setEditingContributedDriverData] = useState<ContributedDriver | null>(null);
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedIssueSearch(issueSearch);
-    }, 1000);
-    return () => clearTimeout(handler);
-  }, [issueSearch]);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedDriverSearch(driverSearch);
-    }, 1000);
-    return () => clearTimeout(handler);
-  }, [driverSearch]);
-
+  // Debounce Hooks
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedUserSearch(userSearch);
@@ -133,62 +95,19 @@ export function useAdminDashboard() {
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedBookingSearch(bookingSearch);
-    }, 1000);
-    return () => clearTimeout(handler);
-  }, [bookingSearch]);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
       setDebouncedWaitlistSearch(waitlistSearch);
     }, 1000);
     return () => clearTimeout(handler);
   }, [waitlistSearch]);
 
-  const [driverSort, setDriverSort] = useState("latest");
-  const [driverPage, setDriverPage] = useState(1);
-  const [driverMeta, setDriverMeta] = useState({ total: 0, totalPages: 0 });
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedContributedSearch(contributedSearch);
+    }, 1000);
+    return () => clearTimeout(handler);
+  }, [contributedSearch]);
 
-  const [pendingDrivers, setPendingDrivers] = useState<PendingDriver[]>([]);
-  const [onlineDrivers, setOnlineDrivers] = useState<PendingDriver[]>([]);
-  const [allDrivers, setAllDrivers] = useState<PendingDriver[]>([]);
-
-  const handleSort = (key: keyof Booking | "fee" | "driver_payout") => {
-    let direction: "asc" | "desc" = "asc";
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
-  };
-
-  const fetchDrivers = async (page = 1, search = "", filter = "all", sort = "latest") => {
-    try {
-      const res = await fetch(`/api/admin/drivers?page=${page}&limit=20&search=${search}&filter=${filter}&sort=${sort}`);
-      const data = await res.json();
-      setAllDrivers(Array.isArray(data?.drivers) ? data.drivers : []);
-      setDriverMeta({
-        total: data?.meta?.total || 0,
-        totalPages: data?.meta?.totalPages || 0
-      });
-    } catch (e) {
-      console.error("Fetch drivers error:", e);
-    }
-  };
-
-  const fetchIssues = async (page = 1, search = "", filter = "ALL") => {
-    try {
-      const res = await fetch(`/api/admin/issues?page=${page}&limit=20&search=${search}&status=${filter}`);
-      const data = await res.json();
-      setIssues(Array.isArray(data?.issues) ? data.issues : []);
-      setIssueMeta({
-        total: data?.meta?.total || 0,
-        totalPages: data?.meta?.totalPages || 0
-      });
-    } catch (e) {
-      console.error("Fetch issues error:", e);
-    }
-  };
-
+  // Fetch functions
   const fetchUsers = async (page = 1, search = "", role = "ALL") => {
     try {
       const res = await fetch(`/api/admin/users?page=${page}&limit=20&search=${search}&role=${role}`);
@@ -196,116 +115,69 @@ export function useAdminDashboard() {
       setAllUsers(Array.isArray(data?.users) ? data.users : []);
       setUserMeta({
         total: data?.meta?.total || 0,
-        totalPages: data?.meta?.totalPages || 0
+        totalPages: data?.meta?.totalPages || 0,
       });
     } catch (e) {
       console.error("Fetch users error:", e);
     }
   };
 
-  const fetchWaitlist = async (page = 1, search = "", role = "ALL") => {
+  const fetchWaitlist = async (page = 1, search = "", filter = "ALL") => {
     try {
-      const res = await fetch(`/api/admin/waitlist?page=${page}&limit=20&search=${search}&role=${role}`);
+      const res = await fetch(`/api/admin/waitlist?page=${page}&limit=20&search=${search}&role=${filter}`);
       const data = await res.json();
       setWaitlist(Array.isArray(data?.waitlist) ? data.waitlist : []);
       setWaitlistMeta({
         total: data?.meta?.total || 0,
         totalPages: data?.meta?.totalPages || 0,
         driverCount: data?.meta?.driverCount || 0,
-        passengerCount: data?.meta?.passengerCount || 0
+        passengerCount: data?.meta?.passengerCount || 0,
       });
     } catch (e) {
       console.error("Fetch waitlist error:", e);
     }
   };
 
-  const handleResolveIssue = async (issueId: string, resolutionNote: string) => {
+  const fetchContributedDrivers = async (search = "", filter = "all") => {
     try {
-      const res = await fetch(`/api/admin/issues/${issueId}/resolve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resolutionNote }),
-      });
-      if (res.ok) {
-        fetchIssues(issuePage, debouncedIssueSearch, issueFilter);
-        const resStats = await fetch("/api/admin/stats");
-        const dataStats = await resStats.json();
-        setStats(dataStats.stats);
-        return true;
-      }
-      return false;
+      // Endpoint app/api/admin/contributed-drivers/route.ts
+      const res = await fetch(`/api/admin/contributed-drivers?search=${search}&filter=${filter}`);
+      const data = await res.json();
+      setContributedDrivers(Array.isArray(data) ? data : []);
     } catch (e) {
-      console.error("Resolve issue error:", e);
-      return false;
+      console.error("Fetch contributed drivers error:", e);
     }
   };
 
   const fetchData = async (options?: { showLoading?: boolean }) => {
     if (options?.showLoading) setIsRefreshing(true);
     try {
-      const url = `/api/admin/bookings?page=${currentPage}&limit=20&status=${logFilter}&search=${debouncedBookingSearch}`;
-
-      const [resStats, resBookings, resDrivers, resActive, resOnline, resAllUsers, resBazars, resSettings, resContributed] = await Promise.all([
+      const [resStats, resBazars, resSettings] = await Promise.all([
         fetch("/api/admin/stats"),
-        fetch(url),
-        fetch("/api/admin/drivers/approve"),
-        fetch("/api/admin/bookings?type=active"),
-        fetch("/api/admin/drivers/online"),
-        fetch(`/api/admin/users?page=${userPage}&limit=20&search=${debouncedUserSearch}&role=${userFilter}`),
         fetch("/api/bazars?all=true"),
         fetch("/api/admin/settings"),
-        fetch("/api/admin/contributed-drivers")
       ]);
 
       const dataStats = await resStats.json().catch(() => ({}));
-      const dataBookings = await resBookings.json().catch(() => ({}));
-      const dataDrivers = await resDrivers.json().catch(() => ({}));
-      const dataActive = await resActive.json().catch(() => ({}));
-      const dataOnline = await resOnline.json().catch(() => ({}));
-      const dataAllUsers = await resAllUsers.json().catch(() => ({}));
       const dataBazars = await resBazars.json().catch(() => ([]));
       const dataSettings = await resSettings.json().catch(() => ([]));
-      const dataContributed = await resContributed.json().catch(() => ([]));
 
       setStats(dataStats?.stats || null);
-      setBookings(Array.isArray(dataBookings?.bookings) ? dataBookings.bookings : []);
-      setTotalPages(dataBookings?.meta?.totalPages || 1);
-      setPendingDrivers(Array.isArray(dataDrivers?.drivers) ? dataDrivers.drivers : []);
-      setActiveBookings(Array.isArray(dataActive?.bookings) ? dataActive.bookings : []);
-      setOnlineDrivers(Array.isArray(dataOnline?.drivers) ? dataOnline.drivers : []);
-      setAllUsers(Array.isArray(dataAllUsers?.users) ? dataAllUsers.users : []);
-      setContributedDrivers(Array.isArray(dataContributed) ? dataContributed : []);
-      setUserMeta({
-        total: dataAllUsers?.meta?.total || 0,
-        totalPages: dataAllUsers?.meta?.totalPages || 0
-      });
-
-      if (activeTab === "drivers") {
-        fetchDrivers(driverPage, debouncedDriverSearch, driverFilter, driverSort);
-      }
-
-      if (activeTab === "issues") {
-        fetchIssues(issuePage, debouncedIssueSearch, issueFilter);
-      }
-
-      if (activeTab === "users") {
-        fetchUsers(userPage, debouncedUserSearch, userFilter);
-      }
-
-      if (activeTab === "waitlist") {
-        fetchWaitlist(waitlistPage, debouncedWaitlistSearch, waitlistFilter);
-      }
+      setSettings(Array.isArray(dataSettings) ? dataSettings : []);
 
       if (Array.isArray(dataBazars)) {
         setBazars(dataBazars);
-      } else if (dataBazars && typeof dataBazars === 'object' && 'bazars' in dataBazars && Array.isArray((dataBazars as Record<string, unknown>).bazars)) {
-        setBazars((dataBazars as { bazars: { id: string; name: string; isApproved: boolean; driverCount?: number }[] }).bazars);
+      } else if (dataBazars && typeof dataBazars === "object" && "bazars" in dataBazars && Array.isArray((dataBazars as Record<string, unknown>).bazars)) {
+        setBazars((dataBazars as { bazars: { id: string; name: string; isApproved: boolean }[] }).bazars);
       } else {
         setBazars([]);
       }
 
-      setSettings(Array.isArray(dataSettings) ? dataSettings : []);
-
+      await Promise.all([
+        fetchUsers(userPage, debouncedUserSearch, userFilter),
+        fetchWaitlist(waitlistPage, debouncedWaitlistSearch, waitlistFilter),
+        fetchContributedDrivers(debouncedContributedSearch, contributedFilter),
+      ]);
     } catch (e: unknown) {
       console.error("Admin dashboard fetch error:", e);
     } finally {
@@ -318,20 +190,6 @@ export function useAdminDashboard() {
     fetchData({ showLoading: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (activeTab === "drivers") {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      fetchDrivers(driverPage, debouncedDriverSearch, driverFilter, driverSort);
-    }
-  }, [driverPage, debouncedDriverSearch, driverFilter, driverSort, activeTab]);
-
-  useEffect(() => {
-    if (activeTab === "issues") {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      fetchIssues(issuePage, debouncedIssueSearch, issueFilter);
-    }
-  }, [issuePage, debouncedIssueSearch, issueFilter, activeTab]);
 
   useEffect(() => {
     if (activeTab === "users") {
@@ -347,61 +205,12 @@ export function useAdminDashboard() {
     }
   }, [waitlistPage, debouncedWaitlistSearch, waitlistFilter, activeTab]);
 
-  const fetchBookings = async (page = 1, status = "ALL", search = "") => {
-    setIsRefreshing(true);
-    try {
-      const url = `/api/admin/bookings?page=${page}&limit=20&status=${status}&search=${search}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      setBookings(Array.isArray(data?.bookings) ? data.bookings : []);
-      setTotalPages(data?.meta?.totalPages || 1);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
   useEffect(() => {
-    if (activeTab === "logs" || activeTab === "overview") {
+    if (activeTab === "contributed-drivers") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      fetchBookings(currentPage, logFilter, debouncedBookingSearch);
+      fetchContributedDrivers(debouncedContributedSearch, contributedFilter);
     }
-  }, [currentPage, logFilter, debouncedBookingSearch, activeTab]);
-
-  const handleApprove = async (driverId: string) => {
-    try {
-      const res = await fetch("/api/admin/drivers/approve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ driverId, action: "approve" })
-      });
-      if (res.ok) {
-        setPendingDrivers(prev => prev.filter(d => d.id !== driverId));
-        const resStats = await fetch("/api/admin/stats");
-        const dataStats = await resStats.json();
-        setStats(dataStats.stats);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleToggleSuspend = async (driverId: string, currentlySuspended: boolean) => {
-    try {
-      const action = currentlySuspended ? "unsuspend" : "suspend";
-      const res = await fetch("/api/admin/drivers/suspend", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ driverId, action })
-      });
-      if (res.ok) {
-        fetchData({ showLoading: true });
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  }, [debouncedContributedSearch, contributedFilter, activeTab]);
 
   const handleAddBazar = async () => {
     if (!newBazarName.trim()) return;
@@ -409,7 +218,7 @@ export function useAdminDashboard() {
       const res = await fetch("/api/bazars", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newBazarName.trim() })
+        body: JSON.stringify({ name: newBazarName.trim() }),
       });
       if (res.ok) {
         setNewBazarName("");
@@ -424,7 +233,7 @@ export function useAdminDashboard() {
     if (!confirm(t("delete_bazar") + "?")) return;
     try {
       const res = await fetch(`/api/bazars/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
       });
       if (res.ok) {
         fetchData({ showLoading: false });
@@ -440,7 +249,7 @@ export function useAdminDashboard() {
       const res = await fetch(`/api/bazars/${editingBazar.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editingBazar.name.trim() })
+        body: JSON.stringify({ name: editingBazar.name.trim() }),
       });
       if (res.ok) {
         setEditingBazar(null);
@@ -451,51 +260,10 @@ export function useAdminDashboard() {
     }
   };
 
-  const handleRecharge = async () => {
-    if (!selectedDriver || !rechargeAmount || isNaN(Number(rechargeAmount))) return;
-    setIsRecharging(true);
-    try {
-      const res = await fetch("/api/admin/drivers/wallet", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          driverId: selectedDriver.id,
-          amount: Number(rechargeAmount),
-          note: rechargeNote || t("payment_collected")
-        })
-      });
-      if (res.ok) {
-        setIsRechargeModalOpen(false);
-        setRechargeAmount("");
-        setRechargeNote("");
-        setSelectedDriver(null);
-        fetchData({ showLoading: false });
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsRecharging(false);
-    }
-  };
-
-  const handleDeleteDriver = async (driverId: string) => {
-    if (!confirm(t("delete_warning"))) return;
-    try {
-      const res = await fetch(`/api/admin/drivers/${driverId}`, {
-        method: "DELETE"
-      });
-      if (res.ok) {
-        fetchDrivers(driverPage, debouncedDriverSearch, driverFilter, driverSort);
-      }
-    } catch (e) {
-      console.error("Delete driver error:", e);
-    }
-  };
-
   const handleDeleteWaitlist = async (id: string) => {
     try {
       const res = await fetch(`/api/admin/waitlist/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
       });
       if (res.ok) {
         fetchWaitlist(waitlistPage, debouncedWaitlistSearch, waitlistFilter);
@@ -513,11 +281,14 @@ export function useAdminDashboard() {
       const res = await fetch(`/api/admin/contributed-drivers/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isApproved: true })
+        body: JSON.stringify({ isApproved: true }),
       });
       if (res.ok) {
         const updated = await res.json();
-        setContributedDrivers(prev => prev.map(d => d.id === id ? updated : d));
+        setContributedDrivers((prev) => prev.map((d) => (d.id === id ? updated : d)));
+        const resStats = await fetch("/api/admin/stats");
+        const dataStats = await resStats.json().catch(() => ({}));
+        if (dataStats?.stats) setStats(dataStats.stats);
       }
     } catch (e) {
       console.error("Approve contributed driver error:", e);
@@ -527,10 +298,13 @@ export function useAdminDashboard() {
   const handleDeleteContributedDriver = async (id: string) => {
     try {
       const res = await fetch(`/api/admin/contributed-drivers/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
       });
       if (res.ok) {
-        setContributedDrivers(prev => prev.filter(d => d.id !== id));
+        setContributedDrivers((prev) => prev.filter((d) => d.id !== id));
+        const resStats = await fetch("/api/admin/stats");
+        const dataStats = await resStats.json().catch(() => ({}));
+        if (dataStats?.stats) setStats(dataStats.stats);
       }
     } catch (e) {
       console.error("Delete contributed driver error:", e);
@@ -541,11 +315,11 @@ export function useAdminDashboard() {
     const res = await fetch(`/api/admin/contributed-drivers/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
     if (res.ok) {
       const updated = await res.json();
-      setContributedDrivers(prev => prev.map(d => d.id === id ? updated : d));
+      setContributedDrivers((prev) => prev.map((d) => (d.id === id ? updated : d)));
       return true;
     } else {
       const errorData = await res.json();
@@ -558,13 +332,30 @@ export function useAdminDashboard() {
       const res = await fetch(`/api/bazars/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isApproved: true })
+        body: JSON.stringify({ isApproved: true }),
       });
       if (res.ok) {
-        setBazars(prev => prev.map(b => b.id === id ? { ...b, isApproved: true } : b));
+        setBazars((prev) => prev.map((b) => (b.id === id ? { ...b, isApproved: true } : b)));
       }
     } catch (e) {
       console.error("Approve bazar error:", e);
+    }
+  };
+
+  const handleDeleteUser = async (id: string) => {
+    if (!confirm(t("delete_user" as TextKey) || "Are you sure you want to delete this user?")) return;
+    try {
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        fetchUsers(userPage, debouncedUserSearch, userFilter);
+        const resStats = await fetch("/api/admin/stats");
+        const dataStats = await resStats.json().catch(() => ({}));
+        if (dataStats?.stats) setStats(dataStats.stats);
+      }
+    } catch (e) {
+      console.error("Delete user error:", e);
     }
   };
 
@@ -573,14 +364,14 @@ export function useAdminDashboard() {
       const res = await fetch("/api/admin/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key, value })
+        body: JSON.stringify({ key, value }),
       });
       if (res.ok) {
         const updatedSetting = await res.json();
-        setSettings(prev => {
-          const exists = prev.find(s => s.key === key);
+        setSettings((prev) => {
+          const exists = prev.find((s) => s.key === key);
           if (exists) {
-            return prev.map(s => s.key === key ? updatedSetting : s);
+            return prev.map((s) => (s.key === key ? updatedSetting : s));
           }
           return [...prev, updatedSetting];
         });
@@ -590,38 +381,9 @@ export function useAdminDashboard() {
     }
   };
 
-  const sortedBookings = [...bookings].sort((a, b) => {
-    if (!sortConfig) return 0;
-    const { key, direction } = sortConfig;
-    const aVal = (key === "fee" ? a.fare * 0.2 :
-      key === "driver_payout" ? a.fare * 0.8 :
-        key === "driver" ? a.driver?.name || "" :
-          a[key as keyof Booking]) ?? "";
-
-    const bVal = (key === "fee" ? b.fare * 0.2 :
-      key === "driver_payout" ? b.fare * 0.8 :
-        key === "driver" ? b.driver?.name || "" :
-          b[key as keyof Booking]) ?? "";
-
-    if (aVal === bVal) return 0;
-
-    let result = 0;
-    if (typeof aVal === "number" && typeof bVal === "number") {
-      result = aVal < bVal ? -1 : 1;
-    } else {
-      result = String(aVal).localeCompare(String(bVal));
-    }
-
-    return direction === "asc" ? result : -result;
-  });
-
-  const paginatedBookings = sortedBookings;
-
   return {
     t,
     stats,
-    bookings,
-    activeBookings,
     allUsers,
     bazars,
     newBazarName,
@@ -631,65 +393,12 @@ export function useAdminDashboard() {
     activeTab,
     setActiveTab,
     isRefreshing,
-    logFilter,
-    setLogFilter,
-    sortConfig,
-    handleSort,
-    currentPage,
-    setCurrentPage,
-    itemsPerPage,
-    totalPages,
-    paginatedBookings,
-    selectedDriver,
-    setSelectedDriver,
-    isRechargeModalOpen,
-    setIsRechargeModalOpen,
-    rechargeAmount,
-    setRechargeAmount,
-    rechargeNote,
-    setRechargeNote,
-    isRecharging,
-    isDriverModalOpen,
-    setIsDriverModalOpen,
-    editingDriverData,
-    setEditingDriverData,
-    driverSearch,
-    setDriverSearch,
-    driverFilter,
-    setDriverFilter,
-    driverSort,
-    setDriverSort,
-    driverPage,
-    setDriverPage,
-    driverMeta,
-    pendingDrivers,
-    onlineDrivers,
-    allDrivers,
     fetchData,
-    fetchBookings,
-    handleApprove,
-    handleToggleSuspend,
     handleAddBazar,
     handleDeleteBazar,
     handleUpdateBazar,
-    handleRecharge,
-    handleDeleteDriver,
     settings,
     handleUpdateSetting,
-    isHistoryModalOpen,
-    setIsHistoryModalOpen,
-    historyDriver,
-    setHistoryDriver,
-    issues,
-    setIssues,
-    issueSearch,
-    setIssueSearch,
-    issueFilter,
-    setIssueFilter,
-    issuePage,
-    setIssuePage,
-    issueMeta,
-    handleResolveIssue,
     userSearch,
     setUserSearch,
     userFilter,
@@ -697,8 +406,6 @@ export function useAdminDashboard() {
     userPage,
     setUserPage,
     userMeta,
-    bookingSearch,
-    setBookingSearch,
     waitlist,
     setWaitlist,
     waitlistSearch,
@@ -723,5 +430,6 @@ export function useAdminDashboard() {
     editingContributedDriverData,
     setEditingContributedDriverData,
     handleApproveBazar,
+    handleDeleteUser,
   };
 }

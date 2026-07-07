@@ -330,3 +330,19 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
   - Reduced the driver card vehicle watermark opacity to `0.25` on mobile to ensure optimal background contrast and readability.
 
 
+## 🧹 Ride-Sharing & Driver Panel Removal (2026-07-07)
+- **Ride-Sharing & Booking Removal:** Deleted the passenger dashboard, map search, active booking updates, ride history, and all ride-sharing booking API endpoints (`/api/booking/*`, `/api/fare/*`, `/api/geocode/*`, `/api/nearby-drivers/*`, `/api/cron/*`, `/api/sync/*`).
+- **Driver Panel Removal:** Deleted the driver panel entirely (`/driver/*` including dashboards, logins, wallets, and profile screens) and driver-specific API endpoints (`/api/driver/*`).
+- **Layout & Navigation Updates:** Updated `Header.tsx` and `Footer.tsx` to remove driver-specific checks, wallet/profile redirections, and driver login links. Changed profile page back-button destination from `/user` to `/`.
+- **Admin Dashboard Simplification:** Removed obsolete tabs (`overview`, `drivers`, `logs`, `issues`) and deleted corresponding UI tab files/modals. Kept and simplified the remaining tabs: Overview (updated to display simple count stats for users, waitlists, contributed drivers, pending, and bazars), Waitlist, Contributed Drivers, Bazars, Users, and Settings (stripped of booking parameters, retaining only directory auto-approvals).
+- **User Delete Option:** Added a user delete backend API endpoint (`DELETE /api/admin/users/[id]`) and integrated a delete button in the Admin dashboard Users list tab (handling confirmation alerts, API trigger, list/stat refreshes, and strict TypeScript types).
+
+## 🧑‍✈️ Contributor Driver Deletion (2026-07-07)
+- **Delete Button Visibility:** Added verification to check if the logged-in contributor's phone hash matches the driver's contributor hash (`currentUser && driver.contributorHash === currentUser.phoneHash`). Only show the Trash button on cards belonging to the logged-in contributor.
+- **Secure Deletion Endpoint:** Created `/api/contributed-drivers/[id]` dynamic API route to securely delete driver entries. The server fetches the caller's phone from their session and validates that it matches the driver's `contributorPhone` before deleting.
+- **Confirmation Flow:** Integrated a clean, premium confirmation modal using backdrop-filter blur and action-oriented button text ("Delete", "Cancel"). Shows a status-loading toast during the request and reloads the directory list on success.
+
+
+
+
+

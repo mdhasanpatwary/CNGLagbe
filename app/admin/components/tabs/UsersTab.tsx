@@ -1,5 +1,5 @@
 import React from "react";
-import { UserCheck, Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
+import { UserCheck, Search, Filter, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ interface UsersTabProps {
   userPage: number;
   setUserPage: (page: number | ((prev: number) => number)) => void;
   userMeta: { total: number; totalPages: number };
+  onDeleteUser: (id: string) => Promise<void>;
 }
 
 export const UsersTab: React.FC<UsersTabProps> = ({
@@ -29,6 +30,7 @@ export const UsersTab: React.FC<UsersTabProps> = ({
   userPage,
   setUserPage,
   userMeta,
+  onDeleteUser,
 }) => {
   return (
     <div className="space-y-6">
@@ -78,10 +80,11 @@ export const UsersTab: React.FC<UsersTabProps> = ({
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent border-none">
-                <TableHead className="px-8 py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("user")}</TableHead>
+                <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("user")}</TableHead>
                 <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("logs")}</TableHead>
                 <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("status")}</TableHead>
-                <TableHead className="px-8 py-5 text-right text-xs font-black uppercase tracking-widest text-slate-400">{t("joined_date")}</TableHead>
+                <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("joined_date")}</TableHead>
+                <TableHead className="px-8 py-5 text-right text-xs font-black uppercase tracking-widest text-slate-400">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -104,14 +107,24 @@ export const UsersTab: React.FC<UsersTabProps> = ({
                       {user.role}
                     </Badge>
                   </TableCell>
-                  <TableCell className="px-8 text-right text-xs text-slate-500 font-medium">
+                  <TableCell className="text-xs text-slate-500 font-medium">
                     {new Date(user.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="px-8 text-right">
+                    <AppButton
+                      variant="ghost"
+                      onClick={() => onDeleteUser(user.id)}
+                      className="h-9 w-9 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl min-h-[auto]"
+                      title="Delete User"
+                    >
+                      <Trash2 size={16} />
+                    </AppButton>
                   </TableCell>
                 </TableRow>
               ))}
               {allUsers.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} className="py-20 text-center">
+                  <TableCell colSpan={5} className="py-20 text-center">
                     <div className="flex flex-col items-center justify-center gap-3 text-slate-400 italic">
                       <UserCheck size={40} className="opacity-10" />
                       <p className="text-sm">{t("no_users")}</p>
