@@ -65,7 +65,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Sticky CTA Contrast:** Always use `text-white` for all elements inside the green sticky button to ensure WCAG compliance against the brand primary color. Added a premium black logo mark for visual hierarchy.
 - **No Call-to-Book:** The system strictly uses app-based booking to ensure proper booking tracking and safety. All "Call to Book" buttons have been removed.
 - **No Driver Login Button:** The driver login button has been removed from the main landing page header to keep the primary landing page strictly user-focused.
-- **No Login Button in Production Header:** The user login button is completely removed from the landing page header in the production environment (to hide login access from the general public on production), while remaining visible in local development for developer testing.
+- **User Login Button Displayed Everywhere:** The user login button is visible in the landing page header in all environments, including production, for easy user access.
 - **Hero Section Height:** The hero section must have a `min-h-[740px]` to ensure all content (badges, text, image) fits perfectly without layout shifts.
 - **Trust Badges in Hero:** The hero section must display badges: "১০০+ লোকাল ড্রাইভার", "নিরাপদ ও যাচাইকৃত", "দ্রুত পিকআপ", "ক্যাশে পেমেন্ট" to build immediate trust.
 - **Animated Driver Count:** An animated green pulsing dot with "১০০+ ড্রাইভার সক্রিয়" must appear at the top of the hero to signal live service.
@@ -341,6 +341,13 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Delete Button Visibility:** Added verification to check if the logged-in contributor's phone hash matches the driver's contributor hash (`currentUser && driver.contributorHash === currentUser.phoneHash`). Only show the Trash button on cards belonging to the logged-in contributor.
 - **Secure Deletion Endpoint:** Created `/api/contributed-drivers/[id]` dynamic API route to securely delete driver entries. The server fetches the caller's phone from their session and validates that it matches the driver's `contributorPhone` before deleting.
 - **Confirmation Flow:** Integrated a clean, premium confirmation modal using backdrop-filter blur and action-oriented button text ("Delete", "Cancel"). Shows a status-loading toast during the request and reloads the directory list on success.
+
+
+## 🔒 Contributor Auto-Login Security Fix (2026-07-08)
+- **New-User Auto-Login Guard:** Modified the contributor driver submission API route (`app/api/contributed-drivers/route.ts`) to only perform auto-login for newly registered user accounts. If a visitor enters a contributor phone number that already exists in the database, the system saves the contribution under that user's name/phone but does NOT sign them in or set an auth cookie. This prevents unauthorized account takeover (e.g. logging into admin or other user accounts by typing their phone number).
+- **User Registration Option Displayed:** Updated the user login page (`app/login/page.tsx`) to clearly indicate that both Login and Registration are supported. Replaced hardcoded strings with localized translation keys (`login_register_title`, `login_or_signup_desc`, `new_user_desc`, `existing_user_desc`, `change_phone_btn`, `set_new_password_label`). If a visitor enters an unregistered phone number, the interface seamlessly guides them through verifying OTP and setting a password.
+
+
 
 
 

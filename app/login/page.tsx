@@ -111,13 +111,13 @@ function LoginForm() {
       <div className="flex-1 flex flex-col justify-center relative z-10">
         <div className="max-w-md w-full mx-auto p-6">
           <PageHeading
-            title={t("user_login") as string}
+            title={t("login_register_title")}
             subtitle={
               step === 1
-                ? (t("signin_desc") as string)
+                ? t("login_or_signup_desc")
                 : isNewUser
-                ? "First time login? Verify OTP and set a password."
-                : "Welcome back! Enter your password to login."
+                ? t("new_user_desc")
+                : t("existing_user_desc")
             }
             className="mb-8"
           />
@@ -174,7 +174,7 @@ function LoginForm() {
                           error={errors.otp?.message}
                         />
                         <FormField
-                          label="Set New Password"
+                          label={t("set_new_password_label")}
                           icon={LogIn}
                           type="password"
                           placeholder="••••••••"
@@ -210,7 +210,7 @@ function LoginForm() {
                         onClick={() => setStep(1)}
                         className="text-sm text-slate-500 hover:text-primary font-medium transition-colors h-auto p-0 hover:bg-transparent"
                       >
-                        Change Phone Number
+                        {t("change_phone_btn")}
                       </AppButton>
                     </div>
                   </>

@@ -144,13 +144,14 @@ export async function POST(request: Request) {
         effectiveContributorPhotoUrl = dbUserOrDriver.photoUrl || undefined;
       }
     } else {
-      // Not logged in: auto-login
+      // Not logged in: auto-login ONLY if it's a newly created user
       const normalizedContPhone = normalizePhone(contributorPhone || "");
       if (normalizedContPhone) {
         let user = await prisma.user.findUnique({
           where: { phone: normalizedContPhone }
         });
 
+        let isNewUser = false;
         if (!user) {
           user = await prisma.user.create({
             data: {
@@ -160,15 +161,19 @@ export async function POST(request: Request) {
               passwordHash: null,
             }
           });
+          isNewUser = true;
         }
 
-        const token = await signToken({
-          sub: user.id,
-          role: user.role as "DRIVER" | "USER" | "ADMIN",
-        });
+        // Only log in automatically if the user account was just created now
+        if (isNewUser) {
+          const token = await signToken({
+            sub: user.id,
+            role: user.role as "DRIVER" | "USER" | "ADMIN",
+          });
 
-        await setAuthCookie(token, request.headers.get("host"));
-        autoLoggedIn = true;
+          await setAuthCookie(token, request.headers.get("host"));
+          autoLoggedIn = true;
+        }
       }
     }
 

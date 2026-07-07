@@ -46,7 +46,7 @@ export function Header({
   const menuRef = useRef<HTMLDivElement>(null);
 
 
-  const showLogin = process.env.NODE_ENV !== "production";
+  const showLogin = true;
 
   const isDriver = false;
   const isAdmin = role === "admin";
