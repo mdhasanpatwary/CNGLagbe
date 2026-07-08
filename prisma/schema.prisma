@@ -250,6 +250,7 @@ model ContributedDriver {
   contributorName     String?
   contributorPhone    String?
   contributorPhotoUrl String?
+  callCount           Int      @default(0)
 
   @@index([nearbyBazar])
   @@index([isApproved])

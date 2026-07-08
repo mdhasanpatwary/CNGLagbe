@@ -71,6 +71,13 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
     });
   };
 
+  const handleCallClick = (driverId: string) => {
+    fetch(`/api/contributed-drivers/${driverId}/click`, {
+      method: "POST",
+      keepalive: true,
+    }).catch((err) => console.error("Error tracking call click:", err));
+  };
+
   return (
     <Section id="driver-directory" variant="slate" className="bg-slate-100/50 py-12 border-b border-slate-200">
       <div className="container mx-auto px-4 max-w-6xl">
@@ -389,7 +396,11 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                       </div>
 
                       {/* Right: Green circular call button */}
-                      <a href={`tel:${driver.phone}`} className="shrink-0">
+                      <a
+                        href={`tel:${driver.phone}`}
+                        className="shrink-0"
+                        onClick={() => handleCallClick(driver.id)}
+                      >
                         <div className="w-11 h-11 rounded-full bg-primary hover:bg-emerald-600 active:scale-95 transition-all flex items-center justify-center shadow-md shadow-emerald-500/30 cursor-pointer">
                           <Phone className="w-5 h-5 text-white" />
                         </div>

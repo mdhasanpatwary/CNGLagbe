@@ -404,5 +404,12 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Admin Dashboard Integration (Added 2026-07-08):** Integrated database-level PWA count into the stats API `/api/admin/stats` and displayed the metric as a new "PWA Installations" card on the main Admin Dashboard overview tab (`OverviewTab.tsx`).
 
 
+## 📊 Driver Call Click Tracking (2026-07-08)
+- **Call Click Count:** Added call click tracking for contributed drivers. When a user clicks the "Call" button on a driver card, a POST request is sent to `/api/contributed-drivers/[id]/click` in the background with `keepalive: true` so the native phone dialer prompt launches immediately without blocking client-side performance.
+- **Admin Dashboard Display:** Added a "Calls" column to the Contributed Drivers table in the Admin Dashboard showing the total number of calls initiated for each driver from the public directory.
+- **Overview Stat Card:** Added a "Total Call Clicks" stat card to the main Admin Dashboard overview tab, displaying the aggregated count of all call button clicks across all drivers in the directory.
+
+
+
 
 

@@ -103,6 +103,7 @@ export function ContributedDriversTab({
                 <th className="p-4">Vehicle</th>
                 <th className="p-4">Address</th>
                 <th className="p-4">Contributor</th>
+                <th className="p-4">Calls</th>
                 <th className="p-4">Status</th>
                 <th className="p-4 pr-6 text-right">Actions</th>
               </tr>
@@ -110,7 +111,7 @@ export function ContributedDriversTab({
             <tbody className="divide-y divide-slate-100 text-sm text-slate-700 font-medium">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-400">
+                  <td colSpan={9} className="p-8 text-center text-slate-400">
                     No contributed drivers found.
                   </td>
                 </tr>
@@ -151,6 +152,9 @@ export function ContributedDriversTab({
                       ) : (
                         <span className="text-slate-400 font-normal">—</span>
                       )}
+                    </td>
+                    <td className="p-4 text-slate-900 font-bold">
+                      {driver.callCount ?? 0}
                     </td>
                     <td className="p-4">
                       {driver.isApproved ? (

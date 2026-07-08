@@ -28,6 +28,7 @@ export interface ContributedDriver {
   contributorName?: string | null;
   contributorPhone?: string | null;
   contributorPhotoUrl?: string | null;
+  callCount?: number;
 }
 
 interface SystemSetting {
@@ -43,6 +44,7 @@ interface AdminStats {
   pendingContributedDrivers: number;
   totalBazars: number;
   pwaInstallations: number;
+  totalCallClicks: number;
 }
 
 export function useAdminDashboard() {

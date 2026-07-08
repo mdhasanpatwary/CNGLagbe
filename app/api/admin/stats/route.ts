@@ -15,22 +15,30 @@ export async function GET() {
       totalContributedDrivers,
       pendingContributedDrivers,
       totalBazars,
-      pwaInstallations
+      pwaInstallations,
+      totalCallClicksAggregate
     ] = await Promise.all([
       prisma.user.count(),
       prisma.waitlist.count(),
       prisma.contributedDriver.count(),
       prisma.contributedDriver.count({ where: { isApproved: false } }),
       prisma.bazar.count(),
-      ("pwaInstallation" in prisma
+      (typeof (prisma as unknown as { pwaInstallation?: { count?: () => Promise<number> } }).pwaInstallation?.count === "function"
         ? (prisma as unknown as { pwaInstallation: { count(): Promise<number> } }).pwaInstallation.count()
         : Promise.resolve(0)
       ).catch((err: unknown) => {
         const msg = err instanceof Error ? err.message : String(err);
         console.warn("PwaInstallation table might not exist yet:", msg);
         return 0;
-      })
+      }),
+      prisma.contributedDriver.aggregate({
+        _sum: {
+          callCount: true,
+        },
+      }),
     ]);
+
+    const totalCallClicks = totalCallClicksAggregate._sum.callCount || 0;
 
     return NextResponse.json({
       stats: {
@@ -39,7 +47,8 @@ export async function GET() {
         totalContributedDrivers,
         pendingContributedDrivers,
         totalBazars,
-        pwaInstallations
+        pwaInstallations,
+        totalCallClicks,
       }
     });
   } catch (error) {
