@@ -42,6 +42,7 @@ interface AdminStats {
   totalContributedDrivers: number;
   pendingContributedDrivers: number;
   totalBazars: number;
+  pwaInstallations: number;
 }
 
 export function useAdminDashboard() {

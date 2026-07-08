@@ -1081,6 +1081,14 @@ export const TEXT = {
     en: "Got it",
     bn: "বুঝতে পেরেছি"
   },
+  pwa_installations: {
+    en: "PWA Installations",
+    bn: "PWA ইনস্টলেশন"
+  },
+  installed_devices: {
+    en: "Devices with app installed",
+    bn: "ইনস্টল করা ডিভাইসের সংখ্যা"
+  },
 } as const;
 
 

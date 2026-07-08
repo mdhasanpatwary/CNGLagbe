@@ -1,5 +1,5 @@
 import React from "react";
-import { Users, UserCheck, Store, UserPlus, ShieldAlert } from "lucide-react";
+import { Users, UserCheck, Store, UserPlus, ShieldAlert, Smartphone } from "lucide-react";
 import { TextKey } from "@/constants/text";
 import { StatsCard } from "../shared";
 
@@ -9,6 +9,7 @@ interface AdminStats {
   totalContributedDrivers: number;
   pendingContributedDrivers: number;
   totalBazars: number;
+  pwaInstallations: number;
 }
 
 interface OverviewTabProps {
@@ -57,11 +58,19 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           />
 
           <StatsCard
-            title={t("total_bazars" as TextKey) || "Bazars / Stations"}
+            title={t("total_bazars" as TextKey) || "Total Bazars / Stations"}
             value={stats.totalBazars || 0}
             desc={t("operating_areas" as TextKey) || "Active operating areas and stands"}
             icon={Store}
             variant="blue"
+          />
+
+          <StatsCard
+            title={t("pwa_installations" as TextKey) || "PWA Installations"}
+            value={stats.pwaInstallations || 0}
+            desc={t("installed_devices" as TextKey) || "Devices with PWA installed"}
+            icon={Smartphone}
+            variant="purple"
           />
         </div>
       ) : (

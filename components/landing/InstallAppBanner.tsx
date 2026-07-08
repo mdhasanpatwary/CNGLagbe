@@ -30,7 +30,44 @@ export function InstallAppBanner() {
       ("standalone" in window.navigator && 
         (window.navigator as unknown as { standalone: boolean }).standalone === true);
 
-    if (isStandalone) return;
+    const trackInstallation = async () => {
+      try {
+        const isTracked = localStorage.getItem("pwa_install_tracked");
+        if (isTracked) return;
+
+        let deviceId = localStorage.getItem("pwa_device_id");
+        if (!deviceId) {
+          deviceId = typeof crypto.randomUUID === "function" 
+            ? crypto.randomUUID() 
+            : Math.random().toString(36).substring(2) + Date.now().toString(36);
+          localStorage.setItem("pwa_device_id", deviceId);
+        }
+
+        const host = window.location.hostname;
+        const role = host.startsWith("driver.") ? "driver" : "user";
+
+        const res = await fetch("/api/pwa-install", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            deviceId,
+            userAgent: navigator.userAgent,
+            role,
+          }),
+        });
+
+        if (res.ok) {
+          localStorage.setItem("pwa_install_tracked", "true");
+        }
+      } catch (err) {
+        console.error("Failed to track PWA install:", err);
+      }
+    };
+
+    if (isStandalone) {
+      trackInstallation();
+      return;
+    }
 
     // 2. Check localStorage dismiss duration
     const dismissedUntil = localStorage.getItem("pwa_install_banner_dismissed_until");
@@ -75,6 +112,40 @@ export function InstallAppBanner() {
     const handleAppInstalled = () => {
       setShowBanner(false);
       setDeferredPrompt(null);
+
+      // Track newly installed app
+      const trackInstallation = async () => {
+        try {
+          let deviceId = localStorage.getItem("pwa_device_id");
+          if (!deviceId) {
+            deviceId = typeof crypto.randomUUID === "function" 
+              ? crypto.randomUUID() 
+              : Math.random().toString(36).substring(2) + Date.now().toString(36);
+            localStorage.setItem("pwa_device_id", deviceId);
+          }
+
+          const host = window.location.hostname;
+          const role = host.startsWith("driver.") ? "driver" : "user";
+
+          const res = await fetch("/api/pwa-install", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              deviceId,
+              userAgent: navigator.userAgent,
+              role,
+            }),
+          });
+
+          if (res.ok) {
+            localStorage.setItem("pwa_install_tracked", "true");
+          }
+        } catch (err) {
+          console.error("Failed to track PWA install on event:", err);
+        }
+      };
+
+      trackInstallation();
     };
 
     window.addEventListener("appinstalled", handleAppInstalled);

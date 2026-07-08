@@ -400,6 +400,8 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Standalone and Session Detection:** Configured the banner to remain completely hidden when the website is already loaded in standalone viewports (e.g. installed app mode).
 - **Dismiss Persistence:** Included a 7-day dismissal window saved in `localStorage` (`pwa_install_banner_dismissed_until`) when the close button is clicked, ensuring a high-quality UX that does not annoy repeat visitors.
 - **Global Integration:** Rendered the component globally inside `<Providers>` at the layout body level in `app/layout.tsx` to handle detection on all routes.
+- **PWA Installation Tracking (Added 2026-07-08):** Implemented client-side tracking using a local-storage generated unique UUID (`pwa_device_id`) and flag (`pwa_install_tracked`) to record unique installations without duplication. Tracks when user launches standalone or completes installation. Logs are processed via a POST `/api/pwa-install` route and saved in the database `PwaInstallation` model.
+- **Admin Dashboard Integration (Added 2026-07-08):** Integrated database-level PWA count into the stats API `/api/admin/stats` and displayed the metric as a new "PWA Installations" card on the main Admin Dashboard overview tab (`OverviewTab.tsx`).
 
 
 
