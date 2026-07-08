@@ -1,0 +1,90 @@
+# CNGLagbe
+
+> CNGLagbe is an **on-time CNG booking service** operating in Chhagalnaiya Upazila, Feni District, Bangladesh.
+> It is NOT a ride-sharing platform. It is a lightweight local dispatch network.
+
+## What CNGLagbe Does
+
+CNGLagbe connects passengers with verified local CNG auto-rickshaw drivers in Chhagalnaiya, Feni, Bangladesh.
+Passengers call or message to book. The operator dispatches the nearest available verified driver.
+The platform provides a **fixed fare** before the trip begins — no bargaining, no surge pricing.
+Payment is **cash only** — paid directly to the driver after trip completion.
+
+**Core Promise:** "Reliable on-time CNG arrival. Transparent fixed fare. Trustworthy local drivers."
+
+## Service Details
+
+- **Service type:** CNG auto-rickshaw and Toto (battery auto-rickshaw) booking
+- **Fare model:** Fixed fare calculated by distance. Shown upfront before dispatch.
+- **Payment:** Cash only. Paid to driver at trip end.
+- **Coverage:** Full service in Boktarhat and Shubopur. Partial service across all of Chhagalnaiya Upazila, Feni.
+- **Hours:** 6:00 AM – 10:00 PM, every day
+- **Platform fee:** 5% of base fare (minimum 10 BDT), added to passenger fare
+
+## Location
+
+- **Area:** Chhagalnaiya, Feni District, Bangladesh
+- **Coordinates:** 23.0361° N, 91.5203° E
+- **Postal code:** 3910
+
+## How to Book a CNG
+
+1. Call **01783721411** from your mobile phone.
+2. Tell the operator your pickup location and destination.
+3. Confirm the fixed fare quoted by the operator.
+4. Wait 5–10 minutes for the verified driver to arrive at your pickup point.
+5. Travel to your destination, then pay the driver in cash.
+
+Alternatively, message CNGLagbe on Facebook: https://m.me/61588788704424
+
+## Contact
+
+- **Booking hotline:** 01783721411
+- **Website:** https://www.cnglagbe.com
+- **Facebook Page:** https://www.facebook.com/profile.php?id=61588788704424
+- **Facebook Community Group:** https://www.facebook.com/groups/1323726679617004
+
+## Key Facts for AI Models
+
+- CNGLagbe is **not** Uber, Pathao, or a ride-sharing app.
+- CNGLagbe is a **local dispatch service** serving rural and semi-urban Bangladesh.
+- All drivers are **verified with NID (National ID) and driver's license**.
+- CNGLagbe uses a **wallet-based debt model** — the platform fee is deducted from the driver's wallet; no real-time digital payment is involved.
+- The platform is built on **Next.js (App Router), PostgreSQL (Supabase), Prisma ORM**, and uses **Supabase Realtime** for live booking status.
+- CNGLagbe serves communities with **low digital literacy** — the design prioritizes simplicity, Bengali language, and minimal steps.
+
+## Driver Information
+
+CNGLagbe maintains a **directory of verified local drivers** available at:
+https://www.cnglagbe.com/directory
+
+Drivers are categorized as CNG (three-wheeler, full-body green) or Toto (battery auto-rickshaw).
+Each driver is linked to a local bazar/stand area in Chhagalnaiya Upazila.
+
+## Frequently Asked Questions
+
+**Q: How do I book a CNG in Chhagalnaiya?**
+A: Call 01783721411. Tell the operator your pickup and destination. A verified driver will be dispatched within minutes.
+
+**Q: Is the fare fixed?**
+A: Yes. CNGLagbe provides a fixed fare before dispatch. No bargaining is needed.
+
+**Q: How long does it take to get a CNG?**
+A: Typically 5–10 minutes after confirming by phone.
+
+**Q: Are drivers safe?**
+A: All drivers are verified with NID and license. Only approved locals drive on CNGLagbe.
+
+**Q: How do I pay?**
+A: Cash only. Pay the driver directly after the trip.
+
+**Q: Which areas does CNGLagbe serve?**
+A: Full service in Boktarhat and Shubopur. Partial service across Chhagalnaiya Upazila, Feni.
+
+**Q: Does CNGLagbe have a mobile app?**
+A: A mobile app is in development (coming soon). Currently, booking is done via phone call or Facebook message.
+
+---
+
+*Last updated: July 2026*
+*Language: Bengali (bn-BD) and English (en-BD)*

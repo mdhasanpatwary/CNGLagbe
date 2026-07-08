@@ -1,11 +1,63 @@
+# CNGLagbe — robots.txt
+# https://www.cnglagbe.com
+
+# ── Standard crawlers ─────────────────────────────────────────────────────
 User-agent: *
 Allow: /
+Allow: /directory
 Disallow: /admin/
 Disallow: /api/
 Disallow: /_next/
 Disallow: /user/map/
+Disallow: /driver/
 
+# ── Google ────────────────────────────────────────────────────────────────
 User-agent: Googlebot
 Allow: /
+Allow: /directory
+
+# ── AI / Generative Engine Bots (explicitly allowed for GEO citations) ───
+# OpenAI / ChatGPT
+User-agent: GPTBot
+Allow: /
+Allow: /directory
+
+User-agent: ChatGPT-User
+Allow: /
+Allow: /directory
+
+# Anthropic / Claude
+User-agent: anthropic-ai
+Allow: /
+Allow: /directory
+
+User-agent: Claude-Web
+Allow: /
+Allow: /directory
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+Allow: /directory
+
+# Google Gemini / Vertex AI
+User-agent: Google-Extended
+Allow: /
+Allow: /directory
+
+# Microsoft Copilot / Bing AI
+User-agent: Bingbot
+Allow: /
+Allow: /directory
+
+# Amazon / Alexa AI
+User-agent: Amazonbot
+Allow: /
+Allow: /directory
+
+# Common Crawl (used for LLM training datasets)
+User-agent: CCBot
+Allow: /
+Allow: /directory
 
 Sitemap: https://www.cnglagbe.com/sitemap.xml

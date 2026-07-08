@@ -37,11 +37,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const baseUrl = "https://www.cnglagbe.com";
   const fullTitle = isDriver
-    ? "CNGLagbe Driver | Manage Your Bookings"
-    : "CNG Booking in Feni | Fast, Fixed Fare, Local Service";
+    ? "CNGLagbe Driver | বুকিং ম্যানেজ করুন"
+    : "ছাগলনাইয়া সিএনজি বুকিং | CNGLagbe — ফিক্সড ভাড়া, দ্রুত পিকআপ";
   const fullDescription = isDriver
-    ? "Manage your CNG bookings — accept requests, navigate, and track your earnings."
-    : "Book CNG instantly in Feni. 100+ local drivers, fixed fare, fast pickup. Cash payment available. CNG near me.";
+    ? "CNGLagbe ড্রাইভার অ্যাপ — বুকিং রিকোয়েস্ট গ্রহণ করুন, নেভিগেট করুন এবং আপনার আয় ট্র্যাক করুন।"
+    : "ছাগলনাইয়া ও ফেনীতে সিএনজি বুক করুন। ১০০+ লোকাল ড্রাইভার, ফিক্সড ভাড়া, দ্রুত পিকআপ। ক্যাশ পেমেন্ট। CNGLagbe — On-time CNG Booking Service in Chhagalnaiya, Feni.";
 
   return {
     metadataBase: new URL(baseUrl),
@@ -52,11 +52,28 @@ export async function generateMetadata(): Promise<Metadata> {
     description: fullDescription,
     alternates: {
       canonical: "/",
+      languages: {
+        "bn-BD": "/",
+        "en-BD": "/",
+      },
     },
     manifest: "/manifest.json",
     keywords: isDriver
-      ? ["CNG driver", "CNGLagbe", "booking service Bangladesh", "driver app", "CNG app"]
-      : ["CNG booking Feni", "local CNG", "CNG near me", "fixed fare CNG", "ছাগলনাইয়া CNG", "সিএনজি বুকিং", "Feni transport", "Feni CNG"],
+      ? [
+          "CNG driver app", "CNGLagbe driver", "সিএনজি ড্রাইভার",
+          "CNG booking Bangladesh", "driver earnings tracker", "Feni CNG driver",
+        ]
+      : [
+          // Bengali keywords
+          "ছাগলনাইয়া সিএনজি", "সিএনজি বুকিং", "ফেনী সিএনজি",
+          "বক্তারহাট সিএনজি", "শুভপুর সিএনজি", "সিএনজি ডাকুন",
+          // Transliterated
+          "Chhagalnaiya CNG", "Boktarhat CNG", "Shubopur CNG",
+          // English
+          "CNG booking Feni", "local CNG Feni", "CNG near me Chhagalnaiya",
+          "fixed fare CNG", "CNG auto Feni", "Feni transport",
+          "on-time CNG booking", "CNG booking Bangladesh",
+        ],
     appleWebApp: {
       capable: true,
       title: isDriver ? "CNG Driver" : "CNGLagbe",
@@ -72,10 +89,11 @@ export async function generateMetadata(): Promise<Metadata> {
           url: "/hero_bg.png",
           width: 1200,
           height: 630,
-          alt: "CNGLagbe - On-time CNG Booking Service",
+          alt: "CNGLagbe — ছাগলনাইয়া ও ফেনীর অন-টাইম সিএনজি বুকিং সার্ভিস",
         },
       ],
       locale: "bn_BD",
+      alternateLocale: "en_BD",
       type: "website",
     },
     twitter: {
@@ -99,8 +117,15 @@ export async function generateMetadata(): Promise<Metadata> {
         'max-snippet': -1,
       },
     },
+    // Geo signals for local SEO (Chhagalnaiya, Feni, Bangladesh)
+    other: {
+      "geo.region": "BD-B", // Bangladesh, Chattogram division
+      "geo.placename": "Chhagalnaiya, Feni, Bangladesh",
+      "geo.position": "23.0361;91.5203",
+      "ICBM": "23.0361, 91.5203",
+    },
     verification: {
-      google: "YOUR_GOOGLE_VERIFICATION_CODE", // Replace with your actual code from Google Search Console
+      google: "QUvDEB6cKjtuZcy_EQO5YT6ym21KXjplD2kuT1d2j90",
     },
   };
 }
@@ -118,7 +143,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("antialiased", inter.variable, notoSansBengali.variable)}>
+    <html lang="bn" className={cn("antialiased", inter.variable, notoSansBengali.variable)}>
       <body className="min-h-screen bg-slate-50 pb-safe font-sans relative">
         <NuqsAdapter>
           <Providers>
