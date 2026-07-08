@@ -391,6 +391,9 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
   - **Removed Info**: Removed the "Contributed by" text row and the original vehicle text badges, making the design significantly more compact.
 - **Dynamic Leaderboard & Driver Count Switching:** Swapped the static driver count display next to the directory tabs to be dynamic. When the active tab is set to "Drivers List", the UI correctly counts overall and filtered driver directories. Toggling to the "Contributor Leaderboard" updates the right side metadata to show the total contributors count (`leaderboard_count` key). Also added a corresponding mobile count badge at the top of the leaderboard section.
 
+## 🚪 Production Same-Name Cookie Logout Fix (2026-07-08)
+- **Direct Header Injection on Logout:** Fixed a production issue where logging out failed to clear the authentication session. Next.js `cookies()` API key-collision prevents sending multiple `Set-Cookie` instructions for the same cookie name (`auth_token`) with different options, causing domain-specific clear requests to overwrite host-only clear requests. Modified `clearAuthCookie` in `lib/auth.ts` to strictly handle host-only cookie deletion, and refactored the `/api/auth/logout` API route to manually append two separate `Set-Cookie` headers directly to the `NextResponse`: one targeting the host-only cookie, and another targeting the legacy wildcard `.cnglagbe.com` cookie to ensure complete session removal.
+
 
 
 

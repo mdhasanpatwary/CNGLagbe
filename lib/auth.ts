@@ -28,8 +28,6 @@ export async function verifyToken(token: string): Promise<JwtPayload | null> {
   }
 }
 
-import { getCookieDomain } from "./subdomain";
-
 const AUTH_COOKIE_NAME = "auth_token";
 
 /**
@@ -62,23 +60,16 @@ export async function getAuthToken(): Promise<string | undefined> {
 }
 
 /**
- * Clears the authentication cookie, including legacy wildcard cookies if present
+ * Clears the authentication cookie (host-only cookie).
+ * NOTE: For same-name cookies with different domains (like host-only vs wildcard),
+ * Next.js cookies() key-collision prevents setting multiple Set-Cookie headers.
+ * For logout, use response headers directly in the API route to clear both.
  */
-export async function clearAuthCookie(host?: string | null) {
+export async function clearAuthCookie() {
   const cookieStore = await cookies();
   
   // Clear host-only cookie
   cookieStore.delete(AUTH_COOKIE_NAME);
-  
-  // Clear legacy wildcard cookie if domain is configured
-  const domain = getCookieDomain(host);
-  if (domain) {
-    cookieStore.set(AUTH_COOKIE_NAME, "", {
-      path: "/",
-      maxAge: 0,
-      domain,
-    });
-  }
 }
 
 /**
