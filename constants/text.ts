@@ -1089,6 +1089,18 @@ export const TEXT = {
     en: "Devices with app installed",
     bn: "ইনস্টল করা ডিভাইসের সংখ্যা"
   },
+  total_contributed_drivers: {
+    en: "Total Drivers",
+    bn: "মোট ড্রাইভার"
+  },
+  cng_count: {
+    en: "CNG",
+    bn: "সিএনজি"
+  },
+  toto_count: {
+    en: "Toto",
+    bn: "টোটো"
+  },
 } as const;
 
 

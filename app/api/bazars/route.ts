@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { Prisma } from "@prisma/client";
 
 async function verifyAdmin() {
   const cookieStore = await cookies();
@@ -25,15 +26,20 @@ export async function GET(request: Request) {
     // Only return approved bazars for public views. Admin views get all bazars.
     const where = includeUnapproved ? {} : { isApproved: true };
 
+    const driverCountWhere: Prisma.ContributedDriverWhereInput = {
+      nearbyBazar: { not: null },
+      ...(includeUnapproved ? {} : { isApproved: true }),
+    };
+
     // Run both queries in parallel: bazars list + driver counts grouped by bazar
     const [bazars, driverCounts] = await Promise.all([
       prisma.bazar.findMany({
         where,
         orderBy: { name: "asc" },
       }),
-      prisma.driver.groupBy({
+      prisma.contributedDriver.groupBy({
         by: ["nearbyBazar"],
-        where: { nearbyBazar: { not: null } },
+        where: driverCountWhere,
         _count: { _all: true },
       }),
     ]);

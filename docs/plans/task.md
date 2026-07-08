@@ -15,3 +15,8 @@
 | Task 13 | Verify code and run lint | `completed` |
 | Task 14 | Add total call clicks count to stats API and dashboard OverviewTab | `completed` |
 | Task 15 | Run verification and fix typescript-eslint errors | `completed` |
+| Task 16 | Add translations to `constants/text.ts` | `completed` |
+| Task 17 | Update User types and users API endpoint | `completed` |
+| Task 18 | Update columns in `UsersTab.tsx` | `completed` |
+| Task 19 | Verify build and fix lint errors | `completed` |
+| Task 20 | Update `taste.md` | `completed` |

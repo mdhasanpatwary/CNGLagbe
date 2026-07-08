@@ -35,24 +35,33 @@ export async function GET(request: Request) {
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
-        include: {
-          _count: {
-            select: { bookings: true }
-          }
-        }
       }),
       prisma.user.count({ where: whereClause }),
     ]);
 
+    const userPhones = users.map(u => u.phone).filter(Boolean);
+    const driverCounts = await prisma.contributedDriver.groupBy({
+      by: ["contributorPhone", "vehicleType"],
+      where: { contributorPhone: { in: userPhones } },
+      _count: { _all: true }
+    });
+
     return NextResponse.json({
-      users: users.map(u => ({
-        id: u.id,
-        name: u.name,
-        phone: u.phone,
-        role: u.role,
-        bookingCount: u._count.bookings,
-        createdAt: u.createdAt
-      })),
+      users: users.map(u => {
+        const userCounts = driverCounts.filter(c => c.contributorPhone === u.phone);
+        const cngCount = userCounts.find(c => c.vehicleType === "CNG")?._count._all || 0;
+        const totoCount = userCounts.find(c => c.vehicleType === "TOTO")?._count._all || 0;
+        return {
+          id: u.id,
+          name: u.name,
+          phone: u.phone,
+          role: u.role,
+          contributedDriversCount: cngCount + totoCount,
+          contributedCngCount: cngCount,
+          contributedTotoCount: totoCount,
+          createdAt: u.createdAt
+        };
+      }),
       meta: {
         total,
         page,

@@ -26,5 +26,7 @@ export interface User {
   };
   
   // Admin/Stats specific
-  bookingCount?: number;
+  contributedDriversCount?: number;
+  contributedCngCount?: number;
+  contributedTotoCount?: number;
 }

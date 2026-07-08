@@ -81,8 +81,9 @@ export const UsersTab: React.FC<UsersTabProps> = ({
             <TableHeader>
               <TableRow className="hover:bg-transparent border-none">
                 <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("user")}</TableHead>
-                <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("logs")}</TableHead>
-                <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("status")}</TableHead>
+                <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("total_contributed_drivers")}</TableHead>
+                <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("cng_count")}</TableHead>
+                <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("toto_count")}</TableHead>
                 <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("joined_date")}</TableHead>
                 <TableHead className="px-8 py-5 text-right text-xs font-black uppercase tracking-widest text-slate-400">Actions</TableHead>
               </TableRow>
@@ -97,14 +98,18 @@ export const UsersTab: React.FC<UsersTabProps> = ({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className="font-black px-3 py-1 bg-slate-50 rounded-lg">
-                      {user.bookingCount} {t("logs")}
+                    <Badge variant="outline" className="font-black px-3 py-1 bg-slate-50 rounded-lg border-slate-200">
+                      {user.contributedDriversCount || 0}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge className={`text-[9px] font-black uppercase border-none ${user.role === "ADMIN" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"
-                      }`}>
-                      {user.role}
+                    <Badge variant="outline" className="font-black px-3 py-1 bg-emerald-50 text-emerald-700 border-emerald-100 rounded-lg">
+                      {user.contributedCngCount || 0}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="font-black px-3 py-1 bg-sky-50 text-sky-700 border-sky-100 rounded-lg">
+                      {user.contributedTotoCount || 0}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-xs text-slate-500 font-medium">
@@ -124,7 +129,7 @@ export const UsersTab: React.FC<UsersTabProps> = ({
               ))}
               {allUsers.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-20 text-center">
+                  <TableCell colSpan={6} className="py-20 text-center">
                     <div className="flex flex-col items-center justify-center gap-3 text-slate-400 italic">
                       <UserCheck size={40} className="opacity-10" />
                       <p className="text-sm">{t("no_users")}</p>
