@@ -61,8 +61,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 
 ## 🏠 Landing Page (Homepage)
 - **Full Landing Page Architecture:** The homepage (`app/page.tsx`) is now a full-length, conversion-optimized landing page — NOT a minimal centered card. It must contain all 11 sections: Hero, Local Trust, How It Works, Why Choose Us, Popular Routes, Features, Service Area, Testimonials, FAQ, Final CTA, and Footer.
-- **Sticky Bottom CTA (Mobile):** A persistent `fixed bottom-0` bar with a prominent "Book Now" button must always be present. This is critical for mobile conversion. The padding-bottom on the footer must account for this bar (using `pb-28` on mobile).
-- **Sticky CTA Contrast:** Always use `text-white` for all elements inside the green sticky button to ensure WCAG compliance against the brand primary color. Added a premium black logo mark for visual hierarchy.
+- **Sticky Bottom CTA (Mobile - Removed 2026-07-08):** The mobile sticky bottom booking CTA bar is removed by user request. The footer and PWA banner spacing are modified accordingly to sit cleanly at the bottom without offset.
 - **No Call-to-Book:** The system strictly uses app-based booking to ensure proper booking tracking and safety. All "Call to Book" buttons have been removed.
 - **No Driver Login Button:** The driver login button has been removed from the main landing page header to keep the primary landing page strictly user-focused.
 - **User Login Button Displayed Everywhere:** The user login button is visible in the landing page header in all environments, including production, for easy user access.
@@ -395,6 +394,12 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 
 ## 🚪 Production Same-Name Cookie Logout Fix (2026-07-08)
 - **Direct Header Injection on Logout:** Fixed a production issue where logging out failed to clear the authentication session. Next.js `cookies()` API key-collision prevents sending multiple `Set-Cookie` instructions for the same cookie name (`auth_token`) with different options, causing domain-specific clear requests to overwrite host-only clear requests. Modified `clearAuthCookie` in `lib/auth.ts` to strictly handle host-only cookie deletion, and refactored the `/api/auth/logout` API route to manually append two separate `Set-Cookie` headers directly to the `NextResponse`: one targeting the host-only cookie, and another targeting the legacy wildcard `.cnglagbe.com` cookie to ensure complete session removal.
+
+## 📱 Mobile PWA Installation Banner & Guide (2026-07-08)
+- **Chromium Native Promote vs iOS Safari Guide:** Designed a custom PWA promotional layout that leverages standard `beforeinstallprompt` to launch native installations on Android Chrome/Edge, and falls back to a custom step-by-step visual overlay modal on iOS Safari to guide manual "Add to Home Screen" actions.
+- **Standalone and Session Detection:** Configured the banner to remain completely hidden when the website is already loaded in standalone viewports (e.g. installed app mode).
+- **Dismiss Persistence:** Included a 7-day dismissal window saved in `localStorage` (`pwa_install_banner_dismissed_until`) when the close button is clicked, ensuring a high-quality UX that does not annoy repeat visitors.
+- **Global Integration:** Rendered the component globally inside `<Providers>` at the layout body level in `app/layout.tsx` to handle detection on all routes.
 
 
 

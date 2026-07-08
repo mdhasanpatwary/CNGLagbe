@@ -1045,6 +1045,42 @@ export const TEXT = {
     en: "Search",
     bn: "অনুসন্ধান"
   },
+  pwa_install_title: {
+    en: "Install App for Easy Booking",
+    bn: "সহজে বুকিং করতে অ্যাপ ইনস্টল করুন"
+  },
+  pwa_install_subtitle: {
+    en: "Fast & secure booking in one-click",
+    bn: "দ্রুত ও নিরাপদ বুকিং এক ক্লিকে"
+  },
+  pwa_install_btn: {
+    en: "Install",
+    bn: "ইনস্টল করুন"
+  },
+  pwa_ios_title: {
+    en: "Install on iPhone / iPad",
+    bn: "আইফোনে অ্যাপ ইনস্টল করুন"
+  },
+  pwa_ios_desc: {
+    en: "Follow these simple steps to add CNGLagbe to your home screen:",
+    bn: "CNGLagbe আপনার হোম স্ক্রিনে যুক্ত করতে নিচের পদক্ষেপগুলো অনুসরণ করুন:"
+  },
+  pwa_ios_step1: {
+    en: "1. Tap the Share button at the bottom of Safari.",
+    bn: "১. সাফারির নিচে শেয়ার (Share) বাটনে ট্যাপ করুন।"
+  },
+  pwa_ios_step2: {
+    en: "2. Scroll down and select 'Add to Home Screen'.",
+    bn: "২. একটু নিচে স্ক্রোল করে 'Add to Home Screen' চাপুন।"
+  },
+  pwa_ios_step3: {
+    en: "3. Tap 'Add' in the top-right corner to finish.",
+    bn: "৩. ওপরে ডান কোণার 'Add' বাটনে ট্যাপ করুন।"
+  },
+  pwa_ios_close: {
+    en: "Got it",
+    bn: "বুঝতে পেরেছি"
+  },
 } as const;
 
 

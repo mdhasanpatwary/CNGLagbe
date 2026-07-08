@@ -54,13 +54,10 @@ export default function LandingPageClient({ initialUser }: LandingPageClientProp
   const scaleX = prefersReducedMotion ? scrollYProgress : springValue;
 
   const [headerTheme, setHeaderTheme] = useState<"light" | "transparent">("transparent");
-  const [showStickyCTA, setShowStickyCTA] = useState(false);
 
   useEffect(() => {
     return scrollYProgress.on("change", (latest) => {
       setHeaderTheme(latest > 0.05 ? "light" : "transparent");
-      // Show sticky CTA after scrolling ~8% of page (past hero)
-      setShowStickyCTA(latest > 0.08);
     });
   }, [scrollYProgress]);
 
@@ -749,31 +746,7 @@ export default function LandingPageClient({ initialUser }: LandingPageClientProp
 
       </motion.main>
 
-      {/* ── STICKY BOTTOM CTA (mobile) ────────────────────────────────────── */}
-      <motion.div
-        initial={{ y: 100, opacity: 0 }}
-        animate={{
-          y: showStickyCTA ? 0 : 100,
-          opacity: showStickyCTA ? 1 : 0
-        }}
-        transition={{ type: "spring", stiffness: 260, damping: 20 }}
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 p-3 sm:p-4 bg-white/90 backdrop-blur-xl border-t border-slate-100 shadow-2xl safe-area-bottom"
-      >
-        <div className="max-w-sm mx-auto w-full">
-          <motion.div whileTap={{ scale: 0.98 }}>
-            <AppButton
-              onClick={handleBookNow}
-              className="w-full min-h-[56px] h-14 text-white rounded-2xl font-bold shadow-lg shadow-primary/20 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none touch-manipulation"
-              leftIcon={<MapPin className="w-5 h-5 text-white" />}
-            >
-              <div className="flex flex-col items-start leading-tight text-white">
-                <span className="text-white/80 text-[10px] uppercase tracking-widest font-bold">{t("hero_book_now")}</span>
-                <span className="text-lg font-black leading-none">{t("app_name")}</span>
-              </div>
-            </AppButton>
-          </motion.div>
-        </div>
-      </motion.div>
+
 
       {/* ── CALL BOOKING MODAL ───────────────────────────────────────────── */}
       <AnimatePresence>

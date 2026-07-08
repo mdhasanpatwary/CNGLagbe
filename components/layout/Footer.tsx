@@ -6,7 +6,6 @@ import Image from "next/image";
 import { MapPin, ExternalLink, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLang } from "@/hooks/useLang";
-import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 interface FooterProps {
@@ -16,12 +15,11 @@ interface FooterProps {
 
 export function Footer({ showMobileCTAOffset, className }: FooterProps) {
   const { t } = useLang();
-  const pathname = usePathname();
 
 
 
   // Automatically show offset on landing page if not explicitly provided
-  const effectiveShowOffset = showMobileCTAOffset ?? pathname === "/";
+  const effectiveShowOffset = showMobileCTAOffset ?? false;
 
   const containerVariants = {
     hidden: { opacity: 0 },

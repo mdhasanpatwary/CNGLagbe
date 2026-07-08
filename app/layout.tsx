@@ -110,6 +110,7 @@ import { Toaster } from "sonner";
 import { Footer } from "@/components/layout/Footer";
 import { Analytics } from "@vercel/analytics/next";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { InstallAppBanner } from "@/components/landing/InstallAppBanner";
 
 export default function RootLayout({
   children,
@@ -127,6 +128,7 @@ export default function RootLayout({
               </div>
               <Footer />
             </div>
+            <InstallAppBanner />
           </Providers>
         </NuqsAdapter>
         <Toaster richColors position="top-right" />
