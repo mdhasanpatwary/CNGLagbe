@@ -32,20 +32,23 @@ import { getCookieDomain } from "./subdomain";
 const AUTH_COOKIE_NAME = "auth_token";
 
 /**
- * Sets the authentication cookie with cross-subdomain support
+ * Sets the authentication cookie as a secure, host-only first-party cookie
  */
-export async function setAuthCookie(token: string, host?: string | null) {
+export async function setAuthCookie(token: string, _host?: string | null) {
   const cookieStore = await cookies();
   const isProd = process.env.NODE_ENV === "production";
-  const domain = getCookieDomain(host);
+  
+  // Keep signature compatibility but host is no longer needed since subdomains are removed
+  if (_host) {
+    // No-op
+  }
   
   cookieStore.set(AUTH_COOKIE_NAME, token, {
     httpOnly: true,
     secure: isProd,
-    sameSite: isProd ? "none" : "lax",
+    sameSite: "lax",
     path: "/",
     maxAge: 30 * 24 * 60 * 60, // 30 days
-    ...(domain ? { domain } : {}),
   });
 }
 
@@ -58,11 +61,23 @@ export async function getAuthToken(): Promise<string | undefined> {
 }
 
 /**
- * Clears the authentication cookie
+ * Clears the authentication cookie, including legacy wildcard cookies if present
  */
-export async function clearAuthCookie() {
+export async function clearAuthCookie(host?: string | null) {
   const cookieStore = await cookies();
+  
+  // Clear host-only cookie
   cookieStore.delete(AUTH_COOKIE_NAME);
+  
+  // Clear legacy wildcard cookie if domain is configured
+  const domain = getCookieDomain(host);
+  if (domain) {
+    cookieStore.set(AUTH_COOKIE_NAME, "", {
+      path: "/",
+      maxAge: 0,
+      domain,
+    });
+  }
 }
 
 /**

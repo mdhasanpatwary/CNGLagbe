@@ -539,7 +539,7 @@ export const TEXT = {
 
   /* ── Landing Page: Footer ────────────────────────────────────────────── */
   footer_about: { en: "About", bn: "আমাদের সম্পর্কে" },
-  footer_about_text: { en: "Reliable CNG booking service for Chhagalnaiya area", bn: "ছাগলনাইয়া এলাকার জন্য নির্ভরযোগ্য CNG বুকিং সার্ভিস" },
+  footer_about_text: { en: "Reliable CNG booking service for feni area", bn: "ফেনী এলাকার জন্য নির্ভরযোগ্য CNG বুকিং সার্ভিস" },
   footer_contact: { en: "Contact", bn: "যোগাযোগ" },
   footer_terms: { en: "Terms", bn: "শর্তাবলী" },
   footer_privacy: { en: "Privacy", bn: "গোপনীয়তা" },
