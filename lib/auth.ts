@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { BoundedCache } from "./bounded-cache";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_for_local_dev";
 const key = new TextEncoder().encode(JWT_SECRET);
@@ -102,8 +103,7 @@ export async function getAuthenticatedDriver(): Promise<string | null> {
 // Approval/suspension changes are rare admin actions, so a 30s cache
 // eliminates ~95% of redundant DB queries on hot-path driver routes
 // (location, requests, accept, complete, reject).
-const approvalCache = new Map<string, { approved: boolean; ts: number }>();
-const APPROVAL_CACHE_TTL = 30_000; // 30 seconds
+const approvalCache = new BoundedCache<boolean>(30_000, 1000);
 
 /**
  * Specifically ensures the authenticated user is a DRIVER and is approved.
@@ -113,10 +113,10 @@ export async function getApprovedDriver(): Promise<string | null> {
   const driverId = await getAuthenticatedDriver();
   if (!driverId) return null;
 
-  // Check cache first
+  // Check cache first — null means cache miss
   const cached = approvalCache.get(driverId);
-  if (cached && Date.now() - cached.ts < APPROVAL_CACHE_TTL) {
-    return cached.approved ? driverId : null;
+  if (cached !== null) {
+    return cached ? driverId : null;
   }
 
   const driver = await prisma.driver.findUnique({
@@ -126,16 +126,8 @@ export async function getApprovedDriver(): Promise<string | null> {
 
   const approved = !!driver?.isApproved && !driver.isSuspended;
 
-  // Update cache
-  approvalCache.set(driverId, { approved, ts: Date.now() });
-
-  // Evict stale entries periodically (simple sweep when cache grows)
-  if (approvalCache.size > 1000) {
-    const now = Date.now();
-    for (const [k, v] of approvalCache) {
-      if (now - v.ts > APPROVAL_CACHE_TTL) approvalCache.delete(k);
-    }
-  }
+  // Update cache — BoundedCache handles eviction and sweep automatically
+  approvalCache.set(driverId, approved);
 
   return approved ? driverId : null;
 }

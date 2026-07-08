@@ -6,6 +6,10 @@ import { getSystemSetting } from "@/lib/settings";
 import { getAuthUser, signToken, setAuthCookie } from "@/lib/auth";
 import { normalizePhone } from "@/lib/utils";
 import { createHash } from "crypto";
+import { BoundedCache } from "@/lib/bounded-cache";
+
+// Cache hash → phone for 5 minutes. Avoids full-table scan on repeated contributor filter requests.
+const hashToPhoneCache = new BoundedCache<string>(5 * 60 * 1000, 500);
 
 function getPhoneHash(phone: string): string {
   return createHash("sha256").update(phone).digest("hex");
@@ -39,19 +43,25 @@ export async function GET(request: Request) {
     }
 
     if (contributorHash) {
-      const distinctContributors = await prisma.contributedDriver.findMany({
-        where: { isApproved: true, contributorPhone: { not: null } },
-        select: { contributorPhone: true },
-        distinct: ["contributorPhone"],
-      });
-      const match = distinctContributors.find(
-        (c) => c.contributorPhone && getPhoneHash(c.contributorPhone) === contributorHash
-      );
-      if (match) {
-        where.contributorPhone = match.contributorPhone;
-      } else {
-        where.contributorPhone = "non-existent-phone";
+      // Check cache first to avoid repeated full-table scans
+      let resolvedPhone = hashToPhoneCache.get(contributorHash);
+
+      if (!resolvedPhone) {
+        const distinctContributors = await prisma.contributedDriver.findMany({
+          where: { isApproved: true, contributorPhone: { not: null } },
+          select: { contributorPhone: true },
+          distinct: ["contributorPhone"],
+        });
+        const match = distinctContributors.find(
+          (c) => c.contributorPhone && getPhoneHash(c.contributorPhone) === contributorHash
+        );
+        if (match?.contributorPhone) {
+          resolvedPhone = match.contributorPhone;
+          hashToPhoneCache.set(contributorHash, resolvedPhone);
+        }
       }
+
+      where.contributorPhone = resolvedPhone ?? "non-existent-phone";
     }
 
     const pageParam = searchParams.get("page");

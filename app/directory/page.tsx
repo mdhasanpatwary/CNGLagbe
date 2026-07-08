@@ -1,40 +1,64 @@
-"use client";
+import { getAuthUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { createHash } from "crypto";
+import DirectoryPageClient from "@/components/directory/DirectoryPageClient";
 
-import React, { useEffect, useState } from "react";
-import { Header } from "@/components/layout/Header";
-import { DriverDirectorySection } from "@/components/landing/DriverDirectorySection";
-import { User } from "@/lib/types/user";
+function getPhoneHash(phone: string): string {
+  return createHash("sha256").update(phone).digest("hex");
+}
 
-export default function DirectoryPage() {
-  const [user, setUser] = useState<User | null>(null);
+export default async function Page() {
+  const session = await getAuthUser();
+  let user = null;
 
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => data && setUser(data.user))
-      .catch(() => setUser(null));
-  }, []);
+  if (session) {
+    let userData = null;
+    if (session.role === "USER" || session.role === "ADMIN") {
+      userData = await prisma.user.findUnique({
+        where: { id: session.sub },
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          role: true,
+          photoUrl: true,
+          birthday: true,
+          createdAt: true,
+        },
+      });
+    } else if (session.role === "DRIVER") {
+      userData = await prisma.driver.findUnique({
+        where: { id: session.sub },
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          photoUrl: true,
+          isApproved: true,
+          isSuspended: true,
+          isOnline: true,
+          vehicleNumber: true,
+          vehicleType: true,
+          nearbyBazar: true,
+          address: true,
+          birthday: true,
+          nidNumber: true,
+          licenseNumber: true,
+          createdAt: true,
+        },
+      });
+    }
 
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    setUser(null);
-    window.location.reload();
-  };
+    if (userData) {
+      user = {
+        ...userData,
+        role: session.role,
+        phoneHash: userData.phone ? getPhoneHash(userData.phone) : null,
+        createdAt: userData.createdAt.toISOString(),
+        birthday: userData.birthday ? userData.birthday.toISOString() : null,
+      };
+    }
+  }
 
-  return (
-    <div className="flex flex-col min-h-screen bg-slate-50">
-      <Header
-        role="landing"
-        variant="fixed"
-        user={user}
-        onLogout={handleLogout}
-        className="py-2.5 shadow-sm"
-        theme="light"
-      />
-
-      <main className="flex-1 pt-20 bg-slate-50">
-        <DriverDirectorySection isLanding={false} />
-      </main>
-    </div>
-  );
+  return <DirectoryPageClient initialUser={user} />;
 }

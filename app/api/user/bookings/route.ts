@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
-import { BookingStatus } from "@/lib/types/booking";
+
+type BookingStatus = "PENDING" | "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+
 
 export const dynamic = 'force-dynamic';
 

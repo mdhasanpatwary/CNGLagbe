@@ -12,54 +12,57 @@ export async function GET(request: Request) {
     const limitParam = searchParams.get("limit");
     const limit = limitParam ? parseInt(limitParam, 10) : 10;
 
-    const approvedContributions = await prisma.contributedDriver.findMany({
+    // Use DB-level groupBy instead of fetching all records into memory
+    const grouped = await prisma.contributedDriver.groupBy({
+      by: ["contributorPhone"],
       where: {
         isApproved: true,
         contributorPhone: { not: null },
         contributorName: { not: null },
       },
-      select: {
-        contributorName: true,
-        contributorPhone: true,
-        contributorPhotoUrl: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+      _count: { id: true },
+      orderBy: { _count: { id: "desc" } },
+      ...(!isNaN(limit) && limit > 0 ? { take: limit } : {}),
     });
 
-    const contributorMap = new Map<string, { name: string; phone: string; photoUrl: string | null; count: number; hash: string }>();
+    if (grouped.length === 0) {
+      return NextResponse.json([]);
+    }
 
-    for (const contrib of approvedContributions) {
-      const phone = contrib.contributorPhone!;
-      const name = contrib.contributorName!;
-      const photoUrl = contrib.contributorPhotoUrl || null;
+    // Fetch name + photoUrl for the grouped phones in a single targeted query
+    const phones = grouped.map((g) => g.contributorPhone!);
+    const details = await prisma.contributedDriver.findMany({
+      where: {
+        contributorPhone: { in: phones },
+        isApproved: true,
+        contributorName: { not: null },
+      },
+      select: {
+        contributorPhone: true,
+        contributorName: true,
+        contributorPhotoUrl: true,
+      },
+      distinct: ["contributorPhone"],
+    });
 
-      const existing = contributorMap.get(phone);
-      if (existing) {
-        existing.count += 1;
-      } else {
-        // Mask phone number for privacy: e.g. 0171***5678
-        const maskedPhone = phone.length === 11 
+    const detailMap = new Map(details.map((d) => [d.contributorPhone, d]));
+
+    const leaderboard = grouped.map((g) => {
+      const phone = g.contributorPhone!;
+      const detail = detailMap.get(phone);
+      const maskedPhone =
+        phone.length === 11
           ? `${phone.slice(0, 4)}***${phone.slice(8)}`
           : phone;
 
-        contributorMap.set(phone, {
-          name,
-          phone: maskedPhone,
-          photoUrl,
-          count: 1,
-          hash: getPhoneHash(phone),
-        });
-      }
-    }
-
-    let leaderboard = Array.from(contributorMap.values())
-      .sort((a, b) => b.count - a.count);
-
-    if (!isNaN(limit) && limit > 0) {
-      leaderboard = leaderboard.slice(0, limit);
-    }
+      return {
+        name: detail?.contributorName ?? "Anonymous",
+        phone: maskedPhone,
+        photoUrl: detail?.contributorPhotoUrl ?? null,
+        count: g._count.id,
+        hash: getPhoneHash(phone),
+      };
+    });
 
     return NextResponse.json(leaderboard);
   } catch (error) {

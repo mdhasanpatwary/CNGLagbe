@@ -356,3 +356,22 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
   - Modified the GET `/api/contributed-drivers` API route to return database-backed counts for matching drivers (`X-Total-Count` header) and overall approved drivers (`X-Overall-Count` header) to maintain backward-compatibility with the JSON array format.
   - Positioned the count display responsively: on desktop, it is shown on the right side of the navigation tabs bar (e.g. `ড্রাইভার তালিকা, অবদানকারী লিডারবোর্ড` bar). On mobile, it is hidden from the tabs to prevent truncation, and instead displayed as a clean grey badge (e.g. `মোট: ১৭৬ জন` or `১৭৬ জনের মধ্যে ১২ জন`) at the beginning of the active filters tags row. Uses localized keys `driver_directory_count` and `driver_directory_count_filtered`.
 
+
+## Performance and Code Quality Optimizations (2026-07-08)
+
+- Leaderboard DB-Level Aggregation: Replaced full-table fetch plus JS count in leaderboard route with Prisma groupBy. DB counts contributions per phone directly.
+- contributorHash BoundedCache: Added 5-minute BoundedCache in contributed-drivers route to cache hash to phone lookups. Avoids repeated full table scans on repeat filter requests.
+- Eliminated Duplicate api/auth/me Fetch: DriverDirectorySection now accepts initialUser prop. Both page.tsx and directory/page.tsx pass their already-fetched user down, removing one network call per page load.
+- Scroll Listener Consolidation: Removed raw window scroll listener. headerTheme and showStickyCTA now both derive from a single scrollYProgress.on() subscription. One fewer event listener.
+- Secure Photo Filename: Changed Math.random() to Date.now()-crypto.randomUUID() for Supabase contributor photo uploads. Eliminates filename collision risk.
+- BoundedCache for Driver Approval: Replaced plain Map plus manual sweep in lib/auth.ts with BoundedCache. Simpler API, automatic eviction, consistent with project patterns.
+- TypeScript Errors Surfaced and Fixed: Removed ignoreBuildErrors:true from next.config.ts. Fixed missing booking type import (local type alias). Excluded scratch test files from tsconfig. yarn tsc --noEmit now exits 0.
+- React Compiler Lint Warning Resolution: Replaced React Hook Form's `watch()` API calls with the `useWatch` hook in `hooks/useDriverDirectory.ts` to prevent "Compilation Skipped" warnings and allow Next.js compiler optimization. Silenced associated `set-state-in-effect` lint rules with appropriate inline ESLint compiler directives.
+
+
+## ⚡ Advanced Architecture & Optimization Cleanup (2026-07-08)
+
+- **Firebase Cleanup:** Uninstalled unused packages `firebase` and `firebase-admin` from `package.json`. Deleted dead service worker file `public/firebase-messaging-sw.js` and local utility `test-push.ts`. Surfaced a clean package structure with zero external Firebase bloat.
+- **useDriverDirectory Hook:** Extracted all driver state management, form resolution, pagination, filtering, image uploading, and deleting handlers out of `DriverDirectorySection.tsx` into a custom hook `hooks/useDriverDirectory.ts`. The UI component is now 100% presentational.
+- **Server-Client Page Splits:** Converted landing page `app/page.tsx` and directory page `app/directory/page.tsx` into React Server Components. User details and auth sessions are fetched directly on the server to prevent layout shifting. Interactive behaviors are decoupled into client shells (`LandingPageClient.tsx` and `DirectoryPageClient.tsx`).
+
