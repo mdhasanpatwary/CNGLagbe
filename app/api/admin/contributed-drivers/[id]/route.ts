@@ -12,10 +12,7 @@ const updateSchema = z.object({
   vehicleType: z.enum(["CNG", "TOTO"]),
   isApproved: z.boolean().optional(),
   contributorName: z.string().optional().nullable().or(z.literal("")),
-  contributorPhone: z.string().optional().nullable().or(z.literal("")).refine(val => {
-    if (!val) return true;
-    return /^01[3-9]\d{8}$/.test(val);
-  }, { message: "Please enter a valid 11-digit Bangladeshi mobile number" }),
+  contributorPhone: z.string().optional().nullable().or(z.literal("")),
   contributorPhotoUrl: z.string().optional().nullable().or(z.literal("")),
 });
 

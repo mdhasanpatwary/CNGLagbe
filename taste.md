@@ -136,6 +136,8 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
   - If a user is logged in, their contributor details are automatically linked to the contributed driver record on the backend using their session.
   - If a user is not logged in, they can still contribute driver numbers anonymously as a guest (the contributor details remain `null` and no user account is created). 
   - An amber-themed info banner recommending login is shown at the top of the modal for unauthenticated users, with a "Login First" button pointing to `/login`.
+  - **Relaxed contributorPhone Validation & Error Toast (2026-07-08):** Relaxed the `contributorPhone` validation in the contributed driver schemas and admin update schemas by removing the strict Bangladeshi phone regex, since logged-in contributors might have international/abroad phone numbers. Implemented an `onInvalid` validation error toast handler in the form's `handleSubmit` to prevent silent form submission failures (such as the form doing nothing when validation fails on hidden or auto-populated fields).
+
 
 ## 🛠️ Code Quality & Maintenance
 - **Strict Linting Compliance:** The codebase maintains zero linting errors and warnings. Key practices include:

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm, useWatch, FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contributedDriverSchema, ContributedDriverInput } from "@/lib/schemas/contributed-driver";
 import { toast } from "sonner";
@@ -325,6 +325,18 @@ export function useDriverDirectory({ isLanding = false, initialUser }: UseDriver
     }
   };
 
+  const onInvalid = (errors: FieldErrors<ContributedDriverInput>) => {
+    const errorValues = Object.values(errors);
+    if (errorValues.length > 0) {
+      const firstError = errorValues[0];
+      if (firstError?.message) {
+        toast.error(typeof firstError.message === "string" ? firstError.message : "Please fill in all required fields correctly.");
+        return;
+      }
+    }
+    toast.error("Please fill in all required fields correctly.");
+  };
+
   const handleDeleteDriver = async () => {
     if (!driverToDelete) return;
     setIsDeleting(true);
@@ -390,6 +402,7 @@ export function useDriverDirectory({ isLanding = false, initialUser }: UseDriver
     watchedContributorPhotoUrl,
     handlePhotoUpload,
     onSubmit,
+    onInvalid,
     handleDeleteDriver,
     fetchDrivers,
   };

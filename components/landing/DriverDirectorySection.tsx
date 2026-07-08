@@ -58,6 +58,7 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
     errors,
     watchedVehicleType,
     onSubmit,
+    onInvalid,
     handleDeleteDriver,
   } = useDriverDirectory({ isLanding, initialUser });
 
@@ -560,7 +561,7 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                 <X className="w-5 h-5" />
               </AppButton>
             </div>
-            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5 overflow-y-auto flex-1">
+            <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="p-6 space-y-5 overflow-y-auto flex-1">
               <p className="text-xs text-slate-500 font-medium leading-relaxed mb-2">
                 {t("contribute_desc" as TextKey) || "Help by adding driver numbers."}
               </p>
