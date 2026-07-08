@@ -3,8 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { contributedDriverSchema } from "@/lib/schemas/contributed-driver";
 import { getSystemSetting } from "@/lib/settings";
-import { getAuthUser, signToken, setAuthCookie } from "@/lib/auth";
-import { normalizePhone } from "@/lib/utils";
+import { getAuthUser } from "@/lib/auth";
 import { createHash } from "crypto";
 import { BoundedCache } from "@/lib/bounded-cache";
 
@@ -125,7 +124,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: result.error.format() }, { status: 400 });
     }
 
-    const { name, phone, address, nearbyBazar, vehicleType, contributorName, contributorPhone, contributorPhotoUrl } = result.data;
+    const { name, phone, address, nearbyBazar, vehicleType } = result.data;
 
     // Check uniqueness across ContributedDriver
     const existingContributed = await prisma.contributedDriver.findUnique({
@@ -138,10 +137,10 @@ export async function POST(request: Request) {
 
     // Determine current session
     const session = await getAuthUser();
-    let effectiveContributorName = contributorName;
-    let effectiveContributorPhone = contributorPhone;
-    let effectiveContributorPhotoUrl = contributorPhotoUrl;
-    let autoLoggedIn = false;
+    let effectiveContributorName: string | null = null;
+    let effectiveContributorPhone: string | null = null;
+    let effectiveContributorPhotoUrl: string | null = null;
+    const autoLoggedIn = false;
 
     if (session) {
       let dbUserOrDriver = null;
@@ -159,38 +158,7 @@ export async function POST(request: Request) {
       if (dbUserOrDriver) {
         effectiveContributorName = dbUserOrDriver.name;
         effectiveContributorPhone = dbUserOrDriver.phone;
-        effectiveContributorPhotoUrl = dbUserOrDriver.photoUrl || undefined;
-      }
-    } else {
-      // Not logged in: auto-login ONLY if it's a newly created user
-      const normalizedContPhone = normalizePhone(contributorPhone || "");
-      if (normalizedContPhone) {
-        const user = await prisma.user.findUnique({
-          where: { phone: normalizedContPhone }
-        });
-
-        if (user) {
-          // If user exists, block addition and prompt to login first
-          return NextResponse.json({ error: "CONTRIBUTOR_PHONE_EXISTS" }, { status: 400 });
-        }
-
-        // Create new user
-        const newUser = await prisma.user.create({
-          data: {
-            phone: normalizedContPhone,
-            name: contributorName || "User",
-            photoUrl: contributorPhotoUrl || null,
-            passwordHash: null,
-          }
-        });
-
-        const token = await signToken({
-          sub: newUser.id,
-          role: newUser.role as "DRIVER" | "USER" | "ADMIN",
-        });
-
-        await setAuthCookie(token, request.headers.get("host"));
-        autoLoggedIn = true;
+        effectiveContributorPhotoUrl = dbUserOrDriver.photoUrl || null;
       }
     }
 
@@ -208,7 +176,7 @@ export async function POST(request: Request) {
         isApproved,
         contributorName: effectiveContributorName,
         contributorPhone: effectiveContributorPhone,
-        contributorPhotoUrl: effectiveContributorPhotoUrl || null
+        contributorPhotoUrl: effectiveContributorPhotoUrl
       }
     });
 

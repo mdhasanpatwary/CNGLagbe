@@ -103,7 +103,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 
 
 - **Adaptive Branding (Logo):** To ensure WCAG-compliant contrast across themes, the app uses multiple logo variants: `/logo_white.png` for dark and primary backgrounds (Admin/Landing Footer), and `/logo_dark_text.png` for light backgrounds (Driver/General). All variants maintain a consistent 4:1 aspect ratio and transparent backgrounds.
-- **SolaimanLipi Font for Bengali:** The platform explicitly uses the **SolaimanLipi** font for all Bengali text (`--font-bangla`). This font provides superior readability and aesthetics for Bengali ligatures compared to standard Google Fonts like Hind Siliguri. It is self-hosted in `public/fonts/SolaimanLipi.woff`.
+- **Noto Sans Bengali Font for Bengali:** The platform explicitly uses the **Noto Sans Bengali** font for all Bengali text (`--font-bangla`), loaded dynamically via `next/font/google`. This font provides excellent readability and proper rendering of Bengali ligatures.
 - **Standardized Spelling (Chhagalnaiya):** The Bengali spelling for Chhagalnaiya is standardized as "ছাগলনাইয়া".
 
 ## ✨ Premium Animations (Framer Motion)
@@ -132,6 +132,10 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Prisma Client Sync:** After schema changes, `npx prisma generate` must be run and the server restarted to ensure the Prisma Client picks up the new fields and avoids `Unknown argument` errors.
 - **Profile Header Dropdown:** The driver's name, ID, and profile link are tucked into a clean dropdown menu behind the profile image in the header, keeping the top navigation minimalist and focused.
 - **Back Button Consistency:** The driver profile page uses a `Header` with a `showBack` prop and `onBack` handler to ensure consistent navigation back to the dashboard.
+- **Guest and Authenticated Driver Number Contribution (2026-07-08):** To prevent duplicate user creations caused by guest users typing incorrect contributor info, the "Contributor Information" section has been removed from the "Add Driver" modal completely. 
+  - If a user is logged in, their contributor details are automatically linked to the contributed driver record on the backend using their session.
+  - If a user is not logged in, they can still contribute driver numbers anonymously as a guest (the contributor details remain `null` and no user account is created). 
+  - An amber-themed info banner recommending login is shown at the top of the modal for unauthenticated users, with a "Login First" button pointing to `/login`.
 
 ## 🛠️ Code Quality & Maintenance
 - **Strict Linting Compliance:** The codebase maintains zero linting errors and warnings. Key practices include:
@@ -374,4 +378,8 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Firebase Cleanup:** Uninstalled unused packages `firebase` and `firebase-admin` from `package.json`. Deleted dead service worker file `public/firebase-messaging-sw.js` and local utility `test-push.ts`. Surfaced a clean package structure with zero external Firebase bloat.
 - **useDriverDirectory Hook:** Extracted all driver state management, form resolution, pagination, filtering, image uploading, and deleting handlers out of `DriverDirectorySection.tsx` into a custom hook `hooks/useDriverDirectory.ts`. The UI component is now 100% presentational.
 - **Server-Client Page Splits:** Converted landing page `app/page.tsx` and directory page `app/directory/page.tsx` into React Server Components. User details and auth sessions are fetched directly on the server to prevent layout shifting. Interactive behaviors are decoupled into client shells (`LandingPageClient.tsx` and `DirectoryPageClient.tsx`).
+
+## 👤 Contributor Name & Photo Sync on Profile Update (2026-07-08)
+- **Automatic Sync Across Cards:** Modified the profile update API route (`app/api/profile/update/route.ts`). When a user updates their profile name or photo URL, the backend dynamically queries the `ContributedDriver` table and updates `contributorName` and `contributorPhotoUrl` in all records where `contributorPhone` matches the updated user's phone. This ensures that all previously contributed driver cards, as well as the contributor leaderboard, instantly reflect the user's updated profile information.
+
 

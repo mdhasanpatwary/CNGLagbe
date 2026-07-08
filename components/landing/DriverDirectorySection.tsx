@@ -2,7 +2,7 @@
 
 import React from "react";
 import { createPortal } from "react-dom";
-import { Search, MapPin, Phone, Users, Plus, X, Trophy, Camera, Trash2 } from "lucide-react";
+import { Search, MapPin, Phone, Users, Plus, X, Trophy, Trash2 } from "lucide-react";
 import { Controller } from "react-hook-form";
 import { AppButton } from "@/components/ui/AppButton";
 import { FormField } from "@/components/FormField";
@@ -57,8 +57,6 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
     control,
     errors,
     watchedVehicleType,
-    watchedContributorPhotoUrl,
-    handlePhotoUpload,
     onSubmit,
     handleDeleteDriver,
   } = useDriverDirectory({ isLanding, initialUser });
@@ -561,6 +559,26 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                 {t("contribute_desc" as TextKey) || "Help by adding driver numbers."}
               </p>
 
+              {!currentUser && (
+                <div className="bg-amber-50/60 border border-amber-200/60 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-in fade-in duration-200">
+                  <div className="flex gap-2.5 items-start">
+                    <Trophy className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-xs font-semibold text-amber-900 leading-relaxed">
+                      {t("guest_contribution_prompt" as TextKey) || "Login to get credit on the leaderboard, or continue as a guest."}
+                    </p>
+                  </div>
+                  <Link href="/login" className="shrink-0">
+                    <AppButton
+                      type="button"
+                      variant="outline"
+                      className="h-8 text-xs px-3.5 border-amber-200 hover:border-amber-300 text-amber-950 bg-white/50 hover:bg-white rounded-lg font-bold min-h-[auto]"
+                    >
+                      {t("login_to_contribute" as TextKey) || "Login First"}
+                    </AppButton>
+                  </Link>
+                </div>
+              )}
+
               <FormField
                 label={t("driver_name" as TextKey) || "Driver Name"}
                 placeholder="মকবুল হোসেন"
@@ -641,87 +659,6 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                       </label>
                     );
                   })}
-                </div>
-              </div>
-
-              {/* Contributor Information Section */}
-              <div className={`border-t border-slate-100 pt-5 space-y-4 ${currentUser ? "hidden" : ""}`}>
-                <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-amber-500" />
-                  <span>অবদানকারীর তথ্য (Contributor Info)</span>
-                </h4>
-
-                {/* Profile Photo Upload */}
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 block">
-                    {t("contributor_photo_label" as TextKey) || "Your Photo (Optional)"}
-                  </label>
-                  {currentUser ? (
-                    currentUser.photoUrl ? (
-                      <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/60">
-                        <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-slate-200 shrink-0">
-                          <Image
-                            src={currentUser.photoUrl}
-                            alt="Contributor"
-                            fill
-                            sizes="48px"
-                            className="object-cover"
-                          />
-                        </div>
-                        <p className="text-xs text-slate-500 font-medium">আপনার প্রোফাইল ছবি ব্যবহার করা হবে (Using your profile picture)</p>
-                      </div>
-                    ) : (
-                      <p className="text-xs text-slate-500 font-medium bg-slate-50 p-3 rounded-xl border border-slate-200/60">আপনার একাউন্ট থেকে তথ্য নেওয়া হচ্ছে (Using account details)</p>
-                    )
-                  ) : (
-                    <div className="flex items-center gap-4">
-                      <label className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-dashed border-slate-300 hover:border-emerald-500 bg-slate-50/50 hover:bg-emerald-50/10 cursor-pointer transition-all text-xs font-bold text-slate-600 hover:text-emerald-800 select-none">
-                        <Camera className="w-4 h-4" />
-                        <span>{uploading ? "Uploading..." : (t("upload_photo" as TextKey) || "Upload Photo")}</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handlePhotoUpload}
-                          className="hidden"
-                          disabled={uploading}
-                        />
-                      </label>
-                      {watchedContributorPhotoUrl && (
-                        <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-slate-200">
-                          <Image
-                            src={watchedContributorPhotoUrl}
-                            alt="Contributor Preview"
-                            fill
-                            sizes="48px"
-                            className="object-cover"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <FormField
-                  label={t("contributor_name_label" as TextKey) || "Your Name"}
-                  placeholder="আপনার নাম লিখুন"
-                  error={errors.contributorName?.message}
-                  required
-                  disabled={!!currentUser}
-                  {...register("contributorName")}
-                />
-
-                <div className="space-y-1">
-                  <FormField
-                    label={t("contributor_phone_label" as TextKey) || "Your Mobile Number"}
-                    placeholder="01712345678"
-                    error={errors.contributorPhone?.message}
-                    required
-                    disabled={!!currentUser}
-                    {...register("contributorPhone")}
-                  />
-                  <p className="text-[10px] text-slate-400 font-medium">
-                    * {t("contributor_phone_disclaimer" as TextKey) || "Mobile number will be masked on the leaderboard"}
-                  </p>
                 </div>
               </div>
 

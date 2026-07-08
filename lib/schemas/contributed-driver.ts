@@ -6,9 +6,12 @@ export const contributedDriverSchema = z.object({
   address: z.string().optional().or(z.literal("")),
   nearbyBazar: z.string().min(1, "Please select a bazar/stand"),
   vehicleType: z.enum(["CNG", "TOTO"]).default("CNG"),
-  contributorName: z.string().min(2, "Your name must be at least 2 characters"),
-  contributorPhone: z.string().regex(/^01[3-9]\d{8}$/, "Please enter a valid 11-digit Bangladeshi mobile number"),
-  contributorPhotoUrl: z.string().optional().or(z.literal("")),
+  contributorName: z.string().optional().nullable().or(z.literal("")),
+  contributorPhone: z.string().optional().nullable().or(z.literal("")).refine(val => {
+    if (!val) return true;
+    return /^01[3-9]\d{8}$/.test(val);
+  }, { message: "Please enter a valid 11-digit Bangladeshi mobile number" }),
+  contributorPhotoUrl: z.string().optional().nullable().or(z.literal("")),
 });
 
 export type ContributedDriverInput = z.input<typeof contributedDriverSchema>;

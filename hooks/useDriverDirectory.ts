@@ -99,6 +99,11 @@ export function useDriverDirectory({ isLanding = false, initialUser }: UseDriver
   });
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
     if (isSubmitModalOpen && currentUser) {
       setValue("contributorName", currentUser.name || "");
       setValue("contributorPhone", currentUser.phone || "");
@@ -307,16 +312,8 @@ export function useDriverDirectory({ isLanding = false, initialUser }: UseDriver
         reset();
         setIsSubmitModalOpen(false);
         fetchDrivers(1);
-
-        if (resData.autoLoggedIn) {
-          setTimeout(() => {
-            window.location.reload();
-          }, 1000);
-        }
       } else if (resData.error === "PHONE_EXISTS") {
         toast.error(t("error_phone_exists" as TextKey) || "Phone number already exists!");
-      } else if (resData.error === "CONTRIBUTOR_PHONE_EXISTS") {
-        toast.error(t("error_contributor_exists" as TextKey) || "This mobile number is already registered. Please login first.");
       } else {
         toast.error("Failed to add driver. Try again.");
       }

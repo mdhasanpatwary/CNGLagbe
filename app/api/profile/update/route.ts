@@ -23,10 +23,21 @@ export async function PATCH(request: Request) {
     }
 
     if (session.role === "USER" || session.role === "ADMIN") {
-      await prisma.user.update({
+      const updatedUser = await prisma.user.update({
         where: { id: session.sub },
         data: updateData,
       });
+
+      // Sync updated name and photo URL across all contributed drivers by this user
+      if (updateData.name !== undefined || updateData.photoUrl !== undefined) {
+        await prisma.contributedDriver.updateMany({
+          where: { contributorPhone: updatedUser.phone },
+          data: {
+            ...(updateData.name !== undefined ? { contributorName: updateData.name as string } : {}),
+            ...(updateData.photoUrl !== undefined ? { contributorPhotoUrl: updateData.photoUrl as string | null } : {}),
+          },
+        });
+      }
     } else if (session.role === "DRIVER") {
       // Drivers can only update address and nearbyBazar via this endpoint for now
       // Actually, let's keep driver logic as is or support password for them too if needed

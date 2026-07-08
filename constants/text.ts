@@ -845,6 +845,14 @@ export const TEXT = {
     en: "Add Driver",
     bn: "ড্রাইভার যোগ করুন"
   },
+  guest_contribution_prompt: {
+    en: "Login to get credit on the leaderboard, or continue as a guest.",
+    bn: "লিডারবোর্ডে অবদানকারী হিসেবে নাম যুক্ত করতে লগইন করুন, অথবা অতিথি হিসেবে চালিয়ে যান।"
+  },
+  login_to_contribute: {
+    en: "Login First",
+    bn: "প্রথমে লগইন করুন"
+  },
   contribute_title: {
     en: "Contribute Driver Information",
     bn: "নতুন ড্রাইভার যুক্ত করুন"
