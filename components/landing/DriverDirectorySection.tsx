@@ -68,6 +68,8 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [driverToDelete, setDriverToDelete] = useState<ContributedDriver | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [overallCount, setOverallCount] = useState<number | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -191,6 +193,11 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
 
       const res = await fetch(`/api/contributed-drivers?${params.toString()}`, { signal });
       if (res.ok) {
+        const total = res.headers.get("X-Total-Count");
+        const overall = res.headers.get("X-Overall-Count");
+        if (total !== null) setTotalCount(parseInt(total, 10));
+        if (overall !== null) setOverallCount(parseInt(overall, 10));
+
         const data = await res.json();
         if (isLanding) {
           setDrivers(data);
@@ -317,6 +324,8 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
         }
       } else if (resData.error === "PHONE_EXISTS") {
         toast.error(t("error_phone_exists" as TextKey) || "Phone number already exists!");
+      } else if (resData.error === "CONTRIBUTOR_PHONE_EXISTS") {
+        toast.error(t("error_contributor_exists" as TextKey) || "This mobile number is already registered. Please login first.");
       } else {
         toast.error("Failed to add driver. Try again.");
       }
@@ -374,28 +383,41 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex border-b border-slate-200 mb-8 gap-4 shrink-0 overflow-x-auto scrollbar-none">
-          <AppButton
-            variant="ghost"
-            onClick={() => setActiveTab("DRIVERS")}
-            className={`pb-3 rounded-none border-b-2 hover:bg-transparent transition-all font-bold text-sm sm:text-base ${activeTab === "DRIVERS"
-                ? "text-primary border-primary"
-                : "text-slate-500 border-transparent hover:text-slate-800"
-              }`}
-          >
-            {t("tab_all_drivers" as TextKey) || "Drivers List"}
-          </AppButton>
-          <AppButton
-            variant="ghost"
-            onClick={() => setActiveTab("LEADERBOARD")}
-            leftIcon={<Trophy className="w-4.5 h-4.5 text-amber-500" />}
-            className={`pb-3 rounded-none border-b-2 hover:bg-transparent transition-all font-bold text-sm sm:text-base ${activeTab === "LEADERBOARD"
-                ? "text-primary border-primary"
-                : "text-slate-500 border-transparent hover:text-slate-800"
-              }`}
-          >
-            {t("tab_leaderboard" as TextKey) || "Leaderboard"}
-          </AppButton>
+        <div className="flex border-b border-slate-200 mb-8 items-end justify-between gap-4 shrink-0 overflow-x-auto scrollbar-none">
+          <div className="flex gap-4">
+            <AppButton
+              variant="ghost"
+              onClick={() => setActiveTab("DRIVERS")}
+              className={`pb-3 rounded-none border-b-2 hover:bg-transparent transition-all font-bold text-sm sm:text-base ${activeTab === "DRIVERS"
+                  ? "text-primary border-primary"
+                  : "text-slate-500 border-transparent hover:text-slate-800"
+                }`}
+            >
+              {t("tab_all_drivers" as TextKey) || "Drivers List"}
+            </AppButton>
+            <AppButton
+              variant="ghost"
+              onClick={() => setActiveTab("LEADERBOARD")}
+              leftIcon={<Trophy className="w-4.5 h-4.5 text-amber-500" />}
+              className={`pb-3 rounded-none border-b-2 hover:bg-transparent transition-all font-bold text-sm sm:text-base ${activeTab === "LEADERBOARD"
+                  ? "text-primary border-primary"
+                  : "text-slate-500 border-transparent hover:text-slate-800"
+                }`}
+            >
+              {t("tab_leaderboard" as TextKey) || "Leaderboard"}
+            </AppButton>
+          </div>
+          {totalCount !== null && overallCount !== null && (
+            <div className="hidden md:block text-xs sm:text-sm font-semibold text-slate-500 pb-3 font-bn self-end whitespace-nowrap">
+              {totalCount < overallCount
+                ? (t("driver_directory_count_filtered" as TextKey) || "{filtered} of {total}")
+                    .replace("{filtered}", totalCount.toString())
+                    .replace("{total}", overallCount.toString())
+                : (t("driver_directory_count" as TextKey) || "Total: {total}")
+                    .replace("{total}", overallCount.toString())
+              }
+            </div>
+          )}
         </div>
 
         {activeTab === "DRIVERS" ? (
@@ -451,9 +473,22 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
               </div>
             </div>
 
-            {/* Active Filters Row */}
-            {(selectedBazar !== "ALL" || selectedVehicleType !== "ALL" || searchQuery !== "" || selectedContributor) && (
+            {/* Count & Active Filters Row */}
+            {((totalCount !== null && overallCount !== null) || (selectedBazar !== "ALL" || selectedVehicleType !== "ALL" || searchQuery !== "" || selectedContributor)) && (
               <div className="flex flex-wrap items-center gap-2 mb-8 select-none">
+                {/* Mobile Count Pill */}
+                {totalCount !== null && overallCount !== null && (
+                  <div className="md:hidden flex items-center bg-slate-200/60 border border-slate-300/50 text-slate-700 px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-xs">
+                    {totalCount < overallCount
+                      ? (t("driver_directory_count_filtered" as TextKey) || "{filtered} of {total}")
+                          .replace("{filtered}", totalCount.toString())
+                          .replace("{total}", overallCount.toString())
+                      : (t("driver_directory_count" as TextKey) || "Total: {total}")
+                          .replace("{total}", overallCount.toString())
+                    }
+                  </div>
+                )}
+
                 {/* Search Filter Badge */}
                 {searchQuery && (
                   <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 text-emerald-800 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold shadow-sm animate-in fade-in duration-200">
@@ -524,20 +559,22 @@ export function DriverDirectorySection({ isLanding = false }: DriverDirectorySec
                 )}
 
                 {/* Clear All Button */}
-                <AppButton
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setSelectedBazar("ALL");
-                    setSelectedVehicleType("ALL");
-                    setSelectedContributor(null);
-                  }}
-                  className="h-auto w-auto px-2 py-1 text-xs sm:text-sm font-bold text-slate-500 hover:text-primary hover:bg-transparent hover:underline bg-transparent active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0"
-                >
-                  {t("clear_all" as TextKey) || "Clear All"}
-                </AppButton>
+                {(selectedBazar !== "ALL" || selectedVehicleType !== "ALL" || searchQuery !== "" || selectedContributor) && (
+                  <AppButton
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedBazar("ALL");
+                      setSelectedVehicleType("ALL");
+                      setSelectedContributor(null);
+                    }}
+                    className="h-auto w-auto px-2 py-1 text-xs sm:text-sm font-bold text-slate-500 hover:text-primary hover:bg-transparent hover:underline bg-transparent active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0"
+                  >
+                    {t("clear_all" as TextKey) || "Clear All"}
+                  </AppButton>
+                )}
               </div>
             )}
 

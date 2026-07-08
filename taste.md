@@ -344,12 +344,11 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 
 
 ## 🔒 Contributor Auto-Login Security Fix (2026-07-08)
-- **New-User Auto-Login Guard:** Modified the contributor driver submission API route (`app/api/contributed-drivers/route.ts`) to only perform auto-login for newly registered user accounts. If a visitor enters a contributor phone number that already exists in the database, the system saves the contribution under that user's name/phone but does NOT sign them in or set an auth cookie. This prevents unauthorized account takeover (e.g. logging into admin or other user accounts by typing their phone number).
+- **New-User Auto-Login Guard:** Modified the contributor driver submission API route (`app/api/contributed-drivers/route.ts`) to only perform auto-login for newly registered user accounts. If a visitor who is NOT logged in enters a contributor phone number that already exists in the database, the backend rejects the submission immediately with a `CONTRIBUTOR_PHONE_EXISTS` error. This prevents guests from associating contributions or updating names on behalf of registered users (including admins) without logging in first.
 - **User Registration Option Displayed:** Updated the user login page (`app/login/page.tsx`) to clearly indicate that both Login and Registration are supported. Replaced hardcoded strings with localized translation keys (`login_register_title`, `login_or_signup_desc`, `new_user_desc`, `existing_user_desc`, `change_phone_btn`, `set_new_password_label`). If a visitor enters an unregistered phone number, the interface seamlessly guides them through verifying OTP and setting a password.
 
-
-
-
-
-
+## 📊 Driver List Count Display (2026-07-08)
+- **Dynamic Overall and Filtered Count:** 
+  - Modified the GET `/api/contributed-drivers` API route to return database-backed counts for matching drivers (`X-Total-Count` header) and overall approved drivers (`X-Overall-Count` header) to maintain backward-compatibility with the JSON array format.
+  - Positioned the count display responsively: on desktop, it is shown on the right side of the navigation tabs bar (e.g. `ড্রাইভার তালিকা, অবদানকারী লিডারবোর্ড` bar). On mobile, it is hidden from the tabs to prevent truncation, and instead displayed as a clean grey badge (e.g. `মোট: ১৭৬ জন` or `১৭৬ জনের মধ্যে ১২ জন`) at the beginning of the active filters tags row. Uses localized keys `driver_directory_count` and `driver_directory_count_filtered`.
 

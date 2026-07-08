@@ -821,6 +821,14 @@ export const TEXT = {
     en: "CNG & Toto Driver List",
     bn: "সিএনজি ও টোটো ড্রাইভার লিস্ট"
   },
+  driver_directory_count: {
+    en: "Total: {total}",
+    bn: "মোট: {total} জন"
+  },
+  driver_directory_count_filtered: {
+    en: "{filtered} of {total}",
+    bn: "{total} জনের মধ্যে {filtered} জন"
+  },
   directory_subtitle: {
     en: "Find CNG and Toto driver numbers in your area.",
     bn: "আপনার এলাকার সিএনজি ও টোটো ড্রাইভারদের খুঁজুন"
@@ -880,6 +888,10 @@ export const TEXT = {
   error_phone_exists: {
     en: "This mobile number is already in the directory.",
     bn: "এই মোবাইল নাম্বারটি ইতিমধ্যে তালিকায় রয়েছে।"
+  },
+  error_contributor_exists: {
+    en: "This contributor mobile number is already registered. Please login first.",
+    bn: "অবদানকারীর এই মোবাইল নম্বরটি ইতিমধ্যে নিবন্ধিত। অনুগ্রহ করে প্রথমে লগইন করুন।"
   },
   no_drivers_found: {
     en: "No drivers found for this search.",

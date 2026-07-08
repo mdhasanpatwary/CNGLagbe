@@ -82,6 +82,9 @@ export async function GET(request: Request) {
       ...(skip !== undefined ? { skip } : {}),
     });
 
+    const totalCount = await prisma.contributedDriver.count({ where });
+    const overallCount = await prisma.contributedDriver.count({ where: { isApproved: true } });
+
     // Strip raw contributorPhone for privacy and include contributorHash
     const safeDrivers = drivers.map((d) => {
       const { contributorPhone, ...rest } = d;
@@ -91,7 +94,12 @@ export async function GET(request: Request) {
       };
     });
 
-    return NextResponse.json(safeDrivers);
+    return NextResponse.json(safeDrivers, {
+      headers: {
+        "X-Total-Count": totalCount.toString(),
+        "X-Overall-Count": overallCount.toString(),
+      },
+    });
   } catch (error) {
     console.error("Fetch contributed drivers error:", error);
     return NextResponse.json({ error: "Failed to fetch drivers" }, { status: 500 });
@@ -147,33 +155,32 @@ export async function POST(request: Request) {
       // Not logged in: auto-login ONLY if it's a newly created user
       const normalizedContPhone = normalizePhone(contributorPhone || "");
       if (normalizedContPhone) {
-        let user = await prisma.user.findUnique({
+        const user = await prisma.user.findUnique({
           where: { phone: normalizedContPhone }
         });
 
-        let isNewUser = false;
-        if (!user) {
-          user = await prisma.user.create({
-            data: {
-              phone: normalizedContPhone,
-              name: contributorName || "User",
-              photoUrl: contributorPhotoUrl || null,
-              passwordHash: null,
-            }
-          });
-          isNewUser = true;
+        if (user) {
+          // If user exists, block addition and prompt to login first
+          return NextResponse.json({ error: "CONTRIBUTOR_PHONE_EXISTS" }, { status: 400 });
         }
 
-        // Only log in automatically if the user account was just created now
-        if (isNewUser) {
-          const token = await signToken({
-            sub: user.id,
-            role: user.role as "DRIVER" | "USER" | "ADMIN",
-          });
+        // Create new user
+        const newUser = await prisma.user.create({
+          data: {
+            phone: normalizedContPhone,
+            name: contributorName || "User",
+            photoUrl: contributorPhotoUrl || null,
+            passwordHash: null,
+          }
+        });
 
-          await setAuthCookie(token, request.headers.get("host"));
-          autoLoggedIn = true;
-        }
+        const token = await signToken({
+          sub: newUser.id,
+          role: newUser.role as "DRIVER" | "USER" | "ADMIN",
+        });
+
+        await setAuthCookie(token, request.headers.get("host"));
+        autoLoggedIn = true;
       }
     }
 
