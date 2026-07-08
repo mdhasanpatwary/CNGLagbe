@@ -55,19 +55,42 @@ export async function GET() {
     }
 
     if (!userData) {
-      return NextResponse.json({ authenticated: false }, { status: 401 });
+      return NextResponse.json(
+        { authenticated: false },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control": "no-store, max-age=0, must-revalidate",
+          },
+        }
+      );
     }
 
-    return NextResponse.json({
-      authenticated: true,
-      user: {
-        ...userData,
-        role: session.role,
-        phoneHash: userData.phone ? getPhoneHash(userData.phone) : null,
+    return NextResponse.json(
+      {
+        authenticated: true,
+        user: {
+          ...userData,
+          role: session.role,
+          phoneHash: userData.phone ? getPhoneHash(userData.phone) : null,
+        },
       },
-    });
+      {
+        headers: {
+          "Cache-Control": "no-store, max-age=0, must-revalidate",
+        },
+      }
+    );
   } catch (error) {
     console.error("Auth Status Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control": "no-store, max-age=0, must-revalidate",
+        },
+      }
+    );
   }
 }

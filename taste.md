@@ -317,6 +317,9 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
     - Active filters are shown using green, high-contrast, accessibility-compliant cross badges (Search query, Stand/Bazar, Vehicle Type, Contributor) with a "Clear All" button. Clicking the cross icon or the Clear All button clears and resets the filters.
     - Triggers automatically reset the directory pagination page number to `1` on change.
 
+## 🚪 Production Login Header Caching Fix (2026-07-08)
+- **Dynamic GET Request Caching Prevention:** Modified the GET `/api/auth/me` endpoint to explicitly return the `Cache-Control: no-store, max-age=0, must-revalidate` header. This prevents the browser and next-pwa/intermediate caches from serving a cached "unauthenticated" response for `/api/auth/me` once the user has logged in.
+- **Login Redirect Hard Reload:** Changed the redirect mechanism in `app/login/page.tsx` and `app/admin/login/page.tsx` from Next.js client-side soft routing (`router.push`) to a hard browser reload (`window.location.href`). This clears the client-side Next.js router cache for the target destination, ensuring that the landing page/admin panel fetches user state and metadata afresh after login.
 
 ## 📱 Driver Directory Mobile Design Polish (2026-07-06)
 - **Label & Height Standardization:**

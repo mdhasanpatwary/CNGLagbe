@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { Phone, Key, LogIn, ArrowRight } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -22,7 +22,6 @@ export default function UserLogin() {
 }
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/";
   const { t } = useLang();
@@ -91,7 +90,8 @@ function LoginForm() {
       const resData = await res.json();
 
       if (res.ok) {
-        router.push(redirect);
+        // eslint-disable-next-line react-hooks/immutability
+        window.location.href = redirect;
       } else {
         setServerError(resData.error || t("login_failed"));
       }

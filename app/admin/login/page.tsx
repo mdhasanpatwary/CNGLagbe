@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Phone, Lock, LogIn, Shield } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +13,6 @@ import { PageHeading } from "@/components/ui/PageHeading";
 import { adminLoginSchema, type AdminLoginInput } from "@/lib/schemas/auth";
 
 export default function AdminLogin() {
-  const router = useRouter();
   const { t } = useLang();
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState("");
@@ -45,7 +43,8 @@ export default function AdminLogin() {
       const resData = await res.json();
 
       if (res.ok) {
-        router.push("/admin");
+        // eslint-disable-next-line react-hooks/immutability
+        window.location.href = "/admin";
       } else {
         setServerError(resData.error || t("login_failed"));
       }

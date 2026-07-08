@@ -45,9 +45,6 @@ export function Header({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-
-  const showLogin = true;
-
   const isDriver = false;
   const isAdmin = role === "admin";
   const isFloating = variant === "floating";
@@ -252,7 +249,7 @@ export function Header({
               )}
             </AnimatePresence>
           </div>
-        ) : role === "landing" && showLogin && (
+        ) : role === "landing" && (
           <Link href="/login">
             <AppButton
               variant="outline"
