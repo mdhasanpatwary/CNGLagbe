@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { createPortal } from "react-dom";
-import { Search, MapPin, Phone, Users, Plus, X, Trophy, Trash2 } from "lucide-react";
+import { Search, Phone, Users, Plus, X, Trophy, Trash2, Copy, Check } from "lucide-react";
 import { Controller } from "react-hook-form";
 import { AppButton } from "@/components/ui/AppButton";
 import { FormField } from "@/components/FormField";
@@ -61,6 +61,15 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
     handleDeleteDriver,
   } = useDriverDirectory({ isLanding, initialUser });
 
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopy = (id: string, phone: string) => {
+    navigator.clipboard.writeText(phone).then(() => {
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    });
+  };
+
   return (
     <Section id="driver-directory" variant="slate" className="bg-slate-100/50 py-12 border-b border-slate-200">
       <div className="container mx-auto px-4 max-w-6xl">
@@ -89,8 +98,8 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
               variant="ghost"
               onClick={() => setActiveTab("DRIVERS")}
               className={`pb-3 rounded-none border-b-2 hover:bg-transparent transition-all font-bold text-sm sm:text-base ${activeTab === "DRIVERS"
-                  ? "text-primary border-primary"
-                  : "text-slate-500 border-transparent hover:text-slate-800"
+                ? "text-primary border-primary"
+                : "text-slate-500 border-transparent hover:text-slate-800"
                 }`}
             >
               {t("tab_all_drivers" as TextKey) || "Drivers List"}
@@ -100,23 +109,33 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
               onClick={() => setActiveTab("LEADERBOARD")}
               leftIcon={<Trophy className="w-4.5 h-4.5 text-amber-500" />}
               className={`pb-3 rounded-none border-b-2 hover:bg-transparent transition-all font-bold text-sm sm:text-base ${activeTab === "LEADERBOARD"
-                  ? "text-primary border-primary"
-                  : "text-slate-500 border-transparent hover:text-slate-800"
+                ? "text-primary border-primary"
+                : "text-slate-500 border-transparent hover:text-slate-800"
                 }`}
             >
               {t("tab_leaderboard" as TextKey) || "Leaderboard"}
             </AppButton>
           </div>
-          {totalCount !== null && overallCount !== null && (
-            <div className="hidden md:block text-xs sm:text-sm font-semibold text-slate-500 pb-3 font-bn self-end whitespace-nowrap">
-              {totalCount < overallCount
-                ? (t("driver_directory_count_filtered" as TextKey) || "{filtered} of {total}")
+          {activeTab === "DRIVERS" ? (
+            totalCount !== null && overallCount !== null && (
+              <div className="hidden md:block text-xs sm:text-sm font-semibold text-slate-500 pb-3 font-bn self-end whitespace-nowrap">
+                {totalCount < overallCount
+                  ? (t("driver_directory_count_filtered" as TextKey) || "{filtered} of {total}")
                     .replace("{filtered}", totalCount.toString())
                     .replace("{total}", overallCount.toString())
-                : (t("driver_directory_count" as TextKey) || "Total: {total}")
+                  : (t("driver_directory_count" as TextKey) || "Total: {total}")
                     .replace("{total}", overallCount.toString())
-              }
-            </div>
+                }
+              </div>
+            )
+          ) : (
+            leaderboard.length > 0 && (
+              <div className="hidden md:block text-xs sm:text-sm font-semibold text-slate-500 pb-3 font-bn self-end whitespace-nowrap">
+                {(t("leaderboard_count" as TextKey) || "Total Contributors: {total}")
+                  .replace("{total}", leaderboard.length.toString())
+                }
+              </div>
+            )
           )}
         </div>
 
@@ -181,10 +200,10 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                   <div className="md:hidden flex items-center bg-slate-200/60 border border-slate-300/50 text-slate-700 px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-xs">
                     {totalCount < overallCount
                       ? (t("driver_directory_count_filtered" as TextKey) || "{filtered} of {total}")
-                          .replace("{filtered}", totalCount.toString())
-                          .replace("{total}", overallCount.toString())
+                        .replace("{filtered}", totalCount.toString())
+                        .replace("{total}", overallCount.toString())
                       : (t("driver_directory_count" as TextKey) || "Total: {total}")
-                          .replace("{total}", overallCount.toString())
+                        .replace("{total}", overallCount.toString())
                     }
                   </div>
                 )}
@@ -293,112 +312,91 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                   {(isLanding ? drivers.slice(0, 9) : drivers).map((driver) => (
                     <div
                       key={driver.id}
-                      className="bg-white rounded-2xl border border-slate-200/80 p-6 flex flex-col justify-between shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-300 group relative overflow-hidden"
+                      className="bg-white rounded-2xl border border-slate-100 px-4 py-3 flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-200 group"
                     >
-                      {/* Background Watermark Image */}
-                      <div
-                        className="absolute right-6 top-[56px] w-16 h-16 opacity-[0.25] md:opacity-[0.5] pointer-events-none transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 bg-contain bg-no-repeat bg-right-top"
-                        style={{
-                          backgroundImage: `url(${driver.vehicleType === "TOTO"
-                            ? "/images/toto_watermark.avif"
-                            : "/images/cng_watermark.png"
-                            })`,
-                        }}
-                      />
-                      <div>
-                        <div className="flex items-start justify-between gap-4 mb-3">
-                          <div>
-                            <h4 className="text-base md:text-lg font-bold text-slate-900 group-hover:text-primary transition-colors leading-tight mb-1">
-                              {driver.name}
-                            </h4>
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase ${driver.vehicleType === "TOTO"
-                              ? "bg-blue-50 text-blue-700 border border-blue-100"
-                              : "bg-emerald-50 text-emerald-700 border border-emerald-100"
-                              }`}>
-                              {driver.vehicleType === "TOTO"
-                                ? (t("vehicle_toto" as TextKey) || "Toto")
-                                : (t("vehicle_cng" as TextKey) || "CNG")}
-                            </span>
-                          </div>
-                          <div className="flex flex-col items-end gap-2 shrink-0">
-                            {driver.nearbyBazar && (
-                              <AppButton
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setSelectedBazar(driver.nearbyBazar || "ALL")}
-                                className="h-auto w-auto inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200/60 hover:bg-slate-200 hover:text-slate-800 transition-colors active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0"
-                              >
-                                {driver.nearbyBazar}
-                              </AppButton>
-                            )}
-                            {currentUser && driver.contributorHash === currentUser.phoneHash && (
-                              <AppButton
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDriverToDelete(driver);
-                                  setIsDeleteModalOpen(true);
-                                }}
-                                className="h-auto w-auto p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 bg-transparent active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0"
-                              >
-                                <Trash2 className="w-4.5 h-4.5" />
-                              </AppButton>
-                            )}
-                          </div>
+                      {/* Left: Circular vehicle image (CNG or Toto) */}
+                      <div className="shrink-0 w-14 h-14 rounded-full bg-slate-100 border-2 border-white shadow-md flex items-center justify-center overflow-hidden">
+                        <Image
+                          src={driver.vehicleType === "TOTO" ? "/images/toto_watermark.avif" : "/images/cng_watermark.png"}
+                          alt={driver.vehicleType}
+                          width={52}
+                          height={52}
+                          className="w-11 h-11 object-contain"
+                        />
+                      </div>
+
+                      {/* Middle: Name, Phone + Copy, Bazar */}
+                      <div className="flex-1 min-w-0">
+                        {/* Name row */}
+                        <div className="flex items-center gap-1 min-w-0 mb-0.5">
+                          <h4 className="text-sm font-extrabold text-slate-800 group-hover:text-primary transition-colors leading-tight truncate font-bn">
+                            {driver.name}
+                          </h4>
+                          {currentUser && driver.contributorHash === currentUser.phoneHash && (
+                            <AppButton
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDriverToDelete(driver);
+                                setIsDeleteModalOpen(true);
+                              }}
+                              className="h-auto w-auto p-0.5 rounded text-rose-400 hover:text-rose-600 hover:bg-rose-50 bg-transparent active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0 shrink-0"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </AppButton>
+                          )}
                         </div>
-                        <p className={`text-xs sm:text-sm text-slate-500 flex items-center gap-1.5 ${driver.contributorName ? "mb-2" : "mb-4"}`}>
-                          <MapPin className="w-4 h-4 text-slate-400" />
-                          <span>{driver.address || driver.nearbyBazar || "—"}</span>
-                        </p>
-                        {driver.contributorName && (
-                          <p className="text-xs text-slate-400 mb-4 flex items-center gap-1">
-                            <span className="font-medium">{t("contributed_by" as TextKey) || "Contributed by"}:</span>
-                            {driver.contributorHash ? (
-                              <AppButton
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedContributor({
-                                    name: driver.contributorName || "",
-                                    hash: driver.contributorHash || "",
-                                  });
-                                }}
-                                className="h-auto w-auto p-0 font-semibold text-slate-600 hover:text-primary hover:bg-transparent hover:underline transition-colors text-left active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0"
-                              >
-                                {driver.contributorName}
-                              </AppButton>
-                            ) : (
-                              <span className="font-semibold text-slate-600">{driver.contributorName}</span>
-                            )}
-                          </p>
+
+                        {/* Phone + Copy */}
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="font-mono text-slate-700 font-bold text-sm leading-none">
+                            {driver.phone}
+                          </span>
+                          <AppButton
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCopy(driver.id, driver.phone)}
+                            className={`h-5 w-5 p-0 rounded flex items-center justify-center transition-all active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0 ${
+                              copiedId === driver.id
+                                ? "text-emerald-600"
+                                : "text-slate-400 hover:text-slate-600"
+                            }`}
+                          >
+                            {copiedId === driver.id ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                          </AppButton>
+                        </div>
+
+                        {/* Bazar */}
+                        {driver.nearbyBazar && (
+                          <AppButton
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedBazar(driver.nearbyBazar || "ALL")}
+                            className="h-auto w-auto px-0 py-0 text-xs font-medium text-slate-400 hover:text-primary hover:bg-transparent transition-colors active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0 font-bn"
+                          >
+                            {driver.nearbyBazar}
+                          </AppButton>
                         )}
                       </div>
-                      <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-1.5 font-mono text-slate-700 font-bold text-sm sm:text-base">
-                          <Phone className="w-4 h-4 text-slate-400" />
-                          <span>{driver.phone}</span>
+
+                      {/* Right: Green circular call button */}
+                      <a href={`tel:${driver.phone}`} className="shrink-0">
+                        <div className="w-11 h-11 rounded-full bg-primary hover:bg-emerald-600 active:scale-95 transition-all flex items-center justify-center shadow-md shadow-emerald-500/30 cursor-pointer">
+                          <Phone className="w-5 h-5 text-white" />
                         </div>
-                        <a href={`tel:${driver.phone}`} className="shrink-0">
-                          <AppButton
-                            variant="success"
-                            size="sm"
-                            className="rounded-lg h-9 px-4 font-bold bg-primary text-white hover:bg-success transition-all flex items-center gap-1.5"
-                          >
-                            <Phone className="w-4 h-4" />
-                            <span>{t("call" as TextKey) || "Call"}</span>
-                          </AppButton>
-                        </a>
-                      </div>
+                      </a>
                     </div>
                   ))}
+
+
                 </div>
 
                 {isLanding && drivers.length > 9 && (
@@ -446,7 +444,14 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
               <p className="text-slate-500 font-semibold">{t("leaderboard_empty" as TextKey) || "No contributors yet."}</p>
             </div>
           ) : (
-            <div className="max-w-2xl mx-auto bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden divide-y divide-slate-100">
+            <>
+              {/* Mobile Count Pill for Leaderboard */}
+              <div className="md:hidden flex items-center bg-slate-200/60 border border-slate-300/50 text-slate-700 px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-xs w-fit mb-4 mx-auto font-bn">
+                {(t("leaderboard_count" as TextKey) || "Total Contributors: {total}")
+                  .replace("{total}", leaderboard.length.toString())
+                }
+              </div>
+              <div className="max-w-2xl mx-auto bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden divide-y divide-slate-100">
               {leaderboard.map((entry, index) => {
                 const rank = index + 1;
                 const badgeColor =
@@ -534,6 +539,7 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                 );
               })}
             </div>
+            </>
           )
         )}
       </div>
@@ -685,42 +691,42 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
         </div>,
         document.body
       )}
-        {isDeleteModalOpen && driverToDelete && createPortal(
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-white w-full max-w-md rounded-2xl border border-slate-100 shadow-2xl p-6 relative animate-in zoom-in-95 duration-200">
-              <h3 className="text-lg font-bold text-slate-900 mb-2 font-bn">
-                {t("delete_confirm_title" as TextKey)}
-              </h3>
-              <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-                {t("delete_confirm_desc" as TextKey)}
-              </p>
-              <div className="flex gap-3 justify-end">
-                <AppButton
-                  type="button"
-                  variant="ghost"
-                  onClick={() => {
-                    setIsDeleteModalOpen(false);
-                    setDriverToDelete(null);
-                  }}
-                  disabled={isDeleting}
-                  className="font-bold border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl px-4 py-2.5 h-11"
-                >
-                  {t("cancel" as TextKey) || "Cancel"}
-                </AppButton>
-                <AppButton
-                  type="button"
-                  variant="outline"
-                  onClick={handleDeleteDriver}
-                  disabled={isDeleting}
-                  className="font-bold bg-rose-600 text-white hover:bg-rose-700 border-transparent hover:border-transparent rounded-xl px-4 py-2.5 h-11"
-                >
-                  {isDeleting ? (t("loading" as TextKey) || "Deleting...") : (t("delete" as TextKey) || "Delete")}
-                </AppButton>
-              </div>
+      {isDeleteModalOpen && driverToDelete && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-md rounded-2xl border border-slate-100 shadow-2xl p-6 relative animate-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-900 mb-2 font-bn">
+              {t("delete_confirm_title" as TextKey)}
+            </h3>
+            <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+              {t("delete_confirm_desc" as TextKey)}
+            </p>
+            <div className="flex gap-3 justify-end">
+              <AppButton
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setDriverToDelete(null);
+                }}
+                disabled={isDeleting}
+                className="font-bold border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl px-4 py-2.5 h-11"
+              >
+                {t("cancel" as TextKey) || "Cancel"}
+              </AppButton>
+              <AppButton
+                type="button"
+                variant="outline"
+                onClick={handleDeleteDriver}
+                disabled={isDeleting}
+                className="font-bold bg-rose-600 text-white hover:bg-rose-700 border-transparent hover:border-transparent rounded-xl px-4 py-2.5 h-11"
+              >
+                {isDeleting ? (t("loading" as TextKey) || "Deleting...") : (t("delete" as TextKey) || "Delete")}
+              </AppButton>
             </div>
-          </div>,
-          document.body
-        )}
-      </Section>
-    );
-  }
+          </div>
+        </div>,
+        document.body
+      )}
+    </Section>
+  );
+}

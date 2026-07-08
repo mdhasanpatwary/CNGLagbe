@@ -383,3 +383,14 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Automatic Sync Across Cards:** Modified the profile update API route (`app/api/profile/update/route.ts`). When a user updates their profile name or photo URL, the backend dynamically queries the `ContributedDriver` table and updates `contributorName` and `contributorPhotoUrl` in all records where `contributorPhone` matches the updated user's phone. This ensures that all previously contributed driver cards, as well as the contributor leaderboard, instantly reflect the user's updated profile information.
 
 
+## 🚗 Driver Directory Card Redesign (2026-07-08)
+- **Reference Image Match:** Redesigned the driver directory cards to match a single-row horizontal layout layout:
+  - **Left**: Circular CNG or Toto vehicle image (56x56px circular container with a white border and shadow).
+  - **Center**: Driver name (bold, font-bn), phone number with copy button (green check icon feedback on success), and bazar name link stacked vertically.
+  - **Right**: Large green circular Call button (44x44px circular green container with a white phone icon and shadow).
+  - **Removed Info**: Removed the "Contributed by" text row and the original vehicle text badges, making the design significantly more compact.
+- **Dynamic Leaderboard & Driver Count Switching:** Swapped the static driver count display next to the directory tabs to be dynamic. When the active tab is set to "Drivers List", the UI correctly counts overall and filtered driver directories. Toggling to the "Contributor Leaderboard" updates the right side metadata to show the total contributors count (`leaderboard_count` key). Also added a corresponding mobile count badge at the top of the leaderboard section.
+
+
+
+

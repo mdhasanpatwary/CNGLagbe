@@ -997,6 +997,10 @@ export const TEXT = {
     en: "contributions",
     bn: "টি অবদান"
   },
+  leaderboard_count: {
+    en: "Total Contributors: {total}",
+    bn: "মোট অবদানকারী: {total} জন"
+  },
   leaderboard_empty: {
     en: "No contributors yet.",
     bn: "এখনো কোনো অবদানকারী নেই।"
