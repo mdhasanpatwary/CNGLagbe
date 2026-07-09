@@ -30,10 +30,15 @@ export function InstallAppBanner() {
       ("standalone" in window.navigator && 
         (window.navigator as unknown as { standalone: boolean }).standalone === true);
 
-    const trackInstallation = async () => {
+    const trackInstallation = async (isPingOnly = false) => {
       try {
-        const isTracked = localStorage.getItem("pwa_install_tracked");
-        if (isTracked) return;
+        if (!isPingOnly) {
+          const isTracked = localStorage.getItem("pwa_install_tracked");
+          if (isTracked) return;
+        } else {
+          const isPingedThisSession = sessionStorage.getItem("pwa_active_pinged");
+          if (isPingedThisSession) return;
+        }
 
         let deviceId = localStorage.getItem("pwa_device_id");
         if (!deviceId) {
@@ -57,15 +62,24 @@ export function InstallAppBanner() {
         });
 
         if (res.ok) {
-          localStorage.setItem("pwa_install_tracked", "true");
+          if (!isPingOnly) {
+            localStorage.setItem("pwa_install_tracked", "true");
+          } else {
+            sessionStorage.setItem("pwa_active_pinged", "true");
+          }
         }
       } catch (err) {
-        console.error("Failed to track PWA install:", err);
+        console.error("Failed to track PWA install/ping:", err);
       }
     };
 
     if (isStandalone) {
-      trackInstallation();
+      const isTracked = localStorage.getItem("pwa_install_tracked");
+      if (!isTracked) {
+        trackInstallation(false);
+      } else {
+        trackInstallation(true);
+      }
       return;
     }
 

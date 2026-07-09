@@ -1089,6 +1089,14 @@ export const TEXT = {
     en: "Devices with app installed",
     bn: "ইনস্টল করা ডিভাইসের সংখ্যা"
   },
+  active_pwa_installations: {
+    en: "Active PWAs (30d)",
+    bn: "সক্রিয় পিডব্লিউএ (গত ৩০ দিন)"
+  },
+  active_pwa_desc: {
+    en: "PWAs active in the last 30 days",
+    bn: "গত ৩০ দিনে সক্রিয় থাকা পিডব্লিউএ ডিভাইস"
+  },
   total_contributed_drivers: {
     en: "Total Drivers",
     bn: "মোট ড্রাইভার"

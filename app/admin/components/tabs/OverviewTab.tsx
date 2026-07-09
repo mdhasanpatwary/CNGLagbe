@@ -10,6 +10,7 @@ interface AdminStats {
   pendingContributedDrivers: number;
   totalBazars: number;
   pwaInstallations: number;
+  activePwaInstallations: number;
   totalCallClicks: number;
 }
 
@@ -70,6 +71,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             title={t("pwa_installations" as TextKey) || "PWA Installations"}
             value={stats.pwaInstallations || 0}
             desc={t("installed_devices" as TextKey) || "Devices with PWA installed"}
+            icon={Smartphone}
+            variant="purple"
+          />
+
+          <StatsCard
+            title={t("active_pwa_installations" as TextKey) || "Active PWAs (30d)"}
+            value={stats.activePwaInstallations || 0}
+            desc={t("active_pwa_desc" as TextKey) || "PWAs active in the last 30 days"}
             icon={Smartphone}
             variant="purple"
           />

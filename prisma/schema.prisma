@@ -257,11 +257,12 @@ model ContributedDriver {
 }
 
 model PwaInstallation {
-  id        String   @id @default(cuid())
-  deviceId  String   @unique
-  userAgent String?
-  role      String?  // e.g. "user" or "driver"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  deviceId     String   @unique
+  userAgent    String?
+  role         String?  // e.g. "user" or "driver"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  lastActiveAt DateTime @default(now())
 }
 

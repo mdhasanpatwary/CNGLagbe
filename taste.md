@@ -403,8 +403,8 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Standalone and Session Detection:** Configured the banner to remain completely hidden when the website is already loaded in standalone viewports (e.g. installed app mode).
 - **Dismiss Persistence:** Included a 7-day dismissal window saved in `localStorage` (`pwa_install_banner_dismissed_until`) when the close button is clicked, ensuring a high-quality UX that does not annoy repeat visitors.
 - **Global Integration:** Rendered the component globally inside `<Providers>` at the layout body level in `app/layout.tsx` to handle detection on all routes.
-- **PWA Installation Tracking (Added 2026-07-08):** Implemented client-side tracking using a local-storage generated unique UUID (`pwa_device_id`) and flag (`pwa_install_tracked`) to record unique installations without duplication. Tracks when user launches standalone or completes installation. Logs are processed via a POST `/api/pwa-install` route and saved in the database `PwaInstallation` model.
-- **Admin Dashboard Integration (Added 2026-07-08):** Integrated database-level PWA count into the stats API `/api/admin/stats` and displayed the metric as a new "PWA Installations" card on the main Admin Dashboard overview tab (`OverviewTab.tsx`).
+- **PWA Installation & Active Session Tracking (Updated 2026-07-09):** Implemented client-side tracking using a local-storage generated unique UUID (`pwa_device_id`) and flag (`pwa_install_tracked`) to record unique installations without duplication. Standalone app launches send a session-throttled ping (throttled using `sessionStorage` key `pwa_active_pinged`) to update the `lastActiveAt` timestamp in the `PwaInstallation` database model.
+- **Admin Dashboard Integration (Updated 2026-07-09):** Integrated database-level PWA count and active PWA device count (active in the last 30 days based on `lastActiveAt`) into the stats API `/api/admin/stats` and displayed these metrics as "PWA Installations" and "Active PWAs (30d)" cards on the main Admin Dashboard overview tab (`OverviewTab.tsx`).
 
 
 ## 📊 Driver Call Click Tracking (2026-07-08)

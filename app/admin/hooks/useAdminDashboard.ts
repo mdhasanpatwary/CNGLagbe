@@ -44,6 +44,7 @@ interface AdminStats {
   pendingContributedDrivers: number;
   totalBazars: number;
   pwaInstallations: number;
+  activePwaInstallations: number;
   totalCallClicks: number;
 }
 

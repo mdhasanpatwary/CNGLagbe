@@ -16,6 +16,7 @@ export async function GET() {
       pendingContributedDrivers,
       totalBazars,
       pwaInstallations,
+      activePwaInstallations,
       totalCallClicksAggregate
     ] = await Promise.all([
       prisma.user.count(),
@@ -23,12 +24,26 @@ export async function GET() {
       prisma.contributedDriver.count(),
       prisma.contributedDriver.count({ where: { isApproved: false } }),
       prisma.bazar.count(),
-      (typeof (prisma as unknown as { pwaInstallation?: { count?: () => Promise<number> } }).pwaInstallation?.count === "function"
-        ? (prisma as unknown as { pwaInstallation: { count(): Promise<number> } }).pwaInstallation.count()
+      (typeof (prisma as unknown as { pwaInstallation?: { count?: (args?: unknown) => Promise<number> } }).pwaInstallation?.count === "function"
+        ? (prisma as unknown as { pwaInstallation: { count(args?: unknown): Promise<number> } }).pwaInstallation.count()
         : Promise.resolve(0)
       ).catch((err: unknown) => {
         const msg = err instanceof Error ? err.message : String(err);
         console.warn("PwaInstallation table might not exist yet:", msg);
+        return 0;
+      }),
+      (typeof (prisma as unknown as { pwaInstallation?: { count?: (args?: unknown) => Promise<number> } }).pwaInstallation?.count === "function"
+        ? (prisma as unknown as { pwaInstallation: { count(args?: unknown): Promise<number> } }).pwaInstallation.count({
+            where: {
+              lastActiveAt: {
+                gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+              },
+            },
+          })
+        : Promise.resolve(0)
+      ).catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn("PwaInstallation active count error:", msg);
         return 0;
       }),
       prisma.contributedDriver.aggregate({
@@ -48,6 +63,7 @@ export async function GET() {
         pendingContributedDrivers,
         totalBazars,
         pwaInstallations,
+        activePwaInstallations,
         totalCallClicks,
       }
     });

@@ -14,11 +14,13 @@ export async function POST(request: Request) {
       update: {
         userAgent,
         role,
+        lastActiveAt: new Date(),
       },
       create: {
         deviceId,
         userAgent,
         role,
+        lastActiveAt: new Date(),
       },
     });
 
