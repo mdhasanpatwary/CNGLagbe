@@ -308,9 +308,25 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
 
             {/* Directory List Grid */}
             {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-40 rounded-2xl bg-white animate-pulse border border-slate-200" />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 animate-pulse">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
+                  <div
+                    key={i}
+                    className="bg-white rounded-2xl border border-slate-100 px-4 py-3 flex items-center gap-4 shadow-sm"
+                  >
+                    {/* Left: Circular vehicle image placeholder */}
+                    <div className="shrink-0 w-14 h-14 rounded-full bg-slate-200 border-2 border-white shadow-xs" />
+
+                    {/* Middle: Name, Phone + Copy, Bazar placeholders */}
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="h-4 bg-slate-200 rounded-md w-24" />
+                      <div className="h-3 bg-slate-200 rounded-md w-32" />
+                      <div className="h-3 bg-slate-200 rounded-md w-16" />
+                    </div>
+
+                    {/* Right: Circular call button placeholder */}
+                    <div className="shrink-0 w-11 h-11 rounded-full bg-slate-200 shadow-xs" />
+                  </div>
                 ))}
               </div>
             ) : drivers.length === 0 ? (
@@ -371,11 +387,10 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                             variant="ghost"
                             size="sm"
                             onClick={() => handleCopy(driver.id, driver.phone)}
-                            className={`h-5 w-5 p-0 rounded flex items-center justify-center transition-all active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0 ${
-                              copiedId === driver.id
+                            className={`h-5 w-5 p-0 rounded flex items-center justify-center transition-all active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0 ${copiedId === driver.id
                                 ? "text-emerald-600"
                                 : "text-slate-400 hover:text-slate-600"
-                            }`}
+                              }`}
                           >
                             {copiedId === driver.id ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                           </AppButton>
@@ -464,93 +479,93 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                 }
               </div>
               <div className="max-w-2xl mx-auto bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden divide-y divide-slate-100">
-              {leaderboard.map((entry, index) => {
-                const rank = index + 1;
-                const badgeColor =
-                  rank === 1
-                    ? "bg-amber-100 text-amber-700 border border-amber-200"
-                    : rank === 2
-                      ? "bg-slate-100 text-slate-700 border border-slate-200"
-                      : rank === 3
-                        ? "bg-orange-100 text-orange-700 border border-orange-200"
-                        : "bg-slate-50 text-slate-500 border border-slate-100";
+                {leaderboard.map((entry, index) => {
+                  const rank = index + 1;
+                  const badgeColor =
+                    rank === 1
+                      ? "bg-amber-100 text-amber-700 border border-amber-200"
+                      : rank === 2
+                        ? "bg-slate-100 text-slate-700 border border-slate-200"
+                        : rank === 3
+                          ? "bg-orange-100 text-orange-700 border border-orange-200"
+                          : "bg-slate-50 text-slate-500 border border-slate-100";
 
-                const safeName = entry.name || "Anonymous";
-                const initials = safeName.slice(0, 1).toUpperCase() || "?";
+                  const safeName = entry.name || "Anonymous";
+                  const initials = safeName.slice(0, 1).toUpperCase() || "?";
 
-                const colors = [
-                  "bg-emerald-100 text-emerald-800",
-                  "bg-blue-100 text-blue-800",
-                  "bg-purple-100 text-purple-800",
-                  "bg-rose-100 text-rose-800",
-                  "bg-amber-100 text-amber-800",
-                  "bg-indigo-100 text-indigo-800"
-                ];
-                const charCode = safeName.charCodeAt(0);
-                const colorIndex = isNaN(charCode) ? 0 : charCode % colors.length;
-                const avatarColor = colors[colorIndex];
+                  const colors = [
+                    "bg-emerald-100 text-emerald-800",
+                    "bg-blue-100 text-blue-800",
+                    "bg-purple-100 text-purple-800",
+                    "bg-rose-100 text-rose-800",
+                    "bg-amber-100 text-amber-800",
+                    "bg-indigo-100 text-indigo-800"
+                  ];
+                  const charCode = safeName.charCodeAt(0);
+                  const colorIndex = isNaN(charCode) ? 0 : charCode % colors.length;
+                  const avatarColor = colors[colorIndex];
 
-                return (
-                  <AppButton
-                    key={entry.phone}
-                    type="button"
-                    variant="ghost"
-                    size="md"
-                    onClick={() => {
-                      if (entry.hash) {
-                        setSelectedContributor({
-                          name: entry.name,
-                          hash: entry.hash
-                        });
-                        setActiveTab("DRIVERS");
-                      }
-                    }}
-                    className="w-full h-auto p-4 sm:p-5 flex items-center justify-between gap-3 text-slate-900 hover:bg-slate-50/50 transition-colors text-left font-normal bg-transparent active:scale-100 rounded-none focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0"
-                  >
-                    <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
-                      {/* Rank Badge */}
-                      <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${badgeColor}`}>
-                        {rank}
-                      </span>
+                  return (
+                    <AppButton
+                      key={entry.phone}
+                      type="button"
+                      variant="ghost"
+                      size="md"
+                      onClick={() => {
+                        if (entry.hash) {
+                          setSelectedContributor({
+                            name: entry.name,
+                            hash: entry.hash
+                          });
+                          setActiveTab("DRIVERS");
+                        }
+                      }}
+                      className="w-full h-auto p-4 sm:p-5 flex items-center justify-between gap-3 text-slate-900 hover:bg-slate-50/50 transition-colors text-left font-normal bg-transparent active:scale-100 rounded-none focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0"
+                    >
+                      <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
+                        {/* Rank Badge */}
+                        <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${badgeColor}`}>
+                          {rank}
+                        </span>
 
-                      {/* Profile Picture */}
-                      {entry.photoUrl ? (
-                        <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl overflow-hidden border border-slate-100 shrink-0">
-                          <Image
-                            src={entry.photoUrl}
-                            alt={entry.name}
-                            fill
-                            sizes="(max-width: 640px) 40px, 48px"
-                            className="object-cover"
-                          />
+                        {/* Profile Picture */}
+                        {entry.photoUrl ? (
+                          <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl overflow-hidden border border-slate-100 shrink-0">
+                            <Image
+                              src={entry.photoUrl}
+                              alt={entry.name}
+                              fill
+                              sizes="(max-width: 640px) 40px, 48px"
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center font-extrabold text-sm sm:text-lg shadow-inner shrink-0 ${avatarColor}`}>
+                            {initials}
+                          </div>
+                        )}
+
+                        {/* Contributor Name & Masked Phone */}
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-slate-900 leading-snug flex items-center gap-1.5 text-sm sm:text-base truncate">
+                            <span className="truncate">{entry.name}</span>
+                            {rank === 1 && <Trophy className="w-4 h-4 text-amber-500 fill-amber-500 shrink-0" />}
+                          </h4>
+                          <p className="text-xs text-slate-400 font-mono font-medium">{entry.phone}</p>
                         </div>
-                      ) : (
-                        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center font-extrabold text-sm sm:text-lg shadow-inner shrink-0 ${avatarColor}`}>
-                          {initials}
-                        </div>
-                      )}
-
-                      {/* Contributor Name & Masked Phone */}
-                      <div className="min-w-0">
-                        <h4 className="font-bold text-slate-900 leading-snug flex items-center gap-1.5 text-sm sm:text-base truncate">
-                          <span className="truncate">{entry.name}</span>
-                          {rank === 1 && <Trophy className="w-4 h-4 text-amber-500 fill-amber-500 shrink-0" />}
-                        </h4>
-                        <p className="text-xs text-slate-400 font-mono font-medium">{entry.phone}</p>
                       </div>
-                    </div>
 
-                    {/* Contribution Count */}
-                    <div className="flex items-center gap-1 bg-emerald-50 text-emerald-800 px-2.5 py-1.5 sm:px-3.5 sm:py-1.5 rounded-xl border border-emerald-100/50 font-bold text-[10px] sm:text-xs md:text-sm shrink-0">
-                      <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                      <span>
-                        {entry.count} {t("leaderboard_contributions" as TextKey) || "contributions"}
-                      </span>
-                    </div>
-                  </AppButton>
-                );
-              })}
-            </div>
+                      {/* Contribution Count */}
+                      <div className="flex items-center gap-1 bg-emerald-50 text-emerald-800 px-2.5 py-1.5 sm:px-3.5 sm:py-1.5 rounded-xl border border-emerald-100/50 font-bold text-[10px] sm:text-xs md:text-sm shrink-0">
+                        <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                        <span>
+                          {entry.count} {t("leaderboard_contributions" as TextKey) || "contributions"}
+                        </span>
+                      </div>
+                    </AppButton>
+                  );
+                })}
+              </div>
             </>
           )
         )}
