@@ -5,10 +5,11 @@ import Image from "next/image";
 import {
   MapPin, Navigation, ShieldCheck,
   Star, Check, Zap, BadgeCheck,
-  Banknote, Users, Route, Phone, X, Copy
+  Banknote, Users, Route, Phone, X, Copy, AlertCircle, Store
 } from "lucide-react";
 import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
+import { TextKey } from "@/constants/text";
 import { cn } from "@/lib/utils";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { motion, useScroll, useSpring, AnimatePresence } from "framer-motion";
@@ -42,6 +43,9 @@ export default function LandingPageClient({ initialUser }: LandingPageClientProp
   const [user, setUser] = useState<User | null>(initialUser);
   const [isCallModalOpen, setIsCallModalOpen] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
+  const [rejections, setRejections] = useState<{ id: string; name: string; reason: string }[]>([]);
+  const [isRejectionsModalOpen, setIsRejectionsModalOpen] = useState(false);
+  const [isAcknowledgeLoading, setIsAcknowledgeLoading] = useState(false);
 
   // FAQ expand/collapse all state
   const [faqOpenStates, setFaqOpenStates] = useState<boolean[]>([false, false, false, false, false]);
@@ -108,6 +112,73 @@ export default function LandingPageClient({ initialUser }: LandingPageClientProp
     }
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isCallModalOpen]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const fetchRejections = async () => {
+      try {
+        const stored = localStorage.getItem("my_contributed_bazars");
+        const contributedBazars = stored ? JSON.parse(stored) : [];
+
+        const res = await fetch("/api/bazars/rejections", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contributedBazars }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.rejections && data.rejections.length > 0) {
+            setRejections(data.rejections);
+            setIsRejectionsModalOpen(true);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch bazar rejections:", e);
+      }
+    };
+
+    fetchRejections();
+  }, []);
+
+  const handleAcknowledgeRejections = async () => {
+    setIsAcknowledgeLoading(true);
+    try {
+      const ids = rejections.map((r) => r.id);
+      const res = await fetch("/api/bazars/rejections/acknowledge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids }),
+      });
+
+      if (res.ok) {
+        // Clear from localStorage
+        if (typeof window !== "undefined") {
+          try {
+            const stored = localStorage.getItem("my_contributed_bazars");
+            let list = stored ? JSON.parse(stored) : [];
+            if (Array.isArray(list)) {
+              const rejectedNames = rejections.map((r) => r.name);
+              list = list.filter((name: string) => !rejectedNames.includes(name));
+              localStorage.setItem("my_contributed_bazars", JSON.stringify(list));
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+        setIsRejectionsModalOpen(false);
+        setRejections([]);
+      } else {
+        toast.error("Failed to acknowledge notifications.");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to acknowledge notifications.");
+    } finally {
+      setIsAcknowledgeLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -885,6 +956,85 @@ export default function LandingPageClient({ initialUser }: LandingPageClientProp
                     </AppButton>
                   </a>
                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── BAZAR DELETION NOTIFICATIONS MODAL ──────────────────────────────── */}
+      <AnimatePresence>
+        {isRejectionsModalOpen && rejections.length > 0 && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleAcknowledgeRejections}
+              className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
+            />
+
+            {/* Modal Content */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              className="relative w-full max-w-md bg-white border border-slate-100 rounded-[32px] p-6 sm:p-8 shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-200"
+            >
+              {/* Close Button */}
+              <AppButton
+                variant="ghost"
+                onClick={handleAcknowledgeRejections}
+                disabled={isAcknowledgeLoading}
+                className="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-200 transition-colors p-0 min-h-[auto]"
+              >
+                <X className="w-4 h-4" />
+                <span className="sr-only">Close</span>
+              </AppButton>
+
+              <div className="relative z-10 text-center mt-4">
+                {/* Icon */}
+                <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-500 mx-auto mb-6 relative">
+                  <AlertCircle className="w-8 h-8" />
+                </div>
+
+                {/* Title */}
+                <h3 className="text-xl sm:text-2xl font-black text-slate-900 font-bn tracking-tight mb-4">
+                  {t("notification_title" as TextKey) || "গুরুত্বপূর্ণ নোটিফিকেশন"}
+                </h3>
+
+                {/* List of rejections */}
+                <div className="space-y-4 text-left max-h-60 overflow-y-auto mb-6 pr-1 scrollbar-thin">
+                  {rejections.map((rejection) => (
+                    <div
+                      key={rejection.id}
+                      className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-2"
+                    >
+                      <div className="flex items-start gap-2.5">
+                        <Store className="w-4.5 h-4.5 text-slate-400 shrink-0 mt-0.5" />
+                        <p className="text-sm font-black text-slate-800 font-bn">
+                          আপনার যোগ করা বাজার <span className="text-emerald-700 font-black font-bn">&quot;{rejection.name}&quot;</span> অ্যাডমিন বাতিল করেছেন।
+                        </p>
+                      </div>
+                      <div className="bg-white border border-slate-200/60 rounded-xl px-3 py-2 text-xs font-semibold text-slate-600 leading-relaxed">
+                        <span className="font-black text-slate-800 block mb-0.5">কারণ:</span>
+                        {rejection.reason}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Action Button */}
+                <AppButton
+                  onClick={handleAcknowledgeRejections}
+                  loading={isAcknowledgeLoading}
+                  disabled={isAcknowledgeLoading}
+                  className="w-full h-14 rounded-2xl bg-primary text-white font-black text-base shadow-xl hover:bg-success transition-all duration-300 flex items-center justify-center"
+                >
+                  {t("acknowledge" as TextKey) || "বুঝেছি"}
+                </AppButton>
               </div>
             </motion.div>
           </div>

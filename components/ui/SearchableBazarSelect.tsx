@@ -109,6 +109,19 @@ export function SearchableBazarSelect({
           t("success_bazar_added" as TextKey) ||
             "Bazar submitted for approval!"
         );
+        // Save to localStorage for tracking deletion reasons
+        if (typeof window !== "undefined") {
+          try {
+            const stored = localStorage.getItem("my_contributed_bazars");
+            const list = stored ? JSON.parse(stored) : [];
+            if (Array.isArray(list) && !list.includes(data.name)) {
+              list.push(data.name);
+              localStorage.setItem("my_contributed_bazars", JSON.stringify(list));
+            }
+          } catch (e) {
+            console.error("Failed to save contributed bazar to localStorage:", e);
+          }
+        }
         // Add to local list and select
         setBazars((prev) => [...prev, data]);
         onChange(data.name);

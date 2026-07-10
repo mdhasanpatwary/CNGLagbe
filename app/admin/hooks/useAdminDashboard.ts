@@ -233,11 +233,12 @@ export function useAdminDashboard() {
     }
   };
 
-  const handleDeleteBazar = async (id: string) => {
-    if (!confirm(t("delete_bazar") + "?")) return;
+  const handleDeleteBazar = async (id: string, reason?: string) => {
     try {
       const res = await fetch(`/api/bazars/${id}`, {
         method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: reason || "" }),
       });
       if (res.ok) {
         fetchData({ showLoading: false });

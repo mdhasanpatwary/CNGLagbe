@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AppButton } from "@/components/ui/AppButton";
-import { Store, Plus, Users, Edit2, Trash2, Search, Check } from "lucide-react";
+import { Store, Plus, Users, Edit2, Trash2, Search, Check, AlertTriangle, X } from "lucide-react";
 
 import { TextKey } from "@/constants/text";
 
@@ -13,7 +14,7 @@ interface BazarsTabProps {
   editingBazar: { id: string; name: string } | null;
   setEditingBazar: (bazar: { id: string; name: string } | null) => void;
   handleAddBazar: () => void;
-  handleDeleteBazar: (id: string) => void;
+  handleDeleteBazar: (id: string, reason?: string) => void;
   handleUpdateBazar: () => void;
   handleApproveBazar: (id: string) => void;
   t: (key: TextKey) => string;
@@ -33,6 +34,23 @@ export function BazarsTab({
 }: BazarsTabProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletingBazar, setDeletingBazar] = useState<{ id: string; name: string } | null>(null);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+
+  const confirmDelete = async () => {
+    if (!deletingBazar) return;
+    await handleDeleteBazar(deletingBazar.id, deleteReason.trim());
+    setIsDeleteModalOpen(false);
+    setDeletingBazar(null);
+    setDeleteReason("");
+  };
 
   const filteredBazars = bazars.filter((bazar) =>
     bazar.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -176,7 +194,11 @@ export function BazarsTab({
                             leftIcon={<Edit2 size={16} />}
                           />
                           <AppButton
-                            onClick={() => handleDeleteBazar(bazar.id)}
+                            onClick={() => {
+                              setDeletingBazar({ id: bazar.id, name: bazar.name });
+                              setDeleteReason("");
+                              setIsDeleteModalOpen(true);
+                            }}
                             variant="ghost"
                             className="h-9 w-9 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl flex items-center justify-center shrink-0"
                             leftIcon={<Trash2 size={16} />}
@@ -201,6 +223,75 @@ export function BazarsTab({
           </Table>
         </CardContent>
       </Card>
+
+      {mounted && isDeleteModalOpen && deletingBazar && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-md rounded-2xl border border-slate-100 shadow-2xl p-6 relative animate-in zoom-in-95 duration-200">
+            <AppButton
+              variant="ghost"
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setDeletingBazar(null);
+                setDeleteReason("");
+              }}
+              className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 rounded-xl p-1.5 hover:bg-slate-50 transition-colors min-h-[auto] h-auto px-2"
+            >
+              <X size={18} />
+            </AppButton>
+
+            <div className="flex items-center gap-3 mb-4 text-rose-600">
+              <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center">
+                <AlertTriangle size={20} />
+              </div>
+              <h3 className="text-lg font-black text-slate-900 font-bn">
+                {t("delete_bazar_confirm" as TextKey) || "বাজার ডিলেট নিশ্চিত করুন"}
+              </h3>
+            </div>
+
+            <p className="text-sm text-slate-500 mb-5 leading-relaxed font-bold">
+              আপনি কি নিশ্চিতভাবে <span className="text-slate-900 font-black font-bn">&quot;{deletingBazar.name}&quot;</span> বাজারটি ডিলেট করতে চান?
+            </p>
+
+            <div className="space-y-2 mb-6">
+              <label className="text-xs font-black uppercase tracking-widest text-slate-400 block ml-1">
+                ডিলেট করার কারণ লিখুন (ব্যবহারকারী দেখতে পাবেন) <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={deleteReason}
+                onChange={(e) => setDeleteReason(e.target.value)}
+                placeholder="যেমন: ভুল বানানের কারণে বাতিল করা হলো, অথবা এই বাজারটি ইতিমধ্যেই অন্য নামে বিদ্যমান।"
+                className="w-full h-24 p-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-medium transition-all"
+                required
+              />
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <AppButton
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setDeletingBazar(null);
+                  setDeleteReason("");
+                }}
+                className="font-bold border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl px-4 py-2.5 h-11"
+              >
+                {t("cancel") || "বাতিল"}
+              </AppButton>
+              <AppButton
+                type="button"
+                variant="outline"
+                onClick={confirmDelete}
+                disabled={!deleteReason.trim()}
+                className="font-bold bg-rose-600 text-white hover:bg-rose-700 border-transparent hover:border-transparent rounded-xl px-4 py-2.5 h-11 disabled:opacity-50"
+              >
+                {t("delete") || "ডিলেট করুন"}
+              </AppButton>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

@@ -1,12 +1,8 @@
-# Task Tracker: Main Page UI/UX Improvements
+# Task Tracker: Bazar Deletion Notifications
 
 | Task ID | Task Description | Status |
 | :--- | :--- | :--- |
-| Task 1 | Section Order Fix — Waitlist নিচে নামানো | [x] Completed |
-| Task 2 | Mobile Hero — Direct `tel:` CTA | [x] Completed |
-| Task 3 | Trust Section — Badge Text Fix | [x] Completed |
-| Task 4 | Scroll Progress Bar — Height Fix | [x] Completed |
-| Task 5 | Service Area Tags — Dot Separator | [x] Completed |
-| Task 6 | Final CTA — Double Rotation Fix | [x] Completed |
-| Task 7 | Driver Directory — Mobile Collapsible Filter | [x] Completed |
-| Task 8 | FAQ — Expand All / Collapse All Toggle | [x] Completed |
+| Task 1 | Database Migration (Schema Update) | [x] Completed (Schema updated, Prisma Client generated) |
+| Task 2 | Backend API Implementation | [x] Completed (API routes updated & new endpoints created) |
+| Task 3 | Admin UI & Delete Reason Prompt | [x] Completed (Delete confirmation dialog added to BazarsTab) |
+| Task 4 | Frontend Notification Modal & LocalStorage | [x] Completed (Popup modal and LocalStorage workflow implemented) |

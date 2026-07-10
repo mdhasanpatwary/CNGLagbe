@@ -63,16 +63,48 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
   try {
-    await prisma.bazar.delete({
-      where: { id },
+    let reason = "";
+    try {
+      const body = await request.json();
+      reason = body.reason || "";
+    } catch {
+      // Body might be missing or invalid
+    }
+
+    await prisma.$transaction(async (tx) => {
+      const bazar = await tx.bazar.findUnique({
+        where: { id },
+      });
+
+      if (!bazar) {
+        throw new Error("BAZAR_NOT_FOUND");
+      }
+
+      if (reason) {
+        await tx.bazarRejection.create({
+          data: {
+            name: bazar.name,
+            reason: reason,
+            userPhone: bazar.createdByPhone,
+          },
+        });
+      }
+
+      await tx.bazar.delete({
+        where: { id },
+      });
     });
+
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (error instanceof Error && error.message === "BAZAR_NOT_FOUND") {
+      return NextResponse.json({ error: "Bazar not found" }, { status: 404 });
+    }
     console.error("Delete bazar error:", error);
     return NextResponse.json({ 
       error: "Failed to delete bazar",

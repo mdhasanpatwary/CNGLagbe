@@ -1115,6 +1115,22 @@ export const TEXT = {
     en: "Toto",
     bn: "টোটো"
   },
+  delete_bazar_confirm: {
+    en: "Confirm Bazar Deletion",
+    bn: "বাজার ডিলেট নিশ্চিত করুন"
+  },
+  notification_title: {
+    en: "Important Notification",
+    bn: "গুরুত্বপূর্ণ নোটিফিকেশন"
+  },
+  acknowledge: {
+    en: "Understand",
+    bn: "বুঝেছি"
+  },
+  cancel: {
+    en: "Cancel",
+    bn: "বাতিল"
+  },
 } as const;
 
 

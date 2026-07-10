@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
 import { Prisma } from "@prisma/client";
 import { isBanglaText, mapEnglishToBanglaBazars } from "@/lib/bazar-mapping";
+import { getAuthUser } from "@/lib/auth";
+
 
 // Keep track of sync state globally (per container instance)
 let hasSyncedContributedDrivers = false;
@@ -70,19 +70,6 @@ async function syncContributedDriversBazars() {
   }
 }
 
-async function verifyAdmin() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
-  if (!token) return false;
-  
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || "fallback_secret");
-    const { payload } = await jwtVerify(token, secret);
-    return payload.role === "ADMIN";
-  } catch {
-    return false;
-  }
-}
 
 export async function GET(request: Request) {
   try {
@@ -156,12 +143,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "BAZAR_EXISTS" }, { status: 400 });
     }
 
-    const isAdmin = await verifyAdmin();
+    const session = await getAuthUser();
+    const isAdmin = session?.role === "ADMIN";
+
+    let createdByPhone: string | null = null;
+    if (session) {
+      if (session.role === "USER" || session.role === "ADMIN") {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: session.sub },
+          select: { phone: true }
+        });
+        createdByPhone = dbUser?.phone || null;
+      } else if (session.role === "DRIVER") {
+        const dbDriver = await prisma.driver.findUnique({
+          where: { id: session.sub },
+          select: { phone: true }
+        });
+        createdByPhone = dbDriver?.phone || null;
+      }
+    }
 
     const bazar = await prisma.bazar.create({
       data: {
         name: trimmedName,
-        isApproved: isAdmin // Approved by default for Admin, needs approval for public contributors
+        isApproved: isAdmin, // Approved by default for Admin, needs approval for public contributors
+        createdByPhone
       },
     });
     return NextResponse.json(bazar);
