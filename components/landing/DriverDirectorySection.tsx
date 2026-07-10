@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
-import { Search, Phone, Users, Plus, X, Trophy, Trash2, Copy, Check } from "lucide-react";
+import { Search, Phone, Users, Plus, X, Trophy, Trash2, Copy, Check, Pencil } from "lucide-react";
 import { Controller } from "react-hook-form";
 import { AppButton } from "@/components/ui/AppButton";
 import { FormField } from "@/components/FormField";
@@ -60,6 +60,9 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
     onSubmit,
     onInvalid,
     handleDeleteDriver,
+    editingDriver,
+    handleOpenEditModal,
+    handleCloseSubmitModal,
   } = useDriverDirectory({ isLanding, initialUser });
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -361,19 +364,33 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                             {driver.name}
                           </h4>
                           {currentUser && driver.contributorHash === currentUser.phoneHash && (
-                            <AppButton
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setDriverToDelete(driver);
-                                setIsDeleteModalOpen(true);
-                              }}
-                              className="h-auto w-auto p-0.5 rounded text-rose-400 hover:text-rose-600 hover:bg-rose-50 bg-transparent active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0 shrink-0"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </AppButton>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <AppButton
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenEditModal(driver);
+                                }}
+                                className="h-auto w-auto p-0.5 rounded text-slate-400 hover:text-primary hover:bg-slate-50 bg-transparent active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0 shrink-0"
+                              >
+                                <Pencil className="w-3 h-3" />
+                              </AppButton>
+                              <AppButton
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDriverToDelete(driver);
+                                  setIsDeleteModalOpen(true);
+                                }}
+                                className="h-auto w-auto p-0.5 rounded text-rose-400 hover:text-rose-600 hover:bg-rose-50 bg-transparent active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0 shrink-0"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </AppButton>
+                            </div>
                           )}
                         </div>
 
@@ -577,20 +594,24 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
           <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[80vh] md:max-h-[85vh] animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between p-6 border-b border-slate-100 shrink-0">
               <h3 className="text-xl font-bold text-slate-900">
-                {t("contribute_title" as TextKey) || "Add Driver Info"}
+                {editingDriver
+                  ? (t("edit_contributed_driver" as TextKey) || "Edit Driver Info")
+                  : (t("contribute_title" as TextKey) || "Add Driver Info")}
               </h3>
               <AppButton
                 variant="ghost"
-                onClick={() => setIsSubmitModalOpen(false)}
+                onClick={handleCloseSubmitModal}
                 className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-50 transition-colors min-h-[auto] h-auto px-2"
               >
                 <X className="w-5 h-5" />
               </AppButton>
             </div>
             <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="p-6 space-y-5 overflow-y-auto flex-1">
-              <p className="text-xs text-slate-500 font-medium leading-relaxed mb-2">
-                {t("contribute_desc" as TextKey) || "Help by adding driver numbers."}
-              </p>
+              {!editingDriver && (
+                <p className="text-xs text-slate-500 font-medium leading-relaxed mb-2">
+                  {t("contribute_desc" as TextKey) || "Help by adding driver numbers."}
+                </p>
+              )}
 
               {!currentUser && (
                 <div className="bg-amber-50/60 border border-amber-200/60 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-in fade-in duration-200">
@@ -699,7 +720,7 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                 <AppButton
                   type="button"
                   variant="ghost"
-                  onClick={() => setIsSubmitModalOpen(false)}
+                  onClick={handleCloseSubmitModal}
                   className="flex-1 h-12 rounded-xl text-slate-600 hover:bg-slate-50 font-bold"
                 >
                   Cancel
@@ -710,7 +731,9 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                   disabled={uploading}
                   className="flex-1 h-12 rounded-xl bg-primary text-white font-bold hover:bg-success shadow-lg transition-all"
                 >
-                  {t("submit" as TextKey) || "Submit"}
+                  {editingDriver
+                    ? (t("save_changes" as TextKey) || "Save Changes")
+                    : (t("submit" as TextKey) || "Submit")}
                 </AppButton>
               </div>
             </form>

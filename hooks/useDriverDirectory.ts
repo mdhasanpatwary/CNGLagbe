@@ -62,6 +62,7 @@ export function useDriverDirectory({ isLanding = false, initialUser }: UseDriver
   const [isDeleting, setIsDeleting] = useState(false);
   const [totalCount, setTotalCount] = useState<number | null>(null);
   const [overallCount, setOverallCount] = useState<number | null>(null);
+  const [editingDriver, setEditingDriver] = useState<ContributedDriver | null>(null);
 
   const currentUser = initialUser ?? null;
 
@@ -229,6 +230,8 @@ export function useDriverDirectory({ isLanding = false, initialUser }: UseDriver
     };
   }, [isSubmitModalOpen]);
 
+
+
   // Reset page when filters change
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -286,6 +289,36 @@ export function useDriverDirectory({ isLanding = false, initialUser }: UseDriver
     };
   }, [isLanding, hasMore, isLoading, isFetchingNext, activeTab]);
 
+  const handleOpenEditModal = useCallback((driver: ContributedDriver) => {
+    setEditingDriver(driver);
+    reset({
+      name: driver.name || "",
+      phone: driver.phone || "",
+      address: driver.address || "",
+      nearbyBazar: driver.nearbyBazar || "",
+      vehicleType: (driver.vehicleType as "CNG" | "TOTO") || "CNG",
+      contributorName: driver.contributorName || "",
+      contributorPhone: "",
+      contributorPhotoUrl: driver.contributorPhotoUrl || "",
+    });
+    setIsSubmitModalOpen(true);
+  }, [reset]);
+
+  const handleCloseSubmitModal = useCallback(() => {
+    setIsSubmitModalOpen(false);
+    reset({
+      name: "",
+      phone: "",
+      address: "",
+      nearbyBazar: "",
+      vehicleType: "CNG",
+      contributorName: "",
+      contributorPhone: "",
+      contributorPhotoUrl: "",
+    });
+    setEditingDriver(null);
+  }, [reset]);
+
   const onSubmit = async (data: ContributedDriverInput) => {
     setIsSubmitting(true);
     try {
@@ -295,8 +328,13 @@ export function useDriverDirectory({ isLanding = false, initialUser }: UseDriver
         data.contributorPhotoUrl = currentUser.photoUrl || "";
       }
 
-      const res = await fetch("/api/contributed-drivers", {
-        method: "POST",
+      const url = editingDriver
+        ? `/api/contributed-drivers/${editingDriver.id}`
+        : "/api/contributed-drivers";
+      const method = editingDriver ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
@@ -304,22 +342,27 @@ export function useDriverDirectory({ isLanding = false, initialUser }: UseDriver
       const resData = await res.json();
 
       if (res.ok) {
-        toast.success(
-          resData.autoApproved
-            ? (t("success_contribute" as TextKey) || "Driver added successfully!")
-            : (t("success_contribute_pending" as TextKey) || "Submitted for approval!")
-        );
+        if (editingDriver) {
+          toast.success(t("update_success" as TextKey) || "Saved successfully!");
+        } else {
+          toast.success(
+            resData.autoApproved
+              ? (t("success_contribute" as TextKey) || "Driver added successfully!")
+              : (t("success_contribute_pending" as TextKey) || "Submitted for approval!")
+          );
+        }
         reset();
+        setEditingDriver(null);
         setIsSubmitModalOpen(false);
         fetchDrivers(1);
       } else if (resData.error === "PHONE_EXISTS") {
         toast.error(t("error_phone_exists" as TextKey) || "Phone number already exists!");
       } else {
-        toast.error("Failed to add driver. Try again.");
+        toast.error(editingDriver ? "Failed to update driver. Try again." : "Failed to add driver. Try again.");
       }
     } catch (e) {
       console.error(e);
-      toast.error("Error submitting form.");
+      toast.error(editingDriver ? "Error updating driver." : "Error submitting form.");
     } finally {
       setIsSubmitting(false);
     }
@@ -405,5 +448,8 @@ export function useDriverDirectory({ isLanding = false, initialUser }: UseDriver
     onInvalid,
     handleDeleteDriver,
     fetchDrivers,
+    editingDriver,
+    handleOpenEditModal,
+    handleCloseSubmitModal,
   };
 }

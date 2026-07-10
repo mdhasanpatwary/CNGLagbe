@@ -412,7 +412,5 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Admin Dashboard Display:** Added a "Calls" column to the Contributed Drivers table in the Admin Dashboard showing the total number of calls initiated for each driver from the public directory.
 - **Overview Stat Card:** Added a "Total Call Clicks" stat card to the main Admin Dashboard overview tab, displaying the aggregated count of all call button clicks across all drivers in the directory.
 
-
-
-
-
+## ✏️ Contributor Driver Edit Flow (2026-07-10)
+- **Edit Modal and Handlers:** Added support for contributors to edit their own contributed driver directory listings. Clicking the edit Pencil icon next to their driver name triggers the same contribution modal in edit mode, pre-populated with current values. On submission, a PUT request is made to `/api/contributed-drivers/[id]`, which updates the driver entry while preserving the original approval status (`isApproved`). Handlers automatically perform complete state reset on modal close to prevent cross-modal data leakage.
