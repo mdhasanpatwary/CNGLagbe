@@ -3,7 +3,72 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { Prisma } from "@prisma/client";
-import { isBanglaText } from "@/lib/bazar-mapping";
+import { isBanglaText, mapEnglishToBanglaBazars } from "@/lib/bazar-mapping";
+
+// Keep track of sync state globally (per container instance)
+let hasSyncedContributedDrivers = false;
+
+async function syncContributedDriversBazars() {
+  if (hasSyncedContributedDrivers) return;
+  
+  try {
+    // Fetch all bazars
+    const bazars = await prisma.bazar.findMany({ select: { name: true } });
+    const bazarNames = bazars.map(b => b.name);
+    
+    // Find all contributed drivers with non-null bazars
+    const contributedDrivers = await prisma.contributedDriver.findMany({
+      where: { nearbyBazar: { not: null } },
+      select: { id: true, nearbyBazar: true }
+    });
+    
+    for (const driver of contributedDrivers) {
+      const currentBazar = driver.nearbyBazar;
+      if (!currentBazar) continue;
+      
+      // If it's already an approved Bangla bazar name, skip
+      if (bazarNames.includes(currentBazar)) continue;
+      
+      // Find matching Bangla bazar name
+      const matchedBazars = mapEnglishToBanglaBazars(currentBazar, bazarNames);
+      
+      if (matchedBazars.length > 0) {
+        await prisma.contributedDriver.update({
+          where: { id: driver.id },
+          data: { nearbyBazar: matchedBazars[0] }
+        });
+        console.log(`Synced contributed driver ${driver.id}: "${currentBazar}" -> "${matchedBazars[0]}"`);
+      }
+    }
+
+    // Also sync official Driver table
+    const drivers = await prisma.driver.findMany({
+      where: { nearbyBazar: { not: null } },
+      select: { id: true, nearbyBazar: true }
+    });
+
+    for (const d of drivers) {
+      const currentBazar = d.nearbyBazar;
+      if (!currentBazar) continue;
+
+      if (bazarNames.includes(currentBazar)) continue;
+
+      const matchedBazars = mapEnglishToBanglaBazars(currentBazar, bazarNames);
+
+      if (matchedBazars.length > 0) {
+        await prisma.driver.update({
+          where: { id: d.id },
+          data: { nearbyBazar: matchedBazars[0] }
+        });
+        console.log(`Synced driver ${d.id}: "${currentBazar}" -> "${matchedBazars[0]}"`);
+      }
+    }
+    
+    hasSyncedContributedDrivers = true;
+  } catch (error) {
+    console.error("Failed to sync contributed drivers bazars:", error);
+  }
+}
 
 async function verifyAdmin() {
   const cookieStore = await cookies();
@@ -21,6 +86,7 @@ async function verifyAdmin() {
 
 export async function GET(request: Request) {
   try {
+    await syncContributedDriversBazars();
     const { searchParams } = new URL(request.url);
     const includeUnapproved = searchParams.get("all") === "true";
     

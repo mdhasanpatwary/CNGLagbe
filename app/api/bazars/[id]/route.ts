@@ -34,9 +34,13 @@ export async function PATCH(
         data: dataToUpdate,
       });
 
-      // Update all drivers who have this bazar as their nearbyBazar, if name changed
+      // Update all drivers and contributed drivers who have this bazar as their nearbyBazar, if name changed
       if (name && name !== oldBazar.name) {
         await tx.driver.updateMany({
+          where: { nearbyBazar: oldBazar.name },
+          data: { nearbyBazar: name },
+        });
+        await tx.contributedDriver.updateMany({
           where: { nearbyBazar: oldBazar.name },
           data: { nearbyBazar: name },
         });
