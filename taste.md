@@ -414,3 +414,11 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 
 ## ✏️ Contributor Driver Edit Flow (2026-07-10)
 - **Edit Modal and Handlers:** Added support for contributors to edit their own contributed driver directory listings. Clicking the edit Pencil icon next to their driver name triggers the same contribution modal in edit mode, pre-populated with current values. On submission, a PUT request is made to `/api/contributed-drivers/[id]`, which updates the driver entry while preserving the original approval status (`isApproved`). Handlers automatically perform complete state reset on modal close to prevent cross-modal data leakage.
+
+## 🇧🇩 Bangla Names & English Search Support (2026-07-10)
+- **Bangla Name Enforcement**: Added strict validation checking via `isBanglaText` utility to verify that contributed driver names, edited driver names, and bazar names contain at least one Bengali character and no English alphabetic characters (`[a-zA-Z]`).
+- **Dynamic Phonetic English-to-Bangla Search**: Implemented a dynamic rules-based consonant phonetic encoder (`getConsonantPhoneticRepresentation`) that extracts core consonant sound representations from both Bangla and English strings.
+- **Bazar English Search Integration**: Enhanced the frontend `SearchableBazarSelect` component to map English search queries to Bangla bazars dynamically using the static region dictionary and phonetic matching.
+- **Backend Search Integration**: Expanded the server `/api/contributed-drivers` endpoint to execute dynamic in-memory phonetic searches (`isPhoneticMatch`) for English queries, enabling English searches to match both Bangla driver names and nearby bazar names.
+
+

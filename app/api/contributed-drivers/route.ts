@@ -6,6 +6,7 @@ import { getSystemSetting } from "@/lib/settings";
 import { getAuthUser } from "@/lib/auth";
 import { createHash } from "crypto";
 import { BoundedCache } from "@/lib/bounded-cache";
+import { isPhoneticMatch } from "@/lib/bazar-mapping";
 
 // Cache hash → phone for 5 minutes. Avoids full-table scan on repeated contributor filter requests.
 const hashToPhoneCache = new BoundedCache<string>(5 * 60 * 1000, 500);
@@ -31,14 +32,6 @@ export async function GET(request: Request) {
 
     if (vehicleType && vehicleType !== "ALL") {
       where.vehicleType = vehicleType;
-    }
-
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { phone: { contains: search } },
-        { address: { contains: search, mode: "insensitive" } },
-      ];
     }
 
     if (contributorHash) {
@@ -84,14 +77,58 @@ export async function GET(request: Request) {
       }
     }
 
-    const drivers = await prisma.contributedDriver.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      ...(take !== undefined ? { take } : {}),
-      ...(skip !== undefined ? { skip } : {}),
-    });
+    let drivers = [];
+    let totalCount = 0;
 
-    const totalCount = await prisma.contributedDriver.count({ where });
+    if (search && /[a-zA-Z]/.test(search)) {
+      // Fetch all matching candidates (without limit/skip) to filter in-memory phonetically
+      const allDrivers = await prisma.contributedDriver.findMany({
+        where,
+        orderBy: { createdAt: "desc" }
+      });
+
+      const filtered = allDrivers.filter((driver) => {
+        const s = search.toLowerCase().trim();
+        // Exact/substring check
+        if (
+          driver.name.toLowerCase().includes(s) ||
+          driver.phone.includes(s) ||
+          (driver.address && driver.address.toLowerCase().includes(s)) ||
+          (driver.nearbyBazar && driver.nearbyBazar.toLowerCase().includes(s))
+        ) {
+          return true;
+        }
+
+        // Phonetic check (driver name or nearbyBazar)
+        if (isPhoneticMatch(search, driver.name)) return true;
+        if (driver.nearbyBazar && isPhoneticMatch(search, driver.nearbyBazar)) return true;
+
+        return false;
+      });
+
+      totalCount = filtered.length;
+      drivers = take !== undefined ? filtered.slice(skip ?? 0, (skip ?? 0) + take) : filtered;
+    } else {
+      // Standard flow for Bengali search or no search query
+      if (search) {
+        where.OR = [
+          { name: { contains: search, mode: "insensitive" } },
+          { phone: { contains: search } },
+          { address: { contains: search, mode: "insensitive" } },
+          { nearbyBazar: { contains: search, mode: "insensitive" } },
+        ];
+      }
+
+      drivers = await prisma.contributedDriver.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        ...(take !== undefined ? { take } : {}),
+        ...(skip !== undefined ? { skip } : {}),
+      });
+
+      totalCount = await prisma.contributedDriver.count({ where });
+    }
+
     const overallCount = await prisma.contributedDriver.count({ where: { isApproved: true } });
 
     // Strip raw contributorPhone for privacy and include contributorHash

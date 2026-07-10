@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isBanglaText } from "@/lib/bazar-mapping";
 
 export async function PATCH(
   request: Request,
@@ -8,6 +9,10 @@ export async function PATCH(
   const { id } = await params;
   try {
     const { name, isApproved } = await request.json();
+
+    if (name !== undefined && !isBanglaText(name.trim())) {
+      return NextResponse.json({ error: "BAZAR_NAME_MUST_BE_BANGLA" }, { status: 400 });
+    }
     
     // Wrap in transaction for atomicity: if driver update fails, bazar rename is rolled back
     const bazar = await prisma.$transaction(async (tx) => {

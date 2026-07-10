@@ -7,6 +7,7 @@ import { useLang } from "@/hooks/useLang";
 import { TextKey } from "@/constants/text";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { isBanglaText, mapEnglishToBanglaBazars } from "@/lib/bazar-mapping";
 
 interface Bazar {
   id: string;
@@ -67,9 +68,20 @@ export function SearchableBazarSelect({
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
 
-  const filtered = bazars.filter((bazar) =>
-    bazar.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filtered = bazars.filter((bazar) => {
+    const queryLower = searchQuery.toLowerCase().trim();
+    if (!queryLower) return true;
+    
+    const nameMatch = bazar.name.toLowerCase().includes(queryLower);
+    if (nameMatch) return true;
+
+    // Check if searching in English and if the query maps to this bazar name
+    if (/[a-zA-Z]/.test(queryLower)) {
+      const mapped = mapEnglishToBanglaBazars(queryLower, bazars.map(b => b.name));
+      return mapped.includes(bazar.name);
+    }
+    return false;
+  });
 
   const handleSelect = (name: string) => {
     onChange(name);
@@ -79,6 +91,10 @@ export function SearchableBazarSelect({
 
   const handleAddNewBazar = async () => {
     if (!searchQuery.trim()) return;
+    if (!isBanglaText(searchQuery.trim())) {
+      toast.error("বাজারের নাম অবশ্যই বাংলায় লিখতে হবে");
+      return;
+    }
     setIsAdding(true);
     try {
       const res = await fetch("/api/bazars", {

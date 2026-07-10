@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { Prisma } from "@prisma/client";
+import { isBanglaText } from "@/lib/bazar-mapping";
 
 async function verifyAdmin() {
   const cookieStore = await cookies();
@@ -76,6 +77,9 @@ export async function POST(request: Request) {
     if (!name) return NextResponse.json({ error: "Name is required" }, { status: 400 });
 
     const trimmedName = name.trim();
+    if (!isBanglaText(trimmedName)) {
+      return NextResponse.json({ error: "BAZAR_NAME_MUST_BE_BANGLA" }, { status: 400 });
+    }
 
     // Check if duplicate name exists
     const existing = await prisma.bazar.findUnique({

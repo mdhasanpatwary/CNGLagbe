@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedAdmin } from "@/lib/auth";
+import { isBanglaText } from "@/lib/bazar-mapping";
 
 import { z } from "zod";
 
 const updateSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
+  name: z.string().min(2, "Name must be at least 2 characters").refine(isBanglaText, "নাম অবশ্যই বাংলায় হতে হবে (বাংলা অক্ষরে লিখুন)"),
   phone: z.string().regex(/^01[3-9]\d{8}$/, "Please enter a valid 11-digit Bangladeshi mobile number"),
   address: z.string().optional().nullable(),
-  nearbyBazar: z.string().min(1, "Please select a bazar/stand"),
+  nearbyBazar: z.string().min(1, "Please select a bazar/stand").refine(isBanglaText, "বাজারের নাম অবশ্যই বাংলায় হতে হবে"),
   vehicleType: z.enum(["CNG", "TOTO"]),
   isApproved: z.boolean().optional(),
   contributorName: z.string().optional().nullable().or(z.literal("")),

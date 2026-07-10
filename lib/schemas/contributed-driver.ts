@@ -1,10 +1,11 @@
 import { z } from "zod";
+import { isBanglaText } from "@/lib/bazar-mapping";
 
 export const contributedDriverSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
+  name: z.string().min(2, "Name must be at least 2 characters").refine(isBanglaText, "নাম অবশ্যই বাংলায় হতে হবে (বাংলা অক্ষরে লিখুন)"),
   phone: z.string().regex(/^01[3-9]\d{8}$/, "Please enter a valid 11-digit Bangladeshi mobile number (e.g. 01712345678)"),
   address: z.string().optional().or(z.literal("")),
-  nearbyBazar: z.string().min(1, "Please select a bazar/stand"),
+  nearbyBazar: z.string().min(1, "Please select a bazar/stand").refine(isBanglaText, "বাজারের নাম অবশ্যই বাংলায় হতে হবে"),
   vehicleType: z.enum(["CNG", "TOTO"]).default("CNG"),
   contributorName: z.string().optional().nullable().or(z.literal("")),
   contributorPhone: z.string().optional().nullable().or(z.literal("")),
@@ -14,10 +15,10 @@ export const contributedDriverSchema = z.object({
 export type ContributedDriverInput = z.input<typeof contributedDriverSchema>;
 
 export const contributedDriverEditSchema = z.object({
-  name: z.string().min(2, "Driver name must be at least 2 characters"),
+  name: z.string().min(2, "Driver name must be at least 2 characters").refine(isBanglaText, "নাম অবশ্যই বাংলায় হতে হবে (বাংলা অক্ষরে লিখুন)"),
   phone: z.string().regex(/^01[3-9]\d{8}$/, "Please enter a valid 11-digit Bangladeshi mobile number"),
   address: z.string().optional().nullable().or(z.literal("")),
-  nearbyBazar: z.string().min(1, "Please select a bazar/stand"),
+  nearbyBazar: z.string().min(1, "Please select a bazar/stand").refine(isBanglaText, "বাজারের নাম অবশ্যই বাংলায় হতে হবে"),
   vehicleType: z.enum(["CNG", "TOTO"]),
   isApproved: z.boolean(),
   contributorName: z.string().optional().nullable().or(z.literal("")),
