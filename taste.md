@@ -422,4 +422,12 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Bazar English Search Integration**: Enhanced the frontend `SearchableBazarSelect` component to map English search queries to Bangla bazars dynamically using the static region dictionary and phonetic matching.
 - **Backend Search Integration**: Expanded the server `/api/contributed-drivers` endpoint to execute dynamic in-memory phonetic searches (`isPhoneticMatch`) for English queries, enabling English searches to match both Bangla driver names and nearby bazar names.
 
-
+## 🏠 Main Page UI/UX Improvements (2026-07-10)
+- **Section Order Optimization:** Relocated the `WaitlistSection` to sit directly above the FAQ section, creating a logical user journey from value proposition and social proof down to conversion/signup.
+- **Direct Call Link on Mobile:** Updated the Hero section CTA `handleBookNow` button to automatically initiate a phone dial to the hotline `tel:01783721411` on devices with screen widths under `768px`, skipping the popup modal for a faster, frictionless experience.
+- **Mobile Collapsible Filter:** Redesigned the driver directory filters. On mobile screens, they are collapsed by default. The compact "ফিল্টার" (Filter) toggle button is placed on the right side of the navigation tabs bar on mobile viewports for a cleaner layout, next to a compact active filter count badge.
+- **Responsive Tab Labels & Scroll Removal:** Under mobile viewports, both tab titles are dynamically shortened ("ড্রাইভার তালিকা" -> "ড্রাইভার" and "অবদানকারী লিডারবোর্ড" -> "লিডারবোর্ড"), and horizontal scrolling is turned off by adjusting flex gaps/padding. This ensures everything fits perfectly within a 360px width viewport.
+- **FAQ Accordion Multi-Toggle (Expand All / Collapse All):** Added an "Expand All" / "Collapse All" toggle to the FAQ section, converting the uncontrolled accordion items to controlled components utilizing shared parent state.
+- **Scroll Progress & Rotation Aesthetics:** Refined global visuals. Decreased the top scroll indicator line thickness to a subtle `h-1`. Removed redundant, overlapping rotations (`rotate-12` container and `-rotate-12` navigation arrow icon) in the final booking CTA.
+- **Service Area Metadata Separator:** Placed high-contrast visual dot separators (`·`) between SEO tags in the Service Area section, establishing a readable, premium-looking rhythm.
+- **Hidden Download App Section:** Commented out the placeholder App Download card section since the mobile PWA install banner handles current app installations, keeping the main page focused and uncluttered.

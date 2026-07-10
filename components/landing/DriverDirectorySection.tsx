@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
-import { Search, Phone, Users, Plus, X, Trophy, Trash2, Copy, Check, Pencil } from "lucide-react";
+import { Search, Phone, Users, Plus, X, Trophy, Trash2, Copy, Check, Pencil, Filter } from "lucide-react";
 import { Controller } from "react-hook-form";
 import { AppButton } from "@/components/ui/AppButton";
 import { FormField } from "@/components/FormField";
@@ -21,7 +21,7 @@ interface DriverDirectorySectionProps {
 }
 
 export function DriverDirectorySection({ isLanding = false, initialUser }: DriverDirectorySectionProps) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const {
     drivers,
     selectedBazar,
@@ -66,6 +66,7 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
   } = useDriverDirectory({ isLanding, initialUser });
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const handleCopy = (id: string, phone: string) => {
     navigator.clipboard.writeText(phone).then(() => {
@@ -85,11 +86,11 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
     <Section id="driver-directory" variant="slate" className="bg-slate-100/50 py-12 border-b border-slate-200">
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 pb-6 border-b border-slate-200/60">
-          <div className="space-y-3">
+          <div className="space-y-3 text-center md:text-left w-full md:w-auto">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight font-bn leading-tight">
               {t("driver_directory" as TextKey) || "CNG & Toto Driver List"}
             </h2>
-            <p className="text-sm sm:text-base text-slate-500 font-medium leading-relaxed max-w-xl">
+            <p className="text-sm sm:text-base text-slate-500 font-medium leading-relaxed max-w-xl mx-auto md:mx-0">
               {t("directory_subtitle" as TextKey) || "Find CNG and Toto driver numbers in your area."}
             </p>
           </div>
@@ -103,42 +104,77 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex border-b border-slate-200 mb-8 items-end justify-between gap-4 shrink-0 overflow-x-auto scrollbar-none">
-          <div className="flex gap-4">
+        <div className="flex border-b border-slate-200 mb-8 items-end justify-between gap-2 sm:gap-4 shrink-0">
+          <div className="flex gap-1 sm:gap-4">
             <AppButton
               variant="ghost"
               onClick={() => setActiveTab("DRIVERS")}
-              className={`pb-3 rounded-none border-b-2 hover:bg-transparent transition-all font-bold text-sm sm:text-base ${activeTab === "DRIVERS"
+              className={`pb-3 px-2 sm:px-4 rounded-none border-b-2 hover:bg-transparent transition-all font-bold text-sm sm:text-base ${activeTab === "DRIVERS"
                 ? "text-primary border-primary"
                 : "text-slate-500 border-transparent hover:text-slate-800"
                 }`}
             >
-              {t("tab_all_drivers" as TextKey) || "Drivers List"}
+              {lang === "bn" ? (
+                <>
+                  <span>ড্রাইভার</span>
+                  <span className="hidden sm:inline"> তালিকা</span>
+                </>
+              ) : (
+                t("tab_all_drivers" as TextKey) || "Drivers List"
+              )}
             </AppButton>
             <AppButton
               variant="ghost"
               onClick={() => setActiveTab("LEADERBOARD")}
-              leftIcon={<Trophy className="w-4.5 h-4.5 text-amber-500" />}
-              className={`pb-3 rounded-none border-b-2 hover:bg-transparent transition-all font-bold text-sm sm:text-base ${activeTab === "LEADERBOARD"
+              className={`pb-3 px-2 sm:px-4 rounded-none border-b-2 hover:bg-transparent transition-all font-bold text-sm sm:text-base ${activeTab === "LEADERBOARD"
                 ? "text-primary border-primary"
                 : "text-slate-500 border-transparent hover:text-slate-800"
                 }`}
             >
-              {t("tab_leaderboard" as TextKey) || "Leaderboard"}
+              <Trophy className="hidden sm:inline w-4 h-4 text-amber-500 mr-1.5 shrink-0" />
+              {lang === "bn" ? (
+                <>
+                  <span className="hidden sm:inline">অবদানকারী </span>
+                  <span>লিডারবোর্ড</span>
+                </>
+              ) : (
+                t("tab_leaderboard" as TextKey) || "Leaderboard"
+              )}
             </AppButton>
           </div>
           {activeTab === "DRIVERS" ? (
-            totalCount !== null && overallCount !== null && (
-              <div className="hidden md:block text-xs sm:text-sm font-semibold text-slate-500 pb-3 font-bn self-end whitespace-nowrap">
-                {totalCount < overallCount
-                  ? (t("driver_directory_count_filtered" as TextKey) || "{filtered} of {total}")
-                    .replace("{filtered}", totalCount.toString())
-                    .replace("{total}", overallCount.toString())
-                  : (t("driver_directory_count" as TextKey) || "Total: {total}")
-                    .replace("{total}", overallCount.toString())
-                }
-              </div>
-            )
+            <div className="flex items-center gap-2 pb-2 self-end">
+              {/* Mobile Filter Button */}
+              <AppButton
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsFilterOpen((prev) => !prev)}
+                className="flex md:hidden items-center gap-1 h-9 px-2 rounded-xl border-slate-200 text-slate-700 font-bold text-xs"
+                leftIcon={<Filter className="w-3.5 h-3.5" />}
+              >
+                {t("filter_label" as TextKey) || "ফিল্টার"}
+                <span className={`ml-0.5 transition-transform duration-200 inline-block ${isFilterOpen ? "rotate-180" : ""}`}>▾</span>
+              </AppButton>
+              {(selectedBazar !== "ALL" || selectedVehicleType !== "ALL" || searchQuery !== "") && (
+                <span className="inline-flex md:hidden items-center justify-center w-4 h-4 rounded-full bg-primary text-white text-[9px] font-black shrink-0">
+                  {[selectedBazar !== "ALL", selectedVehicleType !== "ALL", searchQuery !== ""].filter(Boolean).length}
+                </span>
+              )}
+
+              {/* Desktop Total Count */}
+              {totalCount !== null && overallCount !== null && (
+                <div className="hidden md:block text-xs sm:text-sm font-semibold text-slate-500 pb-1 font-bn whitespace-nowrap">
+                  {totalCount < overallCount
+                    ? (t("driver_directory_count_filtered" as TextKey) || "{filtered} of {total}")
+                      .replace("{filtered}", totalCount.toString())
+                      .replace("{total}", overallCount.toString())
+                    : (t("driver_directory_count" as TextKey) || "Total: {total}")
+                      .replace("{total}", overallCount.toString())
+                  }
+                </div>
+              )}
+            </div>
           ) : (
             leaderboard.length > 0 && (
               <div className="hidden md:block text-xs sm:text-sm font-semibold text-slate-500 pb-3 font-bn self-end whitespace-nowrap">
@@ -152,53 +188,56 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
 
         {activeTab === "DRIVERS" ? (
           <>
-            {/* Filters Panel */}
-            <div className="flex flex-col md:flex-row gap-4 mb-8 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm md:items-center">
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={t("search_driver_placeholder" as TextKey) || "Search..."}
-                  className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium text-slate-900 text-base"
-                />
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-                <div className="w-full sm:w-auto min-w-[200px]">
-                  <SearchableBazarSelect
-                    value={selectedBazar}
-                    onChange={setSelectedBazar}
-                    allowAll={true}
-                    size="md"
+            {/* Filters Panel — Mobile Collapsible */}
+            <div className="mb-8">
+              {/* Filter content — always visible md+, toggle on mobile */}
+              <div className={`${isFilterOpen ? "flex" : "hidden"} md:flex flex-col md:flex-row gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm md:items-center`}>
+                <div className="relative flex-1">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={t("search_driver_placeholder" as TextKey) || "Search..."}
+                    className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium text-slate-900 text-base"
                   />
                 </div>
-                {/* Vehicle Type Filter */}
-                <div className="flex h-12 bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0 select-none w-full sm:w-auto justify-between sm:justify-start items-center">
-                  {(["ALL", "CNG", "TOTO"] as const).map((type) => {
-                    const isActive = selectedVehicleType === type;
-                    const label =
-                      type === "ALL"
-                        ? (t("vehicle_all" as TextKey) || "All")
-                        : type === "CNG"
-                          ? (t("filter_cng" as TextKey) || "CNG")
-                          : (t("filter_toto" as TextKey) || "Toto");
-                    return (
-                      <AppButton
-                        key={type}
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedVehicleType(type)}
-                        className={`flex-1 sm:flex-none h-full px-4 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 text-center active:scale-100 ${isActive
-                          ? "bg-white text-slate-900 shadow-sm hover:bg-white focus:ring-transparent focus:ring-offset-0"
-                          : "text-slate-500 hover:text-slate-700 hover:bg-slate-50/50 focus:ring-transparent focus:ring-offset-0"
-                          }`}
-                      >
-                        {label}
-                      </AppButton>
-                    );
-                  })}
+                <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                  <div className="w-full sm:w-auto min-w-[200px]">
+                    <SearchableBazarSelect
+                      value={selectedBazar}
+                      onChange={setSelectedBazar}
+                      allowAll={true}
+                      size="md"
+                    />
+                  </div>
+                  {/* Vehicle Type Filter */}
+                  <div className="flex h-12 bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0 select-none w-full sm:w-auto justify-between sm:justify-start items-center">
+                    {(["ALL", "CNG", "TOTO"] as const).map((type) => {
+                      const isActive = selectedVehicleType === type;
+                      const label =
+                        type === "ALL"
+                          ? (t("vehicle_all" as TextKey) || "All")
+                          : type === "CNG"
+                            ? (t("filter_cng" as TextKey) || "CNG")
+                            : (t("filter_toto" as TextKey) || "Toto");
+                      return (
+                        <AppButton
+                          key={type}
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedVehicleType(type)}
+                          className={`flex-1 sm:flex-none h-full px-4 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 text-center active:scale-100 ${isActive
+                            ? "bg-white text-slate-900 shadow-sm hover:bg-white focus:ring-transparent focus:ring-offset-0"
+                            : "text-slate-500 hover:text-slate-700 hover:bg-slate-50/50 focus:ring-transparent focus:ring-offset-0"
+                            }`}
+                        >
+                          {label}
+                        </AppButton>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>

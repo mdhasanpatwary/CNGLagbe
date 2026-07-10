@@ -21,7 +21,7 @@ import { Tilt } from "@/components/ui/Tilt";
 import { FeatureCard } from "@/components/landing/FeatureCard";
 import { ReviewCard } from "@/components/landing/ReviewCard";
 import { FaqItem } from "@/components/landing/FaqItem";
-import { AppDownloadCard } from "@/components/landing/AppDownloadCard";
+// import { AppDownloadCard } from "@/components/landing/AppDownloadCard";
 import { toast } from "sonner";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { WaitlistSection } from "@/components/landing/WaitlistSection";
@@ -42,6 +42,22 @@ export default function LandingPageClient({ initialUser }: LandingPageClientProp
   const [user, setUser] = useState<User | null>(initialUser);
   const [isCallModalOpen, setIsCallModalOpen] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
+
+  // FAQ expand/collapse all state
+  const [faqOpenStates, setFaqOpenStates] = useState<boolean[]>([false, false, false, false, false]);
+  const allFaqOpen = faqOpenStates.every(Boolean);
+
+  const toggleFaq = (i: number) => {
+    setFaqOpenStates((prev) => {
+      const next = [...prev];
+      next[i] = !next[i];
+      return next;
+    });
+  };
+
+  const handleExpandAll = () => {
+    setFaqOpenStates(faqOpenStates.map(() => !allFaqOpen));
+  };
 
   // Scroll Progress
   const { scrollYProgress } = useScroll();
@@ -100,7 +116,11 @@ export default function LandingPageClient({ initialUser }: LandingPageClientProp
   };
 
   const handleBookNow = useCallback(() => {
-    setIsCallModalOpen(true);
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      window.location.href = "tel:01783721411";
+    } else {
+      setIsCallModalOpen(true);
+    }
   }, []);
 
   const reviews = [
@@ -149,7 +169,7 @@ export default function LandingPageClient({ initialUser }: LandingPageClientProp
       >
         {/* Scroll Progress Indicator */}
         <motion.div
-          className="fixed top-0 left-0 right-0 h-1.5 bg-primary origin-left z-[100]"
+          className="fixed top-0 left-0 right-0 h-1 bg-primary origin-left z-[100]"
           style={{ scaleX }}
           role="progressbar"
           aria-label={t("scroll_progress")}
@@ -449,9 +469,6 @@ export default function LandingPageClient({ initialUser }: LandingPageClientProp
         {/* ── 1.6. DRIVER DIRECTORY ────────────────────────────────────────── */}
         <DriverDirectorySection isLanding={true} initialUser={user} />
 
-        {/* ── 1.5. WAITLIST ────────────────────────────────────────────────── */}
-        <WaitlistSection />
-
         {/* ── 2. LOCAL TRUST ───────────────────────────────────────────────── */}
         <Section id="trust" variant="white" className="bg-gradient-to-b from-white via-primary/[0.02] to-slate-50/50">
           <SectionHeading title={t("trust_title")} />
@@ -472,11 +489,6 @@ export default function LandingPageClient({ initialUser }: LandingPageClientProp
                   {item.icon}
                 </div>
                 <p className="font-bn text-base font-semibold text-slate-800 leading-normal">{item.text}</p>
-                <div className="mt-auto pt-4 flex items-center gap-2">
-                  <span className="font-semibold text-green-700 bg-green-50 px-3 py-1 rounded-full text-sm tracking-wide uppercase">
-                    {t("hero_badge_safe").split(" ")[0]}
-                  </span>
-                </div>
               </motion.div>
             ))}
           </motion.div>
@@ -620,9 +632,14 @@ export default function LandingPageClient({ initialUser }: LandingPageClientProp
               </div>
               <span className="font-bn font-bold text-base text-white">{t("area_coverage")}</span>
             </motion.div>
-            <motion.div variants={itemVariants} className="mt-12 flex flex-wrap justify-center gap-x-4 gap-y-2 opacity-60">
-              {[t("tag_cng_booking"), t("tag_chhagalnaiya"), t("tag_local_transport"), t("tag_fixed_fare"), t("tag_cng")].map((tag, i) => (
-                <span key={i} className="text-base text-white uppercase tracking-[0.2em]">{tag}</span>
+            <motion.div variants={itemVariants} className="mt-12 flex flex-wrap justify-center gap-x-3 gap-y-2 opacity-60 items-center">
+              {[t("tag_cng_booking"), t("tag_chhagalnaiya"), t("tag_local_transport"), t("tag_fixed_fare"), t("tag_cng")].map((tag, i, arr) => (
+                <React.Fragment key={i}>
+                  <span className="text-base text-white uppercase tracking-[0.2em]">{tag}</span>
+                  {i < arr.length - 1 && (
+                    <span className="text-white/30 text-sm select-none" aria-hidden="true">·</span>
+                  )}
+                </React.Fragment>
               ))}
             </motion.div>
           </motion.div>
@@ -646,7 +663,7 @@ export default function LandingPageClient({ initialUser }: LandingPageClientProp
           </motion.div>
         </Section>
 
-        {/* ── 9. DOWNLOAD APP ──────────────────────────────────────────────── */}
+        {/* ── 9. DOWNLOAD APP (HIDDEN) ────────────────────────────────────────
         <Section id="download" variant="dark" className="border-y border-white/5">
           <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
             {!prefersReducedMotion && (
@@ -701,10 +718,27 @@ export default function LandingPageClient({ initialUser }: LandingPageClientProp
             </div>
           </motion.div>
         </Section>
+        ── */}
+
+        {/* ── 9.5. WAITLIST ────────────────────────────────────────────────── */}
+        <WaitlistSection />
 
         {/* ── 10. FAQ ───────────────────────────────────────────────────────── */}
         <Section id="faq" variant="premium" className="border-t border-slate-100">
-          <SectionHeading title={t("faq_title")} />
+          <div className="flex items-center justify-between w-full mb-10 sm:mb-12">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight font-bn text-slate-900">
+              {t("faq_title")}
+            </h2>
+            <AppButton
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleExpandAll}
+              className="text-sm font-bold text-primary hover:text-emerald-700 hover:bg-primary/5 px-3 py-1.5 rounded-lg transition-all shrink-0 ml-4 font-bn"
+            >
+              {allFaqOpen ? t("collapse_all") : t("expand_all")}
+            </AppButton>
+          </div>
           <motion.div
             variants={containerVariants}
             initial="hidden"
@@ -714,7 +748,12 @@ export default function LandingPageClient({ initialUser }: LandingPageClientProp
           >
             {faqs.map((faq, i) => (
               <motion.div key={i} variants={itemVariants}>
-                <FaqItem question={t(faq.qKey)} answer={t(faq.aKey)} />
+                <FaqItem
+                  question={t(faq.qKey)}
+                  answer={t(faq.aKey)}
+                  isOpen={faqOpenStates[i]}
+                  onToggle={() => toggleFaq(i)}
+                />
               </motion.div>
             ))}
           </motion.div>
@@ -724,8 +763,8 @@ export default function LandingPageClient({ initialUser }: LandingPageClientProp
         <Section id="final-cta" variant="primary" className="text-center">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgb(255_255_255/0.1),transparent)] pointer-events-none" />
           <div className="relative z-10">
-            <motion.div variants={itemVariants} className="bg-white/20 w-14 h-14 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl backdrop-blur-md border border-white/30 rotate-12">
-              <Navigation className="w-8 h-8 text-white -rotate-12" />
+            <motion.div variants={itemVariants} className="bg-white/20 w-14 h-14 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl backdrop-blur-md border border-white/30">
+              <Navigation className="w-8 h-8 text-white" />
               <span className="sr-only">{t("app_name")} {t("hero_book_now")}</span>
             </motion.div>
             <motion.h2 variants={itemVariants} className="text-2xl md:text-4xl font-extrabold font-bn mb-6 tracking-tight leading-normal">{t("final_cta_title")}</motion.h2>

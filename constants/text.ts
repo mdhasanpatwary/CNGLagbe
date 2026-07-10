@@ -522,6 +522,8 @@ export const TEXT = {
 
   /* ── Landing Page: FAQ ───────────────────────────────────────────────── */
   faq_title: { en: "Common Questions", bn: "সাধারণ প্রশ্ন" },
+  expand_all: { en: "Expand All", bn: "সব খোলো" },
+  collapse_all: { en: "Collapse All", bn: "সব বন্ধ করো" },
   faq_q1: { en: "How do I book a CNG?", bn: "কিভাবে CNG বুক করবো?" },
   faq_a1: { en: "Simply call our booking hotline at 01783721411. Tell our operator your pickup and drop-off points, and we will send a driver on time. Our mobile app is coming soon!", bn: "সরাসরি আমাদের বুকিং হটলাইন ০১৭৮৩৭২১৪১১ নম্বরে কল করুন। অপারেটরকে আপনার পিকআপ ও গন্তব্য বলুন, আমরা সঠিক সময়ে ড্রাইভার পাঠিয়ে দেব। আমাদের মোবাইল অ্যাপ খুব শীঘ্রই আসছে!" },
   faq_q2: { en: "Is the fare fixed?", bn: "ভাড়া কি ফিক্সড?" },
@@ -988,6 +990,10 @@ export const TEXT = {
   tab_all_drivers: {
     en: "Drivers List",
     bn: "ড্রাইভার তালিকা"
+  },
+  filter_label: {
+    en: "Filter",
+    bn: "ফিল্টার"
   },
   tab_leaderboard: {
     en: "Leaderboard",
