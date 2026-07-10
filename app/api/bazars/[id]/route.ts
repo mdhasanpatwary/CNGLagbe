@@ -69,9 +69,11 @@ export async function DELETE(
   const { id } = await params;
   try {
     let reason = "";
+    let mergeToBazarName = "";
     try {
       const body = await request.json();
       reason = body.reason || "";
+      mergeToBazarName = body.mergeToBazarName || "";
     } catch {
       // Body might be missing or invalid
     }
@@ -83,6 +85,18 @@ export async function DELETE(
 
       if (!bazar) {
         throw new Error("BAZAR_NOT_FOUND");
+      }
+
+      // If a merge target is provided, reassign drivers
+      if (mergeToBazarName && mergeToBazarName !== bazar.name) {
+        await tx.driver.updateMany({
+          where: { nearbyBazar: bazar.name },
+          data: { nearbyBazar: mergeToBazarName },
+        });
+        await tx.contributedDriver.updateMany({
+          where: { nearbyBazar: bazar.name },
+          data: { nearbyBazar: mergeToBazarName },
+        });
       }
 
       if (reason) {

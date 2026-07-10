@@ -1,8 +1,8 @@
-# Task Tracker: Bazar Deletion Notifications
+# Task Tracker: Bazar Merge & Reassign
 
 | Task ID | Task Description | Status |
 | :--- | :--- | :--- |
-| Task 1 | Database Migration (Schema Update) | [x] Completed (Schema updated, Prisma Client generated) |
-| Task 2 | Backend API Implementation | [x] Completed (API routes updated & new endpoints created) |
-| Task 3 | Admin UI & Delete Reason Prompt | [x] Completed (Delete confirmation dialog added to BazarsTab) |
-| Task 4 | Frontend Notification Modal & LocalStorage | [x] Completed (Popup modal and LocalStorage workflow implemented) |
+| Task 1 | Backend API Update (`app/api/bazars/[id]/route.ts`) | [x] Completed |
+| Task 2 | Update useAdminDashboard Hook (`app/admin/hooks/useAdminDashboard.ts`) | [x] Completed |
+| Task 3 | Update UI Delete Modal in BazarsTab (`app/admin/components/tabs/BazarsTab.tsx`) | [x] Completed |
+| Task 4 | Linting & Build Verification (`yarn lint` & `yarn build`) | [x] Completed |

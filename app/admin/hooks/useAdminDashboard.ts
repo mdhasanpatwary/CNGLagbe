@@ -233,12 +233,12 @@ export function useAdminDashboard() {
     }
   };
 
-  const handleDeleteBazar = async (id: string, reason?: string) => {
+  const handleDeleteBazar = async (id: string, reason?: string, mergeToBazarName?: string) => {
     try {
       const res = await fetch(`/api/bazars/${id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason: reason || "" }),
+        body: JSON.stringify({ reason: reason || "", mergeToBazarName }),
       });
       if (res.ok) {
         fetchData({ showLoading: false });

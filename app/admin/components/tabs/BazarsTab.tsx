@@ -14,7 +14,7 @@ interface BazarsTabProps {
   editingBazar: { id: string; name: string } | null;
   setEditingBazar: (bazar: { id: string; name: string } | null) => void;
   handleAddBazar: () => void;
-  handleDeleteBazar: (id: string, reason?: string) => void;
+  handleDeleteBazar: (id: string, reason?: string, mergeToBazarName?: string) => void;
   handleUpdateBazar: () => void;
   handleApproveBazar: (id: string) => void;
   t: (key: TextKey) => string;
@@ -37,6 +37,7 @@ export function BazarsTab({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletingBazar, setDeletingBazar] = useState<{ id: string; name: string } | null>(null);
   const [deleteReason, setDeleteReason] = useState("");
+  const [mergeToBazarName, setMergeToBazarName] = useState("");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -46,15 +47,25 @@ export function BazarsTab({
 
   const confirmDelete = async () => {
     if (!deletingBazar) return;
-    await handleDeleteBazar(deletingBazar.id, deleteReason.trim());
+    const hasDrivers = (bazars.find(b => b.id === deletingBazar.id)?.driverCount || 0) > 0;
+    await handleDeleteBazar(
+      deletingBazar.id,
+      deleteReason.trim(),
+      hasDrivers ? mergeToBazarName : undefined
+    );
     setIsDeleteModalOpen(false);
     setDeletingBazar(null);
     setDeleteReason("");
+    setMergeToBazarName("");
   };
 
   const filteredBazars = bazars.filter((bazar) =>
     bazar.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const activeDeletingBazarData = deletingBazar ? bazars.find(b => b.id === deletingBazar.id) : null;
+  const deletingBazarDriverCount = activeDeletingBazarData?.driverCount || 0;
+  const isConfirmDisabled = !deleteReason.trim() || (deletingBazarDriverCount > 0 && !mergeToBazarName);
 
   const onApprove = async (id: string) => {
     setActionLoading((prev) => ({ ...prev, [id]: true }));
@@ -233,6 +244,7 @@ export function BazarsTab({
                 setIsDeleteModalOpen(false);
                 setDeletingBazar(null);
                 setDeleteReason("");
+                setMergeToBazarName("");
               }}
               className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 rounded-xl p-1.5 hover:bg-slate-50 transition-colors min-h-[auto] h-auto px-2"
             >
@@ -251,6 +263,45 @@ export function BazarsTab({
             <p className="text-sm text-slate-500 mb-5 leading-relaxed font-bold">
               আপনি কি নিশ্চিতভাবে <span className="text-slate-900 font-black font-bn">&quot;{deletingBazar.name}&quot;</span> বাজারটি ডিলেট করতে চান?
             </p>
+
+            {deletingBazarDriverCount > 0 && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5 space-y-3">
+                <div className="flex items-start gap-2.5 text-amber-800">
+                  <AlertTriangle size={18} className="shrink-0 mt-0.5 text-amber-600" />
+                  <div className="text-xs font-bold leading-normal">
+                    এই বাজারে বর্তমানে <span className="font-black text-amber-950">{deletingBazarDriverCount}</span> জন ড্রাইভার যুক্ত আছেন। ডিলেট করার পূর্বে তাদের অন্য একটি সচল বাজারে স্থানান্তর করা আবশ্যক।
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
+                    ড্রাইভারদের কোন বাজারে স্থানান্তর করবেন? <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={mergeToBazarName}
+                    onChange={(e) => {
+                      const targetName = e.target.value;
+                      setMergeToBazarName(targetName);
+                      if (targetName) {
+                        setDeleteReason(`ভুল বানানের কারণে এই বাজারটি '${targetName}' বাজারের সাথে মার্জ করা হয়েছে।`);
+                      } else {
+                        setDeleteReason("");
+                      }
+                    }}
+                    className="w-full h-10 px-3 rounded-lg border border-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-sm font-medium bg-white text-slate-800"
+                  >
+                    <option value="">-- একটি অনুমোদিত বাজার সিলেক্ট করুন --</option>
+                    {bazars
+                      .filter((b) => b.isApproved && b.id !== deletingBazar.id)
+                      .map((b) => (
+                        <option key={b.id} value={b.name}>
+                          {b.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2 mb-6">
               <label className="text-xs font-black uppercase tracking-widest text-slate-400 block ml-1">
@@ -273,6 +324,7 @@ export function BazarsTab({
                   setIsDeleteModalOpen(false);
                   setDeletingBazar(null);
                   setDeleteReason("");
+                  setMergeToBazarName("");
                 }}
                 className="font-bold border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl px-4 py-2.5 h-11"
               >
@@ -282,7 +334,7 @@ export function BazarsTab({
                 type="button"
                 variant="outline"
                 onClick={confirmDelete}
-                disabled={!deleteReason.trim()}
+                disabled={isConfirmDisabled}
                 className="font-bold bg-rose-600 text-white hover:bg-rose-700 border-transparent hover:border-transparent rounded-xl px-4 py-2.5 h-11 disabled:opacity-50"
               >
                 {t("delete") || "ডিলেট করুন"}
