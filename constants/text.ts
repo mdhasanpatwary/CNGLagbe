@@ -1131,6 +1131,18 @@ export const TEXT = {
     en: "Cancel",
     bn: "বাতিল"
   },
+  contribution_banner_title: {
+    en: "Know any local CNG or Toto drivers?",
+    bn: "আপনার কি পরিচিত কোনো সিএনজি বা টোটো ড্রাইভার আছে?"
+  },
+  contribution_banner_desc: {
+    en: "Help your community by contributing their contact numbers to our directory.",
+    bn: "তাদের ফোন নম্বরটি যোগ করে আপনার এলাকার মানুষের যাতায়াত সহজ করতে সাহায্য করুন।"
+  },
+  contribution_banner_cta: {
+    en: "Contribute Number",
+    bn: "নম্বর যোগ করুন"
+  },
 } as const;
 
 

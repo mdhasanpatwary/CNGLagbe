@@ -14,6 +14,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { User } from "@/lib/types/user";
 import { useDriverDirectory } from "@/hooks/useDriverDirectory";
+import { ContributionBanner } from "@/components/landing/ContributionBanner";
 
 interface DriverDirectorySectionProps {
   isLanding?: boolean;
@@ -102,6 +103,8 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
             {t("add_driver_local" as TextKey) || "Add Driver"}
           </AppButton>
         </div>
+
+        <ContributionBanner onAddClick={() => setIsSubmitModalOpen(true)} />
 
         {/* Navigation Tabs */}
         <div className="flex border-b border-slate-200 mb-8 items-end justify-between gap-2 sm:gap-4 shrink-0">
