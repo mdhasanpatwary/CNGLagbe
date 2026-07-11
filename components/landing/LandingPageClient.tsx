@@ -14,7 +14,6 @@ import { cn } from "@/lib/utils";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { motion, useScroll, useSpring, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/layout/Header";
-import { User } from "@/lib/types/user";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Magnetic } from "@/components/ui/Magnetic";
@@ -27,6 +26,7 @@ import { toast } from "sonner";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { WaitlistSection } from "@/components/landing/WaitlistSection";
 import { DriverDirectorySection } from "@/components/landing/DriverDirectorySection";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={props.className} {...props}>
@@ -34,13 +34,9 @@ const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-interface LandingPageClientProps {
-  initialUser: User | null;
-}
-
-export default function LandingPageClient({ initialUser }: LandingPageClientProps) {
+export default function LandingPageClient() {
   const { t } = useLang();
-  const [user, setUser] = useState<User | null>(initialUser);
+  const { user, clearUser } = useAuthUser();
   const [isCallModalOpen, setIsCallModalOpen] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
   const [rejections, setRejections] = useState<{ id: string; name: string; reason: string }[]>([]);
@@ -182,7 +178,7 @@ export default function LandingPageClient({ initialUser }: LandingPageClientProp
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
-    setUser(null);
+    clearUser();
     window.location.reload();
   };
 

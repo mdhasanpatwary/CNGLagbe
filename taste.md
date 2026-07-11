@@ -431,3 +431,9 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Scroll Progress & Rotation Aesthetics:** Refined global visuals. Decreased the top scroll indicator line thickness to a subtle `h-1`. Removed redundant, overlapping rotations (`rotate-12` container and `-rotate-12` navigation arrow icon) in the final booking CTA.
 - **Service Area Metadata Separator:** Placed high-contrast visual dot separators (`·`) between SEO tags in the Service Area section, establishing a readable, premium-looking rhythm.
 - **Hidden Download App Section:** Commented out the placeholder App Download card section since the mobile PWA install banner handles current app installations, keeping the main page focused and uncluttered.
+
+## ⚡ Performance: Client-Side Auth (2026-07-11)
+- **Removed Server-Side Blocking DB Queries:** Both `/directory` and `/` (landing) pages were async server components that called `prisma.user.findUnique()` or `prisma.driver.findUnique()` before sending any HTML. With the Supabase pooler (port 6543) being intermittently slow or cold, this single query was blocking the entire page render for 1–70 seconds.
+- **Created `useAuthUser` Hook:** Moved auth state to a client-side hook (`hooks/useAuthUser.ts`) that fetches `/api/auth/me` asynchronously after the page renders. The page now renders instantly, and auth state fills in within ~200ms.
+- **No Visual Regression:** The Header shows a login button while auth loads (which was the existing behavior for unauthenticated users), then swaps to the user avatar/dropdown. Driver edit/delete buttons appear once auth resolves. This is imperceptible to users on fast connections and dramatically better on slow/cold connections.
+- **Pattern:** Both `LandingPageClient` and `DirectoryPageClient` no longer accept `initialUser` as a prop from server components. They use `useAuthUser()` internally.

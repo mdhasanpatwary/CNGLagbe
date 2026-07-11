@@ -1,20 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Header } from "@/components/layout/Header";
 import { DriverDirectorySection } from "@/components/landing/DriverDirectorySection";
-import { User } from "@/lib/types/user";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
-interface DirectoryPageClientProps {
-  initialUser: User | null;
-}
-
-export default function DirectoryPageClient({ initialUser }: DirectoryPageClientProps) {
-  const [user, setUser] = useState<User | null>(initialUser);
+export default function DirectoryPageClient() {
+  const { user, clearUser } = useAuthUser();
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
-    setUser(null);
+    clearUser();
     window.location.reload();
   };
 
