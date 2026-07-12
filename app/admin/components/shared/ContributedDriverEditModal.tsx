@@ -74,7 +74,7 @@ export function ContributedDriverEditModal({
         phone: driver.phone || "",
         address: driver.address || "",
         nearbyBazar: driver.nearbyBazar || "",
-        vehicleType: (driver.vehicleType as "CNG" | "TOTO") || "CNG",
+        vehicleType: (driver.vehicleType as "CNG" | "TOTO" | "AMBULANCE") || "CNG",
         isApproved: driver.isApproved || false,
         contributorName: driver.contributorName || "",
         contributorPhone: driver.contributorPhone || "",
@@ -277,6 +277,7 @@ export function ContributedDriverEditModal({
                       >
                         <option value="CNG">CNG</option>
                         <option value="TOTO">Toto</option>
+                        <option value="AMBULANCE">{t("vehicle_ambulance" as TextKey) || "Ambulance"}</option>
                       </select>
                     )}
                   />

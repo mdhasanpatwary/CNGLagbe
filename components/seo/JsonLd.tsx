@@ -242,7 +242,7 @@ export const JsonLd = () => {
         "acceptedAnswer": {
           "@type": "Answer",
           "text":
-            "CNGLagbe dispatches CNG auto-rickshaws (three-wheeler, green body) and Toto (battery-powered auto-rickshaws). Both are common local transport vehicles in the Chhagalnaiya, Feni area of Bangladesh.",
+            "CNGLagbe dispatches CNG auto-rickshaws (three-wheeler, green body) and Toto (battery-powered auto-rickshaws), and provides a directory of local emergency Ambulance drivers. These are common transport vehicles in the Chhagalnaiya, Feni area of Bangladesh.",
         },
       },
     ],

@@ -443,3 +443,14 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Dismiss Persistence:** The dismissed state is stored in `localStorage` (`hide_contribution_banner_until`) for 30 days. On page load, checking is deferred using a `setTimeout` to prevent SSR/hydration mismatch warnings.
 - **Visual & Design System Compliance:** Built with high-contrast, premium mint/emerald gradients, a staggered slide/fade animation using `framer-motion`, and absolute compliance with button styling guidelines (using `AppButton` instead of native `<button>` tags). Full localization keys are maintained in the central translation dictionary. The community icon is hidden on mobile screens (`hidden sm:flex`) to keep the mobile layout uncluttered, and the label is removed entirely for a cleaner appearance. A mobile right-padding offset (`pr-10 md:pr-0`) was added to the text container to ensure the title never collapses or overlaps with the absolutely positioned close button on small viewports.
 
+
+## 🚑 Ambulance Category Integration (2026-07-12)
+- **Multi-Vehicle Expansion**: Expanded the crowd-sourced driver directory to include "AMBULANCE" as a valid vehicle type alongside "CNG" and "TOTO".
+  - **Zod & Validation**: Updated `contributedDriverSchema` and `contributedDriverEditSchema` in `lib/schemas/contributed-driver.ts` to allow `"AMBULANCE"`.
+  - **Premium Watermark Asset**: Generated a custom minimalist red-and-white flat vector ambulance watermark graphic (`/images/ambulance_watermark.png`) to serve as the card avatar and selection option.
+  - **Dynamic Theme and Badge Styling**: Added a distinctive red/rose-themed badge style (`bg-rose-50 border border-rose-100 text-rose-800`) for the public filter badge, the contribution form selection modal, and the admin dashboard tables when AMBULANCE is active.
+  - **Admin Users Count**: Updated GET `/api/admin/users` to group and count contributed ambulances, displaying them as a separate high-contrast rose column ("Ambulance") on the User Management tab.
+  - **Central Localization**: Updated `constants/text.ts` to define all localization labels, including banner and directory titles, ensuring no hardcoded strings.
+  - **SEO & Doc Updates**: Extended directory page metadata description, OpenGraph keywords, JsonLd answer, and `llms.txt` to fully document the inclusion of ambulance contacts.
+
+

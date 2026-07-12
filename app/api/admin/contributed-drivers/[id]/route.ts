@@ -10,7 +10,7 @@ const updateSchema = z.object({
   phone: z.string().regex(/^01[3-9]\d{8}$/, "Please enter a valid 11-digit Bangladeshi mobile number"),
   address: z.string().optional().nullable(),
   nearbyBazar: z.string().min(1, "Please select a bazar/stand").refine(isBanglaText, "বাজারের নাম অবশ্যই বাংলায় হতে হবে"),
-  vehicleType: z.enum(["CNG", "TOTO"]),
+  vehicleType: z.enum(["CNG", "TOTO", "AMBULANCE"]),
   isApproved: z.boolean().optional(),
   contributorName: z.string().optional().nullable().or(z.literal("")),
   contributorPhone: z.string().optional().nullable().or(z.literal("")),

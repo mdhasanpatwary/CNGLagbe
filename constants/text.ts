@@ -299,10 +299,12 @@ export const TEXT = {
   vehicle_type: { en: "Vehicle Type", bn: "গাড়ির ধরন" },
   vehicle_type_label: { en: "Vehicle Type", bn: "গাড়ির ধরন" },
   vehicle_cng: { en: "CNG", bn: "সিএনজি" },
-  vehicle_toto: { en: "Toto / Auto Rickshaw", bn: "টোটো / অটো রিকশা" },
+  vehicle_toto: { en: "Toto / Auto Rickshaw", bn: "টোটো" },
+  vehicle_ambulance: { en: "Ambulance", bn: "অ্যাম্বুলেন্স" },
   vehicle_all: { en: "All Vehicles", bn: "সব গাড়ি" },
-  filter_cng: { en: "CNG Only", bn: "শুধু সিএনজি" },
-  filter_toto: { en: "Toto Only", bn: "শুধু টোটো" },
+  filter_cng: { en: "CNG Only", bn: "সিএনজি" },
+  filter_toto: { en: "Toto Only", bn: "টোটো" },
+  filter_ambulance: { en: "Ambulance Only", bn: "অ্যাম্বুলেন্স" },
   cng_gas: { en: "CNG", bn: "সিএনজি" },
   cng_electric: { en: "Electric", bn: "ইলেকট্রিক" },
   upload_photo: { en: "Upload Photo", bn: "ছবি আপলোড করুন" },
@@ -820,8 +822,8 @@ export const TEXT = {
     bn: "আপনি কি নিশ্চিত যে আপনি এই ব্যক্তিকে ওয়েটিং লিস্ট থেকে মুছে ফেলতে চান?"
   },
   driver_directory: {
-    en: "CNG & Toto Driver List",
-    bn: "সিএনজি ও টোটো ড্রাইভার লিস্ট"
+    en: "CNG, Toto & Ambulance Driver List",
+    bn: "সিএনজি, টোটো ও অ্যাম্বুলেন্স ড্রাইভার লিস্ট"
   },
   driver_directory_count: {
     en: "Total: {total}",
@@ -832,8 +834,8 @@ export const TEXT = {
     bn: "{total} জনের মধ্যে {filtered} জন"
   },
   directory_subtitle: {
-    en: "Find CNG and Toto driver numbers in your area.",
-    bn: "আপনার এলাকার সিএনজি ও টোটো ড্রাইভারদের খুঁজুন"
+    en: "Find CNG, Toto and Ambulance driver numbers in your area.",
+    bn: "আপনার এলাকার সিএনজি, টোটো এবং অ্যাম্বুলেন্স ড্রাইভারদের খুঁজুন"
   },
   search_driver_placeholder: {
     en: "Search by name, phone or address...",
@@ -1115,6 +1117,10 @@ export const TEXT = {
     en: "Toto",
     bn: "টোটো"
   },
+  ambulance_count: {
+    en: "Ambulance",
+    bn: "অ্যাম্বুলেন্স"
+  },
   delete_bazar_confirm: {
     en: "Confirm Bazar Deletion",
     bn: "বাজার ডিলেট নিশ্চিত করুন"
@@ -1132,8 +1138,8 @@ export const TEXT = {
     bn: "বাতিল"
   },
   contribution_banner_title: {
-    en: "Know any local CNG or Toto drivers?",
-    bn: "আপনার কি পরিচিত কোনো সিএনজি বা টোটো ড্রাইভার আছে?"
+    en: "Know any local CNG, Toto or Ambulance drivers?",
+    bn: "আপনার কি পরিচিত কোনো সিএনজি, টোটো বা অ্যাম্বুলেন্স ড্রাইভার আছে?"
   },
   contribution_banner_desc: {
     en: "Help your community by contributing their contact numbers to our directory.",

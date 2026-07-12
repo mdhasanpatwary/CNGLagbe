@@ -84,6 +84,7 @@ export const UsersTab: React.FC<UsersTabProps> = ({
                 <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("total_contributed_drivers")}</TableHead>
                 <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("cng_count")}</TableHead>
                 <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("toto_count")}</TableHead>
+                <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("ambulance_count")}</TableHead>
                 <TableHead className="py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("joined_date")}</TableHead>
                 <TableHead className="px-8 py-5 text-right text-xs font-black uppercase tracking-widest text-slate-400">Actions</TableHead>
               </TableRow>
@@ -110,6 +111,11 @@ export const UsersTab: React.FC<UsersTabProps> = ({
                   <TableCell>
                     <Badge variant="outline" className="font-black px-3 py-1 bg-sky-50 text-sky-700 border-sky-100 rounded-lg">
                       {user.contributedTotoCount || 0}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="font-black px-3 py-1 bg-rose-50 text-rose-700 border-rose-100 rounded-lg">
+                      {user.contributedAmbulanceCount || 0}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-xs text-slate-500 font-medium">

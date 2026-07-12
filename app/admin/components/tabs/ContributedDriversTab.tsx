@@ -133,13 +133,17 @@ export function ContributedDriversTab({
                     </td>
                     <td className="p-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                        driver.vehicleType === "TOTO"
-                          ? "bg-blue-50 text-blue-700 border border-blue-100"
-                          : "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                        driver.vehicleType === "AMBULANCE"
+                          ? "bg-rose-50 text-rose-700 border border-rose-100"
+                          : driver.vehicleType === "TOTO"
+                            ? "bg-blue-50 text-blue-700 border border-blue-100"
+                            : "bg-emerald-50 text-emerald-700 border border-emerald-100"
                       }`}>
-                        {driver.vehicleType === "TOTO"
-                          ? (t("vehicle_toto" as TextKey) || "Toto")
-                          : (t("vehicle_cng" as TextKey) || "CNG")}
+                        {driver.vehicleType === "AMBULANCE"
+                          ? (t("vehicle_ambulance" as TextKey) || "Ambulance")
+                          : driver.vehicleType === "TOTO"
+                            ? (t("vehicle_toto" as TextKey) || "Toto")
+                            : (t("vehicle_cng" as TextKey) || "CNG")}
                       </span>
                     </td>
                     <td className="p-4 text-slate-500 font-normal">{driver.address || driver.nearbyBazar || "—"}</td>

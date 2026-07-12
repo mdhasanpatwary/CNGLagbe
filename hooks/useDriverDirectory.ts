@@ -296,7 +296,7 @@ export function useDriverDirectory({ isLanding = false, initialUser }: UseDriver
       phone: driver.phone || "",
       address: driver.address || "",
       nearbyBazar: driver.nearbyBazar || "",
-      vehicleType: (driver.vehicleType as "CNG" | "TOTO") || "CNG",
+      vehicleType: (driver.vehicleType as "CNG" | "TOTO" | "AMBULANCE") || "CNG",
       contributorName: driver.contributorName || "",
       contributorPhone: "",
       contributorPhotoUrl: driver.contributorPhotoUrl || "",

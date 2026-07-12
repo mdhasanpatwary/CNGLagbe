@@ -3,16 +3,16 @@ import DirectoryPageClient from "@/components/directory/DirectoryPageClient";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "ড্রাইভার ডিরেক্টরি — ছাগলনাইয়ার সিএনজি ড্রাইভার তালিকা",
+  title: "ড্রাইভার ডিরেক্টরি — ছাগলনাইয়ার সিএনজি, টোটো ও অ্যাম্বুলেন্স ড্রাইভার তালিকা",
   description:
-    "ছাগলনাইয়া ও ফেনীর সকল ভেরিফাইড সিএনজি এবং টোটো ড্রাইভারদের তালিকা। নাম, বাজার এবং ভেহিকেল নম্বর সহ। CNGLagbe — Verified CNG driver directory for Chhagalnaiya, Feni.",
+    "ছাগলনাইয়া ও ফেনীর সকল ভেরিফাইড সিএনজি, টোটো এবং অ্যাম্বুলেন্স ড্রাইভারদের তালিকা। নাম, বাজার এবং ভেহিকেল নম্বর সহ। CNGLagbe — Verified CNG, Toto and Ambulance driver directory for Chhagalnaiya, Feni.",
   alternates: {
     canonical: "/directory",
   },
   openGraph: {
-    title: "CNG Driver Directory — Chhagalnaiya & Feni | CNGLagbe",
+    title: "CNG, Toto & Ambulance Driver Directory — Chhagalnaiya & Feni | CNGLagbe",
     description:
-      "Browse verified CNG and Toto drivers in Chhagalnaiya, Feni. Name, bazar location, and vehicle info for every active driver on CNGLagbe.",
+      "Browse verified CNG, Toto and Ambulance drivers in Chhagalnaiya, Feni. Name, bazar location, and vehicle info for every active driver on CNGLagbe.",
     url: "https://www.cnglagbe.com/directory",
     siteName: "CNGLagbe",
     images: [
@@ -29,10 +29,13 @@ export const metadata: Metadata = {
   keywords: [
     "ছাগলনাইয়া সিএনজি ড্রাইভার",
     "ফেনী সিএনজি ড্রাইভার তালিকা",
+    "ছাগলনাইয়া অ্যাম্বুলেন্স",
+    "জরুরী অ্যাম্বুলেন্স ফেনী",
     "Chhagalnaiya CNG driver list",
     "Feni CNG directory",
     "verified CNG drivers Bangladesh",
     "CNGLagbe driver directory",
+    "Chhagalnaiya ambulance contact",
   ],
 };
 

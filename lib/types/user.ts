@@ -29,4 +29,5 @@ export interface User {
   contributedDriversCount?: number;
   contributedCngCount?: number;
   contributedTotoCount?: number;
+  contributedAmbulanceCount?: number;
 }

@@ -14,7 +14,7 @@ Payment is **cash only** — paid directly to the driver after trip completion.
 
 ## Service Details
 
-- **Service type:** CNG auto-rickshaw and Toto (battery auto-rickshaw) booking
+- **Service type:** CNG auto-rickshaw and Toto (battery auto-rickshaw) booking, and Ambulance contact directory
 - **Fare model:** Fixed fare calculated by distance. Shown upfront before dispatch.
 - **Payment:** Cash only. Paid to driver at trip end.
 - **Coverage:** Full service in Boktarhat and Shubopur. Partial service across all of Chhagalnaiya Upazila, Feni.
@@ -58,7 +58,7 @@ Alternatively, message CNGLagbe on Facebook: https://m.me/61588788704424
 CNGLagbe maintains a **directory of verified local drivers** available at:
 https://www.cnglagbe.com/directory
 
-Drivers are categorized as CNG (three-wheeler, full-body green) or Toto (battery auto-rickshaw).
+Drivers are categorized as CNG (three-wheeler, full-body green), Toto (battery auto-rickshaw), or Ambulance.
 Each driver is linked to a local bazar/stand area in Chhagalnaiya Upazila.
 
 ## Frequently Asked Questions

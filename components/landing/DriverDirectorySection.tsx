@@ -216,14 +216,16 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                   </div>
                   {/* Vehicle Type Filter */}
                   <div className="flex h-12 bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0 select-none w-full sm:w-auto justify-between sm:justify-start items-center">
-                    {(["ALL", "CNG", "TOTO"] as const).map((type) => {
+                    {(["ALL", "CNG", "TOTO", "AMBULANCE"] as const).map((type) => {
                       const isActive = selectedVehicleType === type;
                       const label =
                         type === "ALL"
                           ? (t("vehicle_all" as TextKey) || "All")
                           : type === "CNG"
                             ? (t("filter_cng" as TextKey) || "CNG")
-                            : (t("filter_toto" as TextKey) || "Toto");
+                            : type === "TOTO"
+                              ? (t("filter_toto" as TextKey) || "Toto")
+                              : (t("filter_ambulance" as TextKey) || "Ambulance");
                       return (
                         <AppButton
                           key={type}
@@ -231,7 +233,7 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                           variant="ghost"
                           size="sm"
                           onClick={() => setSelectedVehicleType(type)}
-                          className={`flex-1 sm:flex-none h-full px-4 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 text-center active:scale-100 ${isActive
+                          className={`flex-1 sm:flex-none h-full px-1.5 min-[370px]:px-2.5 sm:px-4 rounded-lg text-[10px] min-[370px]:text-xs sm:text-sm font-bold transition-all duration-200 text-center active:scale-100 ${isActive
                             ? "bg-white text-slate-900 shadow-sm hover:bg-white focus:ring-transparent focus:ring-offset-0"
                             : "text-slate-500 hover:text-slate-700 hover:bg-slate-50/50 focus:ring-transparent focus:ring-offset-0"
                             }`}
@@ -295,19 +297,31 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
 
                 {/* Vehicle Type Filter Badge */}
                 {selectedVehicleType !== "ALL" && (
-                  <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 text-emerald-800 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold shadow-sm animate-in fade-in duration-200">
+                  <div className={`flex items-center gap-1.5 ${selectedVehicleType === "AMBULANCE"
+                      ? "bg-rose-50 border border-rose-100 text-rose-800"
+                      : selectedVehicleType === "TOTO"
+                        ? "bg-blue-50 border border-blue-100 text-blue-800"
+                        : "bg-emerald-50 border border-emerald-100 text-emerald-800"
+                    } px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold shadow-sm animate-in fade-in duration-200`}>
                     <span>
                       {t("vehicle_type" as TextKey) || "Vehicle"}:{" "}
-                      {selectedVehicleType === "TOTO"
-                        ? (t("vehicle_toto" as TextKey) || "Toto")
-                        : (t("vehicle_cng" as TextKey) || "CNG")}
+                      {selectedVehicleType === "AMBULANCE"
+                        ? (t("vehicle_ambulance" as TextKey) || "Ambulance")
+                        : selectedVehicleType === "TOTO"
+                          ? (t("vehicle_toto" as TextKey) || "Toto")
+                          : (t("vehicle_cng" as TextKey) || "CNG")}
                     </span>
                     <AppButton
                       type="button"
                       variant="ghost"
                       size="sm"
                       onClick={() => setSelectedVehicleType("ALL")}
-                      className="h-auto w-auto p-0.5 hover:bg-emerald-100 rounded-full text-emerald-700 bg-transparent flex items-center justify-center focus:ring-0 focus:ring-offset-0 active:scale-95 min-h-0 min-w-0"
+                      className={`h-auto w-auto p-0.5 rounded-full bg-transparent flex items-center justify-center focus:ring-0 focus:ring-offset-0 active:scale-95 min-h-0 min-w-0 ${selectedVehicleType === "AMBULANCE"
+                          ? "hover:bg-rose-100 text-rose-700"
+                          : selectedVehicleType === "TOTO"
+                            ? "hover:bg-blue-100 text-blue-700"
+                            : "hover:bg-emerald-100 text-emerald-700"
+                        }`}
                     >
                       <X className="w-3.5 h-3.5" />
                     </AppButton>
@@ -390,7 +404,13 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                       {/* Left: Circular vehicle image (CNG or Toto) */}
                       <div className="shrink-0 w-14 h-14 rounded-full bg-slate-100 border-2 border-white shadow-md flex items-center justify-center overflow-hidden">
                         <Image
-                          src={driver.vehicleType === "TOTO" ? "/images/toto_watermark.avif" : "/images/cng_watermark.png"}
+                          src={
+                            driver.vehicleType === "AMBULANCE"
+                              ? "/images/ambulance_watermark.png"
+                              : driver.vehicleType === "TOTO"
+                                ? "/images/toto_watermark.avif"
+                                : "/images/cng_watermark.png"
+                          }
                           alt={driver.vehicleType}
                           width={52}
                           height={52}
@@ -447,8 +467,8 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                             size="sm"
                             onClick={() => handleCopy(driver.id, driver.phone)}
                             className={`h-5 w-5 p-0 rounded flex items-center justify-center transition-all active:scale-95 focus:ring-0 focus:ring-offset-0 min-h-0 min-w-0 ${copiedId === driver.id
-                                ? "text-emerald-600"
-                                : "text-slate-400 hover:text-slate-600"
+                              ? "text-emerald-600"
+                              : "text-slate-400 hover:text-slate-600"
                               }`}
                           >
                             {copiedId === driver.id ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
@@ -718,22 +738,35 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                 <label className="text-sm font-bold text-slate-700 block">
                   {t("vehicle_type_label" as TextKey) || "Vehicle Type"}
                 </label>
-                <div className="flex gap-4">
-                  {(["CNG", "TOTO"] as const).map((type) => {
+                <div className="flex flex-wrap flex-row gap-2 sm:gap-4">
+                  {(["CNG", "TOTO", "AMBULANCE"] as const).map((type) => {
                     const label = type === "CNG"
                       ? (t("vehicle_cng" as TextKey) || "CNG")
-                      : (t("vehicle_toto" as TextKey) || "Toto / Auto Rickshaw");
+                      : type === "TOTO"
+                        ? (t("vehicle_toto" as TextKey) || "Toto / Auto Rickshaw")
+                        : (t("vehicle_ambulance" as TextKey) || "Ambulance");
                     const isSelected = watchedVehicleType === type;
-                    const imgSrc = type === "TOTO"
-                      ? "/images/toto_watermark.avif"
-                      : "/images/cng_watermark.png";
+                    const imgSrc = type === "AMBULANCE"
+                      ? "/images/ambulance_watermark.png"
+                      : type === "TOTO"
+                        ? "/images/toto_watermark.avif"
+                        : "/images/cng_watermark.png";
+                    const getSelectionStyles = () => {
+                      if (!isSelected) {
+                        return "border-slate-200 hover:border-slate-300 text-slate-600 hover:bg-slate-50/50";
+                      }
+                      if (type === "AMBULANCE") {
+                        return "border-rose-500 bg-rose-50/30 text-rose-800 shadow-sm";
+                      }
+                      if (type === "TOTO") {
+                        return "border-blue-500 bg-blue-50/30 text-blue-800 shadow-sm";
+                      }
+                      return "border-emerald-500 bg-emerald-50/30 text-emerald-800 shadow-sm";
+                    };
                     return (
                       <label
                         key={type}
-                        className={`flex-1 flex items-center justify-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 font-bold text-sm select-none ${isSelected
-                          ? "border-primary bg-emerald-50/30 text-emerald-800 shadow-sm"
-                          : "border-slate-200 hover:border-slate-300 text-slate-600 hover:bg-slate-50/50"
-                          }`}
+                        className={`flex-1 flex items-center justify-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 font-bold text-sm select-none ${getSelectionStyles()}`}
                       >
                         <input
                           type="radio"
@@ -741,14 +774,12 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                           className="sr-only"
                           {...register("vehicleType")}
                         />
-                        <div className={`relative w-8 h-8 flex items-center justify-center rounded-lg p-1 transition-transform duration-200 ${isSelected ? "scale-110 bg-white shadow-sm" : "opacity-80"
-                          }`}>
+                        <div className={`relative w-8 h-8 flex items-center justify-center rounded-lg p-1 bg-white shadow-sm transition-transform duration-200 ${isSelected ? "scale-110" : "opacity-80"}`}>
                           <Image
                             src={imgSrc}
                             alt={type}
-                            width={24}
-                            height={24}
-                            className="object-contain"
+                            fill
+                            className="object-contain p-1"
                           />
                         </div>
                         <span className="leading-tight">{label}</span>

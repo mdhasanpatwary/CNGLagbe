@@ -51,14 +51,16 @@ export async function GET(request: Request) {
         const userCounts = driverCounts.filter(c => c.contributorPhone === u.phone);
         const cngCount = userCounts.find(c => c.vehicleType === "CNG")?._count._all || 0;
         const totoCount = userCounts.find(c => c.vehicleType === "TOTO")?._count._all || 0;
+        const ambulanceCount = userCounts.find(c => c.vehicleType === "AMBULANCE")?._count._all || 0;
         return {
           id: u.id,
           name: u.name,
           phone: u.phone,
           role: u.role,
-          contributedDriversCount: cngCount + totoCount,
+          contributedDriversCount: cngCount + totoCount + ambulanceCount,
           contributedCngCount: cngCount,
           contributedTotoCount: totoCount,
+          contributedAmbulanceCount: ambulanceCount,
           createdAt: u.createdAt
         };
       }),
