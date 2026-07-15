@@ -38,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const baseUrl = "https://www.cnglagbe.com";
   const fullTitle = isDriver
     ? "CNGLagbe Driver | বুকিং ম্যানেজ করুন"
-    : "ছাগলনাইয়া সিএনজি বুকিং | CNGLagbe — ফিক্সড ভাড়া, দ্রুত পিকআপ";
+    : "ফেনী সিএনজি বুকিং | CNGLagbe — ফিক্সড ভাড়া, দ্রুত পিকআপ";
   const fullDescription = isDriver
     ? "CNGLagbe ড্রাইভার অ্যাপ — বুকিং রিকোয়েস্ট গ্রহণ করুন, নেভিগেট করুন এবং আপনার আয় ট্র্যাক করুন।"
     : "ছাগলনাইয়া ও ফেনীতে সিএনজি বুক করুন। ১০০+ লোকাল ড্রাইভার, ফিক্সড ভাড়া, দ্রুত পিকআপ। ক্যাশ পেমেন্ট। CNGLagbe — On-time CNG Booking Service in Chhagalnaiya, Feni.";
@@ -60,20 +60,20 @@ export async function generateMetadata(): Promise<Metadata> {
     manifest: "/manifest.json",
     keywords: isDriver
       ? [
-          "CNG driver app", "CNGLagbe driver", "সিএনজি ড্রাইভার",
-          "CNG booking Bangladesh", "driver earnings tracker", "Feni CNG driver",
-        ]
+        "CNG driver app", "CNGLagbe driver", "সিএনজি ড্রাইভার",
+        "CNG booking Bangladesh", "driver earnings tracker", "Feni CNG driver",
+      ]
       : [
-          // Bengali keywords
-          "ছাগলনাইয়া সিএনজি", "সিএনজি বুকিং", "ফেনী সিএনজি",
-          "বক্তারহাট সিএনজি", "শুভপুর সিএনজি", "সিএনজি ডাকুন",
-          // Transliterated
-          "Chhagalnaiya CNG", "Boktarhat CNG", "Shubopur CNG",
-          // English
-          "CNG booking Feni", "local CNG Feni", "CNG near me Chhagalnaiya",
-          "fixed fare CNG", "CNG auto Feni", "Feni transport",
-          "on-time CNG booking", "CNG booking Bangladesh",
-        ],
+        // Bengali keywords
+        "ছাগলনাইয়া সিএনজি", "সিএনজি বুকিং", "ফেনী সিএনজি",
+        "বক্তারহাট সিএনজি", "শুভপুর সিএনজি", "সিএনজি ডাকুন",
+        // Transliterated
+        "Chhagalnaiya CNG", "Boktarhat CNG", "Shubopur CNG",
+        // English
+        "CNG booking Feni", "local CNG Feni", "CNG near me Chhagalnaiya",
+        "fixed fare CNG", "CNG auto Feni", "Feni transport",
+        "on-time CNG booking", "CNG booking Bangladesh",
+      ],
     appleWebApp: {
       capable: true,
       title: isDriver ? "CNG Driver" : "CNGLagbe",

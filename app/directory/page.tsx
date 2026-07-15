@@ -3,7 +3,7 @@ import DirectoryPageClient from "@/components/directory/DirectoryPageClient";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "ড্রাইভার ডিরেক্টরি — ছাগলনাইয়ার সিএনজি, টোটো ও অ্যাম্বুলেন্স ড্রাইভার তালিকা",
+  title: "ড্রাইভার ডিরেক্টরি — ফেনীর সিএনজি, টোটো ও অ্যাম্বুলেন্স ড্রাইভার তালিকা",
   description:
     "ছাগলনাইয়া ও ফেনীর সকল ভেরিফাইড সিএনজি, টোটো এবং অ্যাম্বুলেন্স ড্রাইভারদের তালিকা। নাম, বাজার এবং ভেহিকেল নম্বর সহ। CNGLagbe — Verified CNG, Toto and Ambulance driver directory for Chhagalnaiya, Feni.",
   alternates: {
@@ -27,9 +27,9 @@ export const metadata: Metadata = {
     type: "website",
   },
   keywords: [
-    "ছাগলনাইয়া সিএনজি ড্রাইভার",
+    "ফেনী সিএনজি ড্রাইভার",
     "ফেনী সিএনজি ড্রাইভার তালিকা",
-    "ছাগলনাইয়া অ্যাম্বুলেন্স",
+    "ফেনী অ্যাম্বুলেন্স",
     "জরুরী অ্যাম্বুলেন্স ফেনী",
     "Chhagalnaiya CNG driver list",
     "Feni CNG directory",
