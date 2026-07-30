@@ -4,9 +4,6 @@ import { Prisma } from "@prisma/client";
 import { isBanglaText } from "@/lib/bazar-mapping";
 import { getAuthUser } from "@/lib/auth";
 
-
-
-
 export async function GET(request: Request) {
   try {
     // NOTE: syncContributedDriversBazars() was removed from the hot path.
@@ -14,7 +11,7 @@ export async function GET(request: Request) {
     // Trigger it via admin action or cron instead.
     const { searchParams } = new URL(request.url);
     const includeUnapproved = searchParams.get("all") === "true";
-    
+
     // Only return approved bazars for public views. Admin views get all bazars.
     const where = includeUnapproved ? {} : { isApproved: true };
 
