@@ -401,15 +401,15 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                       key={driver.id}
                       className="bg-white rounded-2xl border border-slate-100 px-4 py-3 flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-200 group"
                     >
-                      {/* Left: Circular vehicle image (CNG or Toto) */}
+                      {/* Left: Circular vehicle image */}
                       <div className="shrink-0 w-14 h-14 rounded-full bg-slate-100 border-2 border-white shadow-md flex items-center justify-center overflow-hidden">
                         <Image
                           src={
                             driver.vehicleType === "AMBULANCE"
-                              ? "/images/ambulance_watermark.png"
+                              ? "/images/ambulance_watermark.webp"
                               : driver.vehicleType === "TOTO"
                                 ? "/images/toto_watermark.avif"
-                                : "/images/cng_watermark.png"
+                                : "/images/cng_watermark.webp"
                           }
                           alt={driver.vehicleType}
                           width={52}
@@ -747,10 +747,10 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                         : (t("vehicle_ambulance" as TextKey) || "Ambulance");
                     const isSelected = watchedVehicleType === type;
                     const imgSrc = type === "AMBULANCE"
-                      ? "/images/ambulance_watermark.png"
+                      ? "/images/ambulance_watermark.webp"
                       : type === "TOTO"
                         ? "/images/toto_watermark.avif"
-                        : "/images/cng_watermark.png";
+                        : "/images/cng_watermark.webp";
                     const getSelectionStyles = () => {
                       if (!isSelected) {
                         return "border-slate-200 hover:border-slate-300 text-slate-600 hover:bg-slate-50/50";

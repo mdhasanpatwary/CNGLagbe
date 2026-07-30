@@ -34,6 +34,27 @@ const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+// Module-level animation variants — allocated once, not re-created per render
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+      delayChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: "easeOut" as const }
+  }
+};
+
 export default function LandingPageClient() {
   const { t } = useLang();
   const { user, clearUser } = useAuthUser();
@@ -77,25 +98,8 @@ export default function LandingPageClient() {
     });
   }, [scrollYProgress]);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.1
-      }
-    }
-  };
+  // Reusable animation variants are defined at module level (see above component)
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: "easeOut" as const }
-    }
-  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -116,6 +120,9 @@ export default function LandingPageClient() {
       try {
         const stored = localStorage.getItem("my_contributed_bazars");
         const contributedBazars = stored ? JSON.parse(stored) : [];
+
+        // Skip API call if user has never contributed any bazars
+        if (contributedBazars.length === 0) return;
 
         const res = await fetch("/api/bazars/rejections", {
           method: "POST",
@@ -258,6 +265,8 @@ export default function LandingPageClient() {
               fill
               sizes="100vw"
               priority
+              placeholder="blur"
+              blurDataURL="data:image/png;base64,/9j/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAMABQDASIAAhEBAxEB/8QAGAAAAgMAAAAAAAAAAAAAAAAAAAQDBgf/xAAlEAABAwQBBAIDAAAAAAAAAAABAgMEAAURIQYSEzFRIiRBcYH/xAAWAQEBAQAAAAAAAAAAAAAAAAACAwT/xAAbEQACAwADAAAAAAAAAAAAAAABAgAREgMhIv/aAAwDAQACEQMRAD8AzKDZONuNSFdlyL8iEokn5J1jAO/Gc/ykoECGu6li3z34kpsgtaDhOgcpIAx+fPulZ75Zgy2ENtdt09BBQDgedejobpDjU95d07isd0vpR1DIPTvX60KDJkgXCG13Ut3LbndbVdEQ5FxdLzbKOotN6ORneT5wRRUHJfsXd1bu1ABOcehRWlUeh7Mgx4gSMCf/2Q=="
               className="object-cover object-center scale-105 transition-transform duration-[20s] ease-out brightness-[0.6] grayscale-[0.1]"
             />
             {/* Directional Gradient Overlays */}
@@ -396,7 +405,7 @@ export default function LandingPageClient() {
                     <div className="flex -space-x-3 mb-2">
                       {[1, 2, 3, 4].map(i => (
                         <div key={i} className="w-10 h-10 rounded-full border-2 border-slate-950 overflow-hidden bg-slate-800 shadow-lg">
-                          <Image src={`/icons/driver_avatar_${i}.png`} alt="Driver" width={40} height={40} className="object-cover" />
+                          <Image src={`/icons/driver_avatar_${i}.webp`} alt="Driver" width={40} height={40} className="object-cover" />
                         </div>
                       ))}
                       <div className="w-10 h-10 rounded-full border-2 border-slate-950 bg-slate-900 flex items-center justify-center text-[10px] font-black text-primary shadow-lg">

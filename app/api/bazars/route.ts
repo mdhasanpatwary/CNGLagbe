@@ -1,79 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
-import { isBanglaText, mapEnglishToBanglaBazars } from "@/lib/bazar-mapping";
+import { isBanglaText } from "@/lib/bazar-mapping";
 import { getAuthUser } from "@/lib/auth";
 
 
-// Keep track of sync state globally (per container instance)
-let hasSyncedContributedDrivers = false;
-
-async function syncContributedDriversBazars() {
-  if (hasSyncedContributedDrivers) return;
-  
-  try {
-    // Fetch all bazars
-    const bazars = await prisma.bazar.findMany({ select: { name: true } });
-    const bazarNames = bazars.map(b => b.name);
-    
-    // Find all contributed drivers with non-null bazars
-    const contributedDrivers = await prisma.contributedDriver.findMany({
-      where: { nearbyBazar: { not: null } },
-      select: { id: true, nearbyBazar: true }
-    });
-    
-    for (const driver of contributedDrivers) {
-      const currentBazar = driver.nearbyBazar;
-      if (!currentBazar) continue;
-      
-      // If it's already an approved Bangla bazar name, skip
-      if (bazarNames.includes(currentBazar)) continue;
-      
-      // Find matching Bangla bazar name
-      const matchedBazars = mapEnglishToBanglaBazars(currentBazar, bazarNames);
-      
-      if (matchedBazars.length > 0) {
-        await prisma.contributedDriver.update({
-          where: { id: driver.id },
-          data: { nearbyBazar: matchedBazars[0] }
-        });
-        console.log(`Synced contributed driver ${driver.id}: "${currentBazar}" -> "${matchedBazars[0]}"`);
-      }
-    }
-
-    // Also sync official Driver table
-    const drivers = await prisma.driver.findMany({
-      where: { nearbyBazar: { not: null } },
-      select: { id: true, nearbyBazar: true }
-    });
-
-    for (const d of drivers) {
-      const currentBazar = d.nearbyBazar;
-      if (!currentBazar) continue;
-
-      if (bazarNames.includes(currentBazar)) continue;
-
-      const matchedBazars = mapEnglishToBanglaBazars(currentBazar, bazarNames);
-
-      if (matchedBazars.length > 0) {
-        await prisma.driver.update({
-          where: { id: d.id },
-          data: { nearbyBazar: matchedBazars[0] }
-        });
-        console.log(`Synced driver ${d.id}: "${currentBazar}" -> "${matchedBazars[0]}"`);
-      }
-    }
-    
-    hasSyncedContributedDrivers = true;
-  } catch (error) {
-    console.error("Failed to sync contributed drivers bazars:", error);
-  }
-}
 
 
 export async function GET(request: Request) {
   try {
-    await syncContributedDriversBazars();
+    // NOTE: syncContributedDriversBazars() was removed from the hot path.
+    // It runs N+1 updates and re-executes on every serverless cold start.
+    // Trigger it via admin action or cron instead.
     const { searchParams } = new URL(request.url);
     const includeUnapproved = searchParams.get("all") === "true";
     
@@ -111,7 +49,11 @@ export async function GET(request: Request) {
       driverCount: countMap.get(bazar.name) || 0,
     }));
 
-    return NextResponse.json(bazarWithCounts);
+    return NextResponse.json(bazarWithCounts, {
+      headers: {
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+      },
+    });
   } catch (error) {
     console.error("Fetch bazars error:", error);
     return NextResponse.json(

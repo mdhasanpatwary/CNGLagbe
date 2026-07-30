@@ -144,6 +144,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="bn" className={cn("antialiased", inter.variable, notoSansBengali.variable)}>
+      <head>
+        <link rel="dns-prefetch" href="//fbzunjtlalzutanriphl.supabase.co" />
+        <link rel="preconnect" href="https://fbzunjtlalzutanriphl.supabase.co" crossOrigin="anonymous" />
+      </head>
       <body className="min-h-screen bg-slate-50 pb-safe font-sans relative">
         <NuqsAdapter>
           <Providers>

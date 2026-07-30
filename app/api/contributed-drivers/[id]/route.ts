@@ -1,7 +1,28 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAuthUser } from "@/lib/auth";
+import { getAuthUser, JwtPayload } from "@/lib/auth";
 import { contributedDriverSchema } from "@/lib/schemas/contributed-driver";
+
+/**
+ * Resolves the phone number for an authenticated session.
+ * Extracted to avoid duplicating this lookup in PUT and DELETE handlers.
+ */
+async function resolveUserPhone(session: JwtPayload): Promise<string | null> {
+  if (session.role === "USER" || session.role === "ADMIN") {
+    const user = await prisma.user.findUnique({
+      where: { id: session.sub },
+      select: { phone: true }
+    });
+    return user?.phone || null;
+  } else if (session.role === "DRIVER") {
+    const driver = await prisma.driver.findUnique({
+      where: { id: session.sub },
+      select: { phone: true }
+    });
+    return driver?.phone || null;
+  }
+  return null;
+}
 
 export async function PUT(
   request: Request,
@@ -13,20 +34,7 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    let userPhone = "";
-    if (session.role === "USER" || session.role === "ADMIN") {
-      const user = await prisma.user.findUnique({
-        where: { id: session.sub },
-        select: { phone: true }
-      });
-      userPhone = user?.phone || "";
-    } else if (session.role === "DRIVER") {
-      const driver = await prisma.driver.findUnique({
-        where: { id: session.sub },
-        select: { phone: true }
-      });
-      userPhone = driver?.phone || "";
-    }
+    const userPhone = await resolveUserPhone(session);
 
     if (!userPhone) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -97,20 +105,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    let userPhone = "";
-    if (session.role === "USER" || session.role === "ADMIN") {
-      const user = await prisma.user.findUnique({
-        where: { id: session.sub },
-        select: { phone: true }
-      });
-      userPhone = user?.phone || "";
-    } else if (session.role === "DRIVER") {
-      const driver = await prisma.driver.findUnique({
-        where: { id: session.sub },
-        select: { phone: true }
-      });
-      userPhone = driver?.phone || "";
-    }
+    const userPhone = await resolveUserPhone(session);
 
     if (!userPhone) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -10,9 +10,8 @@ export interface MagneticProps {
 /**
  * Magnetic hover effect component
  * Creates a magnetic pull effect toward the cursor on desktop
+ * Skipped entirely on touch devices where it has no visible effect
  * Respects prefers-reduced-motion preference
- * 
- * @param children - Content to apply magnetic effect to
  */
 export function Magnetic({ children }: MagneticProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -33,12 +32,13 @@ export function Magnetic({ children }: MagneticProps) {
 
   const { x, y } = position;
 
-  // Check for reduced motion preference
+  // Skip on touch devices (no mouse hover) or reduced motion preference
+  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
   const prefersReducedMotion = typeof window !== 'undefined' 
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
     : false;
 
-  if (prefersReducedMotion) {
+  if (prefersReducedMotion || isTouchDevice) {
     return <div ref={ref}>{children}</div>;
   }
 

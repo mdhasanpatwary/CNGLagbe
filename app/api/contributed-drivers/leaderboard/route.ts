@@ -64,7 +64,11 @@ export async function GET(request: Request) {
       };
     });
 
-    return NextResponse.json(leaderboard);
+    return NextResponse.json(leaderboard, {
+      headers: {
+        "Cache-Control": "public, s-maxage=120, stale-while-revalidate=300",
+      },
+    });
   } catch (error) {
     console.error("Fetch leaderboard error:", error);
     return NextResponse.json({ error: "Failed to fetch leaderboard" }, { status: 500 });

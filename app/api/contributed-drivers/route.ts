@@ -77,37 +77,61 @@ export async function GET(request: Request) {
       }
     }
 
-    let drivers = [];
+    let drivers: Awaited<ReturnType<typeof prisma.contributedDriver.findMany>> = [];
     let totalCount = 0;
 
     if (search && /[a-zA-Z]/.test(search)) {
-      // Fetch all matching candidates (without limit/skip) to filter in-memory phonetically
-      const allDrivers = await prisma.contributedDriver.findMany({
-        where,
-        orderBy: { createdAt: "desc" }
-      });
+      // Phase 1: Try DB-level ILIKE first (fast path)
+      const preFilterWhere: Prisma.ContributedDriverWhereInput = {
+        ...where,
+        OR: [
+          { name: { contains: search, mode: "insensitive" } },
+          { phone: { contains: search } },
+          { address: { contains: search, mode: "insensitive" } },
+          { nearbyBazar: { contains: search, mode: "insensitive" } },
+        ],
+      };
 
-      const filtered = allDrivers.filter((driver) => {
-        const s = search.toLowerCase().trim();
-        // Exact/substring check
-        if (
-          driver.name.toLowerCase().includes(s) ||
-          driver.phone.includes(s) ||
-          (driver.address && driver.address.toLowerCase().includes(s)) ||
-          (driver.nearbyBazar && driver.nearbyBazar.toLowerCase().includes(s))
-        ) {
-          return true;
-        }
+      const [dbMatches, dbMatchCount] = await Promise.all([
+        prisma.contributedDriver.findMany({
+          where: preFilterWhere,
+          orderBy: { createdAt: "desc" },
+          ...(take !== undefined ? { take } : {}),
+          ...(skip !== undefined ? { skip } : {}),
+        }),
+        prisma.contributedDriver.count({ where: preFilterWhere }),
+      ]);
 
-        // Phonetic check (driver name or nearbyBazar)
-        if (isPhoneticMatch(search, driver.name)) return true;
-        if (driver.nearbyBazar && isPhoneticMatch(search, driver.nearbyBazar)) return true;
+      if (dbMatchCount > 0) {
+        // DB matches found — use them directly, skip expensive phonetic scan
+        drivers = dbMatches;
+        totalCount = dbMatchCount;
+      } else {
+        // Phase 2: Fallback to phonetic matching with a ceiling to prevent memory explosion
+        const allDrivers = await prisma.contributedDriver.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          take: 500, // ceiling to bound memory usage
+        });
 
-        return false;
-      });
+        const filtered = allDrivers.filter((driver) => {
+          const s = search.toLowerCase().trim();
+          if (
+            driver.name.toLowerCase().includes(s) ||
+            driver.phone.includes(s) ||
+            (driver.address && driver.address.toLowerCase().includes(s)) ||
+            (driver.nearbyBazar && driver.nearbyBazar.toLowerCase().includes(s))
+          ) {
+            return true;
+          }
+          if (isPhoneticMatch(search, driver.name)) return true;
+          if (driver.nearbyBazar && isPhoneticMatch(search, driver.nearbyBazar)) return true;
+          return false;
+        });
 
-      totalCount = filtered.length;
-      drivers = take !== undefined ? filtered.slice(skip ?? 0, (skip ?? 0) + take) : filtered;
+        totalCount = filtered.length;
+        drivers = take !== undefined ? filtered.slice(skip ?? 0, (skip ?? 0) + take) : filtered;
+      }
     } else {
       // Standard flow for Bengali search or no search query
       if (search) {
@@ -119,14 +143,16 @@ export async function GET(request: Request) {
         ];
       }
 
-      drivers = await prisma.contributedDriver.findMany({
-        where,
-        orderBy: { createdAt: "desc" },
-        ...(take !== undefined ? { take } : {}),
-        ...(skip !== undefined ? { skip } : {}),
-      });
-
-      totalCount = await prisma.contributedDriver.count({ where });
+      // Run data fetch + count in parallel to reduce DB round-trips
+      [drivers, totalCount] = await Promise.all([
+        prisma.contributedDriver.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          ...(take !== undefined ? { take } : {}),
+          ...(skip !== undefined ? { skip } : {}),
+        }),
+        prisma.contributedDriver.count({ where }),
+      ]);
     }
 
     const overallCount = await prisma.contributedDriver.count({ where: { isApproved: true } });
@@ -144,6 +170,7 @@ export async function GET(request: Request) {
       headers: {
         "X-Total-Count": totalCount.toString(),
         "X-Overall-Count": overallCount.toString(),
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
       },
     });
   } catch (error) {

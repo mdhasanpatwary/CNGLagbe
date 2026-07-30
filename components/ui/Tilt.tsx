@@ -41,12 +41,13 @@ export function Tilt({ children, className }: TiltProps) {
     y.set(0);
   };
 
-  // Check for reduced motion preference
+  // Skip on touch devices (no mouse hover) or reduced motion preference
+  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
   const prefersReducedMotion = typeof window !== 'undefined' 
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
     : false;
 
-  if (prefersReducedMotion) {
+  if (prefersReducedMotion || isTouchDevice) {
     return <div className={className}>{children}</div>;
   }
 
