@@ -458,5 +458,14 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Validation & Notice**: Performs Bangla text validation (`isBanglaText`) first, then presents a popup modal showing the entered bazar name in a highlighted card along with an admin approval notice ("নতুন বাজারটি অ্যাডমিন অনুমোদনের জন্য জমা দেওয়া হবে। আপনি কি নিশ্চিত?").
 - **Localization**: Uses centralized text keys (`confirm_add_bazar_title`, `confirm_add_bazar_desc`, `confirm_bazar_submit`, `confirm_bazar_cancel`) in `constants/text.ts` with zero hardcoded strings.
 
+## 🗑️ Optional Bazar Deletion Reassignment & Message (2026-08-04)
+- **Optional Driver Reassignment & Reason**: Admins can delete bazars from the admin dashboard without forcing driver reassignment or requiring a rejection/deletion reason message.
+- **Null Safety on Unmerged Deletion**: If a bazar is deleted without selecting a target merge bazar, drivers assigned to that deleted bazar automatically have their `nearbyBazar` field set to `null` to avoid orphaned bazar references while maintaining data consistency.
+- **Instant UI List Update & No-Store Caching**: Admin `GET /api/bazars?all=true` endpoint sends `Cache-Control: no-store` header (preventing HTTP/browser caching of stale lists in the admin panel) and `handleDeleteBazar` instantly updates state (`setBazars((prev) => prev.filter((b) => b.id !== id))`).
+
+## ✅ Admin Contributed Driver Approval Fix (2026-08-04)
+- **Partial Schema Validation**: Admin `PUT`/`PATCH` endpoint `/api/admin/contributed-drivers/[id]` now makes validation schema fields optional so partial payloads (e.g. `{ isApproved: true }` sent by the "Approve" button) pass validation and update driver status successfully.
+
+
 
 

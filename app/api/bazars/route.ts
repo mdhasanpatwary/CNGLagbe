@@ -46,11 +46,11 @@ export async function GET(request: Request) {
       driverCount: countMap.get(bazar.name) || 0,
     }));
 
-    return NextResponse.json(bazarWithCounts, {
-      headers: {
-        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
-      },
-    });
+    const headers: Record<string, string> = includeUnapproved
+      ? { "Cache-Control": "no-store, max-age=0" }
+      : { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" };
+
+    return NextResponse.json(bazarWithCounts, { headers });
   } catch (error) {
     console.error("Fetch bazars error:", error);
     return NextResponse.json(

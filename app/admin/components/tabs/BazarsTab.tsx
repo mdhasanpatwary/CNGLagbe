@@ -47,11 +47,10 @@ export function BazarsTab({
 
   const confirmDelete = async () => {
     if (!deletingBazar) return;
-    const hasDrivers = (bazars.find(b => b.id === deletingBazar.id)?.driverCount || 0) > 0;
     await handleDeleteBazar(
       deletingBazar.id,
       deleteReason.trim(),
-      hasDrivers ? mergeToBazarName : undefined
+      mergeToBazarName || undefined
     );
     setIsDeleteModalOpen(false);
     setDeletingBazar(null);
@@ -65,7 +64,7 @@ export function BazarsTab({
 
   const activeDeletingBazarData = deletingBazar ? bazars.find(b => b.id === deletingBazar.id) : null;
   const deletingBazarDriverCount = activeDeletingBazarData?.driverCount || 0;
-  const isConfirmDisabled = !deleteReason.trim() || (deletingBazarDriverCount > 0 && !mergeToBazarName);
+  const isConfirmDisabled = false;
 
   const onApprove = async (id: string) => {
     setActionLoading((prev) => ({ ...prev, [id]: true }));
@@ -269,28 +268,20 @@ export function BazarsTab({
                 <div className="flex items-start gap-2.5 text-amber-800">
                   <AlertTriangle size={18} className="shrink-0 mt-0.5 text-amber-600" />
                   <div className="text-xs font-bold leading-normal">
-                    এই বাজারে বর্তমানে <span className="font-black text-amber-950">{deletingBazarDriverCount}</span> জন ড্রাইভার যুক্ত আছেন। ডিলেট করার পূর্বে তাদের অন্য একটি সচল বাজারে স্থানান্তর করা আবশ্যক।
+                    এই বাজারে বর্তমানে <span className="font-black text-amber-950">{deletingBazarDriverCount}</span> জন ড্রাইভার যুক্ত আছেন। চাইলে তাদের অন্য একটি বাজারে স্থানান্তর করতে পারেন (ঐচ্ছিক)।
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
-                    ড্রাইভারদের কোন বাজারে স্থানান্তর করবেন? <span className="text-red-500">*</span>
+                    ড্রাইভারদের কোন বাজারে স্থানান্তর করবেন? (ঐচ্ছিক)
                   </label>
                   <select
                     value={mergeToBazarName}
-                    onChange={(e) => {
-                      const targetName = e.target.value;
-                      setMergeToBazarName(targetName);
-                      if (targetName) {
-                        setDeleteReason(`ভুল বানানের কারণে এই বাজারটি '${targetName}' বাজারের সাথে মার্জ করা হয়েছে।`);
-                      } else {
-                        setDeleteReason("");
-                      }
-                    }}
+                    onChange={(e) => setMergeToBazarName(e.target.value)}
                     className="w-full h-10 px-3 rounded-lg border border-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-sm font-medium bg-white text-slate-800"
                   >
-                    <option value="">-- একটি অনুমোদিত বাজার সিলেক্ট করুন --</option>
+                    <option value="">-- কোনো স্থানান্তর নয় (ড্রাইভার বাজার খালি হবে) --</option>
                     {bazars
                       .filter((b) => b.isApproved && b.id !== deletingBazar.id)
                       .map((b) => (
@@ -305,14 +296,13 @@ export function BazarsTab({
 
             <div className="space-y-2 mb-6">
               <label className="text-xs font-black uppercase tracking-widest text-slate-400 block ml-1">
-                ডিলেট করার কারণ লিখুন (ব্যবহারকারী দেখতে পাবেন) <span className="text-red-500">*</span>
+                ডিলেট করার কারণ লিখুন (ঐচ্ছিক)
               </label>
               <textarea
                 value={deleteReason}
                 onChange={(e) => setDeleteReason(e.target.value)}
-                placeholder="যেমন: ভুল বানানের কারণে বাতিল করা হলো, অথবা এই বাজারটি ইতিমধ্যেই অন্য নামে বিদ্যমান।"
+                placeholder="যেমন: ভুল বানানের কারণে বাতিল করা হলো (ঐচ্ছিক)"
                 className="w-full h-24 p-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-medium transition-all"
-                required
               />
             </div>
 

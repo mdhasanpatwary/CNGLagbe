@@ -1,16 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { getAuthenticatedAdmin } from "@/lib/auth";
 import { isBanglaText } from "@/lib/bazar-mapping";
 
 import { z } from "zod";
 
 const updateSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters").refine(isBanglaText, "নাম অবশ্যই বাংলায় হতে হবে (বাংলা অক্ষরে লিখুন)"),
-  phone: z.string().regex(/^01[3-9]\d{8}$/, "Please enter a valid 11-digit Bangladeshi mobile number"),
+  name: z.string().min(2, "Name must be at least 2 characters").refine(isBanglaText, "নাম অবশ্যই বাংলায় হতে হবে (বাংলা অক্ষরে লিখুন)").optional(),
+  phone: z.string().regex(/^01[3-9]\d{8}$/, "Please enter a valid 11-digit Bangladeshi mobile number").optional(),
   address: z.string().optional().nullable(),
-  nearbyBazar: z.string().min(1, "Please select a bazar/stand").refine(isBanglaText, "বাজারের নাম অবশ্যই বাংলায় হতে হবে"),
-  vehicleType: z.enum(["CNG", "TOTO", "AMBULANCE"]),
+  nearbyBazar: z.string().min(1, "Please select a bazar/stand").refine(isBanglaText, "বাজারের নাম অবশ্যই বাংলায় হতে হবে").optional(),
+  vehicleType: z.enum(["CNG", "TOTO", "AMBULANCE"]).optional(),
   isApproved: z.boolean().optional(),
   contributorName: z.string().optional().nullable().or(z.literal("")),
   contributorPhone: z.string().optional().nullable().or(z.literal("")),
@@ -20,6 +21,20 @@ const updateSchema = z.object({
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
+) {
+  return handleUpdate(request, params);
+}
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  return handleUpdate(request, params);
+}
+
+async function handleUpdate(
+  request: Request,
+  params: Promise<{ id: string }>
 ) {
   const adminId = await getAuthenticatedAdmin();
   if (!adminId) {
@@ -47,31 +62,34 @@ export async function PUT(
       contributorPhotoUrl,
     } = result.data;
 
-    // Check phone uniqueness among other drivers (excluding current one)
-    const existingContributed = await prisma.contributedDriver.findFirst({
-      where: {
-        phone,
-        NOT: { id }
-      }
-    });
+    // Check phone uniqueness among other drivers (excluding current one) if phone is being updated
+    if (phone) {
+      const existingContributed = await prisma.contributedDriver.findFirst({
+        where: {
+          phone,
+          NOT: { id }
+        }
+      });
 
-    if (existingContributed) {
-      return NextResponse.json({ error: "PHONE_EXISTS" }, { status: 400 });
+      if (existingContributed) {
+        return NextResponse.json({ error: "PHONE_EXISTS" }, { status: 400 });
+      }
     }
+
+    const dataToUpdate: Prisma.ContributedDriverUpdateInput = {};
+    if (name !== undefined) dataToUpdate.name = name;
+    if (phone !== undefined) dataToUpdate.phone = phone;
+    if (address !== undefined) dataToUpdate.address = address || null;
+    if (nearbyBazar !== undefined) dataToUpdate.nearbyBazar = nearbyBazar;
+    if (vehicleType !== undefined) dataToUpdate.vehicleType = vehicleType;
+    if (isApproved !== undefined) dataToUpdate.isApproved = isApproved;
+    if (contributorName !== undefined) dataToUpdate.contributorName = contributorName || null;
+    if (contributorPhone !== undefined) dataToUpdate.contributorPhone = contributorPhone || null;
+    if (contributorPhotoUrl !== undefined) dataToUpdate.contributorPhotoUrl = contributorPhotoUrl || null;
 
     const updated = await prisma.contributedDriver.update({
       where: { id },
-      data: {
-        name,
-        phone,
-        address: address || null,
-        nearbyBazar,
-        vehicleType,
-        isApproved,
-        contributorName: contributorName || null,
-        contributorPhone: contributorPhone || null,
-        contributorPhotoUrl: contributorPhotoUrl || null,
-      }
+      data: dataToUpdate,
     });
 
     return NextResponse.json(updated);

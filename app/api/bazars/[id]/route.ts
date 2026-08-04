@@ -87,7 +87,7 @@ export async function DELETE(
         throw new Error("BAZAR_NOT_FOUND");
       }
 
-      // If a merge target is provided, reassign drivers
+      // If a merge target is provided, reassign drivers; otherwise clear nearbyBazar
       if (mergeToBazarName && mergeToBazarName !== bazar.name) {
         await tx.driver.updateMany({
           where: { nearbyBazar: bazar.name },
@@ -96,6 +96,15 @@ export async function DELETE(
         await tx.contributedDriver.updateMany({
           where: { nearbyBazar: bazar.name },
           data: { nearbyBazar: mergeToBazarName },
+        });
+      } else {
+        await tx.driver.updateMany({
+          where: { nearbyBazar: bazar.name },
+          data: { nearbyBazar: null },
+        });
+        await tx.contributedDriver.updateMany({
+          where: { nearbyBazar: bazar.name },
+          data: { nearbyBazar: null },
         });
       }
 

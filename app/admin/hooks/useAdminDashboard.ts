@@ -158,7 +158,7 @@ export function useAdminDashboard() {
     try {
       const [resStats, resBazars, resSettings] = await Promise.all([
         fetch("/api/admin/stats"),
-        fetch("/api/bazars?all=true"),
+        fetch("/api/bazars?all=true", { cache: "no-store" }),
         fetch("/api/admin/settings"),
       ]);
 
@@ -241,6 +241,7 @@ export function useAdminDashboard() {
         body: JSON.stringify({ reason: reason || "", mergeToBazarName }),
       });
       if (res.ok) {
+        setBazars((prev) => prev.filter((b) => b.id !== id));
         fetchData({ showLoading: false });
       }
     } catch (e) {
