@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Search, Plus, ChevronDown, Check } from "lucide-react";
+import { Search, Plus, ChevronDown, Check, Store, AlertCircle, X } from "lucide-react";
 import { AppButton } from "@/components/ui/AppButton";
 import { useLang } from "@/hooks/useLang";
 import { TextKey } from "@/constants/text";
@@ -38,6 +38,8 @@ export function SearchableBazarSelect({
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingBazarName, setPendingBazarName] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
   const fetchBazars = async () => {
@@ -89,18 +91,25 @@ export function SearchableBazarSelect({
     setSearchQuery("");
   };
 
-  const handleAddNewBazar = async () => {
-    if (!searchQuery.trim()) return;
-    if (!isBanglaText(searchQuery.trim())) {
+  const handleOpenConfirmModal = () => {
+    const trimmed = searchQuery.trim();
+    if (!trimmed) return;
+    if (!isBanglaText(trimmed)) {
       toast.error("বাজারের নাম অবশ্যই বাংলায় লিখতে হবে");
       return;
     }
+    setPendingBazarName(trimmed);
+    setShowConfirmModal(true);
+  };
+
+  const confirmAddNewBazar = async () => {
+    if (!pendingBazarName) return;
     setIsAdding(true);
     try {
       const res = await fetch("/api/bazars", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: searchQuery.trim() }),
+        body: JSON.stringify({ name: pendingBazarName }),
       });
       const data = await res.json();
 
@@ -127,6 +136,8 @@ export function SearchableBazarSelect({
         onChange(data.name);
         setIsOpen(false);
         setSearchQuery("");
+        setShowConfirmModal(false);
+        setPendingBazarName("");
       } else if (data.error === "BAZAR_EXISTS") {
         toast.error(t("error_bazar_exists" as TextKey) || "Bazar already exists!");
       } else {
@@ -228,12 +239,12 @@ export function SearchableBazarSelect({
                   {t("cant_find_bazar" as TextKey) || "Can't find your bazar?"}
                 </p>
                 <AppButton
-                  onClick={handleAddNewBazar}
+                  type="button"
+                  onClick={handleOpenConfirmModal}
                   disabled={isAdding}
-                  loading={isAdding}
                   size="sm"
                   className="w-full h-10 rounded-xl text-xs font-bold bg-primary text-white hover:bg-success transition-all disabled:opacity-50"
-                  leftIcon={!isAdding && <Plus className="w-4 h-4" />}
+                  leftIcon={<Plus className="w-4 h-4" />}
                 >
                   <span>
                     &quot;{searchQuery}&quot; {t("add_new_bazar" as TextKey) || "Add Bazar"}
@@ -250,6 +261,70 @@ export function SearchableBazarSelect({
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div 
+            className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4 border border-slate-100 animate-in fade-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-slate-900 font-black text-lg">
+                <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
+                <span>{t("confirm_add_bazar_title" as TextKey) || "বাজার যোগ নিশ্চিতকরণ"}</span>
+              </div>
+              <AppButton
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowConfirmModal(false);
+                  setPendingBazarName("");
+                }}
+                disabled={isAdding}
+                className="p-1 h-auto rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </AppButton>
+            </div>
+
+            <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-2xl p-3 flex items-center gap-3">
+              <Store className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span className="font-extrabold text-emerald-900 text-base">{pendingBazarName}</span>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed font-medium">
+              {t("confirm_add_bazar_desc" as TextKey) || "নতুন বাজারটি অ্যাডমিন অনুমোদনের জন্য জমা দেওয়া হবে। আপনি কি বাজারটি যোগ করতে নিশ্চিত?"}
+            </p>
+
+            <div className="flex items-center gap-3 pt-2">
+              <AppButton
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowConfirmModal(false);
+                  setPendingBazarName("");
+                }}
+                disabled={isAdding}
+                className="flex-1 h-11 rounded-xl text-xs font-bold border-slate-200 text-slate-700 hover:bg-slate-50"
+              >
+                {t("confirm_bazar_cancel" as TextKey) || "বাতিল"}
+              </AppButton>
+              <AppButton
+                type="button"
+                onClick={confirmAddNewBazar}
+                disabled={isAdding}
+                loading={isAdding}
+                className="flex-1 h-11 rounded-xl text-xs font-bold bg-primary text-white hover:bg-emerald-600"
+              >
+                {t("confirm_bazar_submit" as TextKey) || "হ্যাঁ, যোগ করুন"}
+              </AppButton>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

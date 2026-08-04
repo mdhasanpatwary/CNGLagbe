@@ -969,6 +969,22 @@ export const TEXT = {
     en: "Can't find your bazar?",
     bn: "আপনার বাজার খুঁজে পাচ্ছেন না?"
   },
+  confirm_add_bazar_title: {
+    en: "Confirm Add Bazar",
+    bn: "বাজার যোগ নিশ্চিতকরণ"
+  },
+  confirm_add_bazar_desc: {
+    en: "This bazar will be submitted for admin approval. Are you sure you want to add this bazar?",
+    bn: "নতুন বাজারটি অ্যাডমিন অনুমোদনের জন্য জমা দেওয়া হবে। আপনি কি বাজারটি যোগ করতে নিশ্চিত?"
+  },
+  confirm_bazar_submit: {
+    en: "Yes, Add Bazar",
+    bn: "হ্যাঁ, যোগ করুন"
+  },
+  confirm_bazar_cancel: {
+    en: "Cancel",
+    bn: "বাতিল"
+  },
   bazar_status: {
     en: "Status",
     bn: "স্ট্যাটাস"

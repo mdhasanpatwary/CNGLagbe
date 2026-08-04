@@ -453,4 +453,10 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
   - **Central Localization**: Updated `constants/text.ts` to define all localization labels, including banner and directory titles, ensuring no hardcoded strings.
   - **SEO & Doc Updates**: Extended directory page metadata description, OpenGraph keywords, JsonLd answer, and `llms.txt` to fully document the inclusion of ambulance contacts.
 
+## 🏪 Add Bazar Confirmation Modal (2026-08-04)
+- **Modal Confirmation Flow**: Added an explicit confirmation popup modal when users add a new bazar from the driver add/contribution modal (and `SearchableBazarSelect`).
+- **Validation & Notice**: Performs Bangla text validation (`isBanglaText`) first, then presents a popup modal showing the entered bazar name in a highlighted card along with an admin approval notice ("নতুন বাজারটি অ্যাডমিন অনুমোদনের জন্য জমা দেওয়া হবে। আপনি কি নিশ্চিত?").
+- **Localization**: Uses centralized text keys (`confirm_add_bazar_title`, `confirm_add_bazar_desc`, `confirm_bazar_submit`, `confirm_bazar_cancel`) in `constants/text.ts` with zero hardcoded strings.
+
+
 
