@@ -15,39 +15,42 @@ export async function PATCH(
     }
     
     // Wrap in transaction for atomicity: if driver update fails, bazar rename is rolled back
-    const bazar = await prisma.$transaction(async (tx) => {
-      // Get the old name to update drivers
-      const oldBazar = await tx.bazar.findUnique({
-        where: { id }
-      });
-
-      if (!oldBazar) {
-        throw new Error("BAZAR_NOT_FOUND");
-      }
-
-      const dataToUpdate: { name?: string; isApproved?: boolean } = {};
-      if (name !== undefined) dataToUpdate.name = name;
-      if (isApproved !== undefined) dataToUpdate.isApproved = isApproved;
-
-      const updated = await tx.bazar.update({
-        where: { id },
-        data: dataToUpdate,
-      });
-
-      // Update all drivers and contributed drivers who have this bazar as their nearbyBazar, if name changed
-      if (name && name !== oldBazar.name) {
-        await tx.driver.updateMany({
-          where: { nearbyBazar: oldBazar.name },
-          data: { nearbyBazar: name },
+    const bazar = await prisma.$transaction(
+      async (tx) => {
+        // Get the old name to update drivers
+        const oldBazar = await tx.bazar.findUnique({
+          where: { id }
         });
-        await tx.contributedDriver.updateMany({
-          where: { nearbyBazar: oldBazar.name },
-          data: { nearbyBazar: name },
-        });
-      }
 
-      return updated;
-    });
+        if (!oldBazar) {
+          throw new Error("BAZAR_NOT_FOUND");
+        }
+
+        const dataToUpdate: { name?: string; isApproved?: boolean } = {};
+        if (name !== undefined) dataToUpdate.name = name;
+        if (isApproved !== undefined) dataToUpdate.isApproved = isApproved;
+
+        const updated = await tx.bazar.update({
+          where: { id },
+          data: dataToUpdate,
+        });
+
+        // Update all drivers and contributed drivers who have this bazar as their nearbyBazar, if name changed
+        if (name && name !== oldBazar.name) {
+          await tx.driver.updateMany({
+            where: { nearbyBazar: oldBazar.name },
+            data: { nearbyBazar: name },
+          });
+          await tx.contributedDriver.updateMany({
+            where: { nearbyBazar: oldBazar.name },
+            data: { nearbyBazar: name },
+          });
+        }
+
+        return updated;
+      },
+      { maxWait: 10000, timeout: 20000 }
+    );
 
     return NextResponse.json(bazar);
   } catch (error) {
@@ -78,50 +81,53 @@ export async function DELETE(
       // Body might be missing or invalid
     }
 
-    await prisma.$transaction(async (tx) => {
-      const bazar = await tx.bazar.findUnique({
-        where: { id },
-      });
+    await prisma.$transaction(
+      async (tx) => {
+        const bazar = await tx.bazar.findUnique({
+          where: { id },
+        });
 
-      if (!bazar) {
-        throw new Error("BAZAR_NOT_FOUND");
-      }
+        if (!bazar) {
+          throw new Error("BAZAR_NOT_FOUND");
+        }
 
-      // If a merge target is provided, reassign drivers; otherwise clear nearbyBazar
-      if (mergeToBazarName && mergeToBazarName !== bazar.name) {
-        await tx.driver.updateMany({
-          where: { nearbyBazar: bazar.name },
-          data: { nearbyBazar: mergeToBazarName },
-        });
-        await tx.contributedDriver.updateMany({
-          where: { nearbyBazar: bazar.name },
-          data: { nearbyBazar: mergeToBazarName },
-        });
-      } else {
-        await tx.driver.updateMany({
-          where: { nearbyBazar: bazar.name },
-          data: { nearbyBazar: null },
-        });
-        await tx.contributedDriver.updateMany({
-          where: { nearbyBazar: bazar.name },
-          data: { nearbyBazar: null },
-        });
-      }
+        // If a merge target is provided, reassign drivers; otherwise clear nearbyBazar
+        if (mergeToBazarName && mergeToBazarName !== bazar.name) {
+          await tx.driver.updateMany({
+            where: { nearbyBazar: bazar.name },
+            data: { nearbyBazar: mergeToBazarName },
+          });
+          await tx.contributedDriver.updateMany({
+            where: { nearbyBazar: bazar.name },
+            data: { nearbyBazar: mergeToBazarName },
+          });
+        } else {
+          await tx.driver.updateMany({
+            where: { nearbyBazar: bazar.name },
+            data: { nearbyBazar: null },
+          });
+          await tx.contributedDriver.updateMany({
+            where: { nearbyBazar: bazar.name },
+            data: { nearbyBazar: null },
+          });
+        }
 
-      if (reason) {
-        await tx.bazarRejection.create({
-          data: {
-            name: bazar.name,
-            reason: reason,
-            userPhone: bazar.createdByPhone,
-          },
-        });
-      }
+        if (reason) {
+          await tx.bazarRejection.create({
+            data: {
+              name: bazar.name,
+              reason: reason,
+              userPhone: bazar.createdByPhone,
+            },
+          });
+        }
 
-      await tx.bazar.delete({
-        where: { id },
-      });
-    });
+        await tx.bazar.delete({
+          where: { id },
+        });
+      },
+      { maxWait: 10000, timeout: 20000 }
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {

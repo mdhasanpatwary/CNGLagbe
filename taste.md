@@ -463,8 +463,8 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Null Safety on Unmerged Deletion**: If a bazar is deleted without selecting a target merge bazar, drivers assigned to that deleted bazar automatically have their `nearbyBazar` field set to `null` to avoid orphaned bazar references while maintaining data consistency.
 - **Instant UI List Update & No-Store Caching**: Admin `GET /api/bazars?all=true` endpoint sends `Cache-Control: no-store` header (preventing HTTP/browser caching of stale lists in the admin panel) and `handleDeleteBazar` instantly updates state (`setBazars((prev) => prev.filter((b) => b.id !== id))`).
 
-## ✅ Admin Contributed Driver Approval Fix (2026-08-04)
-- **Partial Schema Validation**: Admin `PUT`/`PATCH` endpoint `/api/admin/contributed-drivers/[id]` now makes validation schema fields optional so partial payloads (e.g. `{ isApproved: true }` sent by the "Approve" button) pass validation and update driver status successfully.
+## ⏱️ Prisma Interactive Transaction Timeouts (2026-08-05)
+- **Transaction Timeout Prevention (P2028)**: Prisma interactive transactions in `/api/bazars/[id]` specify explicit transaction configuration `{ maxWait: 10000, timeout: 20000 }`. This prevents `P2028 (Unable to start a transaction in the given time)` errors during heavy concurrent admin dashboard data loading.
 
 
 
