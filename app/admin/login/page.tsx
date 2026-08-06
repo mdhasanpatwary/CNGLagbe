@@ -11,6 +11,7 @@ import { FormField } from "@/components/FormField";
 import { Header } from "@/components/layout/Header";
 import { PageHeading } from "@/components/ui/PageHeading";
 import { adminLoginSchema, type AdminLoginInput } from "@/lib/schemas/auth";
+import { toast } from "sonner";
 
 export default function AdminLogin() {
   const { t } = useLang();
@@ -43,13 +44,18 @@ export default function AdminLogin() {
       const resData = await res.json();
 
       if (res.ok) {
+        toast.success("লগইন সফল হয়েছে!");
         // eslint-disable-next-line react-hooks/immutability
         window.location.href = "/admin";
       } else {
-        setServerError(resData.error || t("login_failed"));
+        const err = resData.error || t("login_failed");
+        setServerError(err);
+        toast.error(err);
       }
     } catch {
-      setServerError(t("network_error"));
+      const err = t("network_error");
+      setServerError(err);
+      toast.error(err);
     } finally {
       setLoading(false);
     }

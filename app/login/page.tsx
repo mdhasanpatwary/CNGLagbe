@@ -12,6 +12,8 @@ import { FormField } from "@/components/FormField";
 import { Header } from "@/components/layout/Header";
 import { loginSchema, type LoginInput } from "@/lib/schemas/auth";
 import { PageHeading } from "@/components/ui/PageHeading";
+import { normalizePhone } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function UserLogin() {
   return (
@@ -36,6 +38,7 @@ function LoginForm() {
     handleSubmit,
     trigger,
     getValues,
+    setValue,
     formState: { errors },
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -48,8 +51,16 @@ function LoginForm() {
   });
 
   const onNextStep = async () => {
+    const rawPhone = getValues("phone");
+    const cleanedPhone = normalizePhone(rawPhone);
+    setValue("phone", cleanedPhone);
+
     const isPhoneValid = await trigger("phone");
-    if (!isPhoneValid) return;
+    if (!isPhoneValid) {
+      const msg = errors.phone?.message || "দয়া করে অন্তত ৭ ডিজিটের সঠিক মোবাইল নম্বর দিন";
+      toast.error(msg);
+      return;
+    }
 
     setChecking(true);
     setServerError("");
@@ -58,7 +69,7 @@ function LoginForm() {
       const res = await fetch("/api/auth/check-user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: getValues("phone") }),
+        body: JSON.stringify({ phone: cleanedPhone }),
       });
 
       const data = await res.json();
@@ -67,10 +78,14 @@ function LoginForm() {
         setIsNewUser(!data.hasPassword);
         setStep(2);
       } else {
-        setServerError(data.error || "Failed to check phone number");
+        const err = data.error || "Failed to check phone number";
+        setServerError(err);
+        toast.error(err);
       }
     } catch {
-      setServerError(t("network_error"));
+      const err = t("network_error");
+      setServerError(err);
+      toast.error(err);
     } finally {
       setChecking(false);
     }
@@ -80,23 +95,33 @@ function LoginForm() {
     setLoading(true);
     setServerError("");
 
+    const normalizedData = {
+      ...data,
+      phone: normalizePhone(data.phone),
+    };
+
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(normalizedData),
       });
 
       const resData = await res.json();
 
       if (res.ok) {
+        toast.success("লগইন সফল হয়েছে!");
         // eslint-disable-next-line react-hooks/immutability
         window.location.href = redirect;
       } else {
-        setServerError(resData.error || t("login_failed"));
+        const err = resData.error || t("login_failed");
+        setServerError(err);
+        toast.error(err);
       }
     } catch {
-      setServerError(t("network_error"));
+      const err = t("network_error");
+      setServerError(err);
+      toast.error(err);
     } finally {
       setLoading(false);
     }

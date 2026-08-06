@@ -8,9 +8,12 @@ export function cn(...inputs: ClassValue[]) {
 export function normalizePhone(phone: string): string {
   if (!phone) return "";
   let cleaned = phone.replace(/\D/g, "");
-  if (cleaned.startsWith("880")) {
-    cleaned = cleaned.substring(2);
-  } else if (cleaned.length === 10 && !cleaned.startsWith("0")) {
+  if (cleaned.startsWith("00880")) {
+    cleaned = cleaned.substring(5);
+  } else if (cleaned.startsWith("880") && cleaned.length === 13) {
+    cleaned = cleaned.substring(3);
+  }
+  if (cleaned.length === 10 && /^1[3-9]/.test(cleaned)) {
     cleaned = "0" + cleaned;
   }
   return cleaned;
