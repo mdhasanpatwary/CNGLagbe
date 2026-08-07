@@ -9,6 +9,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const phone = normalizePhone(body.phone);
+    const rawName = body.name?.trim();
     const otp = body.otp;
     const password = body.password;
     const newPassword = body.newPassword;
@@ -65,10 +66,11 @@ export async function POST(request: Request) {
         });
       } else {
         // First time login - create user
+        const finalName = rawName && rawName.length >= 2 ? rawName : "User";
         user = await prisma.user.create({
           data: {
             phone,
-            name: "User",
+            name: finalName,
             passwordHash,
           },
         });

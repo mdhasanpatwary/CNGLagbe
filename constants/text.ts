@@ -248,6 +248,7 @@ export const TEXT = {
   step_docs_license: { en: "License Verification", bn: "লাইসেন্স যাচাই" },
   step_docs_vehicle: { en: "Vehicle Documents", bn: "সিএনজি কাগজপত্র" },
   full_name: { en: "Full Name", bn: "পুরো নাম" },
+  name_required_error: { en: "Please enter your full name", bn: "দয়া করে আপনার পুরো নাম লিখুন" },
   address: { en: "Address", bn: "ঠিকানা" },
   nearby_bazar: { en: "Nearby Bazar", bn: "নিকটস্থ বাজার" },
   nid_number: { en: "NID Number", bn: "এনআইডি নম্বর" },

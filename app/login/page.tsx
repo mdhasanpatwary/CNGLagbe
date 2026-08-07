@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { Phone, Key, LogIn, ArrowRight } from "lucide-react";
+import { Phone, Key, LogIn, ArrowRight, User as UserIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,6 +43,7 @@ function LoginForm() {
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
+      name: "",
       phone: "",
       otp: "1234",
       password: "",
@@ -94,6 +95,17 @@ function LoginForm() {
   const onSubmit = async (data: LoginInput) => {
     setLoading(true);
     setServerError("");
+
+    if (isNewUser) {
+      const nameVal = data.name?.trim();
+      if (!nameVal || nameVal.length < 2 || nameVal.toLowerCase() === "user") {
+        const errMsg = t("name_required_error") || "দয়া করে আপনার পুরো নাম লিখুন";
+        setServerError(errMsg);
+        toast.error(errMsg);
+        setLoading(false);
+        return;
+      }
+    }
 
     const normalizedData = {
       ...data,
@@ -190,6 +202,15 @@ function LoginForm() {
 
                     {isNewUser ? (
                       <>
+                        <FormField
+                          label={t("full_name")}
+                          icon={UserIcon}
+                          type="text"
+                          placeholder="যেমন: রফিকুল ইসলাম"
+                          required
+                          {...register("name")}
+                          error={errors.name?.message}
+                        />
                         <FormField
                           label={t("otp_label")}
                           icon={Key}

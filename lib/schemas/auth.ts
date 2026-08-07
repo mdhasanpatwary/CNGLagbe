@@ -12,6 +12,7 @@ const phoneSchema = z
   );
 
 export const loginSchema = z.object({
+  name: z.string().nullish(),
   phone: phoneSchema,
   otp: z.string().nullish(),
   password: z.string().nullish(),

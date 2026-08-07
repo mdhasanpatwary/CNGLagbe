@@ -483,3 +483,14 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Strict Authentication Enforcement**: Guest (unauthenticated) users can no longer add drivers. Clicking "Add Driver" or the contribution banner on the homepage or directory page triggers a toast notification (`"ড্রাইভার যোগ করতে প্রথমে লগইন করুন।"`) and redirects the user immediately to `/login`.
 - **Backend API Protection**: `POST /api/contributed-drivers` checks `getAuthUser()`. If unauthenticated (`!session`), it returns `401 Unauthorized` (`{ error: "UNAUTHORIZED" }`), preventing unauthenticated driver additions at the API level.
 - **Form Submission Error Handler**: In `useDriverDirectory.ts`, if `onSubmit` receives a 401 response from the server, it displays the login toast notification and redirects to `/login`.
+
+## 👤 Registration Full Name Requirement (2026-08-08)
+- **Preventing Default 'User' Names**: New user registration previously created accounts with the hardcoded name `"User"` because the signup form only asked for phone/OTP/password.
+- **Required Full Name Field**: Added a required `"Full Name / পুরো নাম"` input field with `UserIcon` to Step 2 of the registration form in `app/login/page.tsx`.
+- **Validation**: On form submission, new user signups validate that `name` is provided, at least 2 characters long, and not generic `"User"`, triggering `name_required_error` (`"দয়া করে আপনার পুরো নাম লিখুন"`) if invalid.
+- **Database Storage**: `POST /api/auth/login` extracts `body.name` and saves the user's actual name in the database during record creation instead of defaulting to `"User"`.
+
+## 🔐 Login Flow - Header Profile Not Showing (2026-08-08)
+- **Root Cause**: `useAuthUser` hook had a `document.cookie` check for `auth_token=` to skip the `/api/auth/me` network request for unauthenticated visitors. However, `auth_token` is set as `httpOnly: true` in `lib/auth.ts`, which means JavaScript's `document.cookie` can **never** see it. This caused the hook to always short-circuit to `setUser(null)` even for authenticated users.
+- **Fix**: Removed the `document.cookie` early-exit check entirely. The hook now always calls `/api/auth/me` to determine auth state. The server-side endpoint can read the `httpOnly` cookie and return the user data correctly.
+- **Impact**: After login, the header now correctly shows the user's profile avatar/menu instead of the login button.
