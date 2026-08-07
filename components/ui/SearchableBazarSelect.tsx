@@ -12,6 +12,8 @@ import { isBanglaText, mapEnglishToBanglaBazars } from "@/lib/bazar-mapping";
 interface Bazar {
   id: string;
   name: string;
+  upazila?: string;
+  district?: string;
 }
 
 interface SearchableBazarSelectProps {
@@ -40,6 +42,8 @@ export function SearchableBazarSelect({
   const [isAdding, setIsAdding] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingBazarName, setPendingBazarName] = useState("");
+  const [pendingUpazila, setPendingUpazila] = useState("ছাগলনাইয়া");
+  const [pendingDistrict, setPendingDistrict] = useState("ফেনী");
   const containerRef = useRef<HTMLDivElement>(null);
 
   const fetchBazars = async () => {
@@ -93,23 +97,52 @@ export function SearchableBazarSelect({
 
   const handleOpenConfirmModal = () => {
     const trimmed = searchQuery.trim();
-    if (!trimmed) return;
-    if (!isBanglaText(trimmed)) {
-      toast.error("বাজারের নাম অবশ্যই বাংলায় লিখতে হবে");
-      return;
-    }
     setPendingBazarName(trimmed);
+    setPendingUpazila("ছাগলনাইয়া");
+    setPendingDistrict("ফেনী");
     setShowConfirmModal(true);
   };
 
   const confirmAddNewBazar = async () => {
-    if (!pendingBazarName) return;
+    const trimmedName = pendingBazarName.trim();
+    const trimmedUpazila = pendingUpazila.trim();
+    const trimmedDistrict = pendingDistrict.trim();
+
+    if (!trimmedName) {
+      toast.error("বাজারের নাম দিন");
+      return;
+    }
+    if (!isBanglaText(trimmedName)) {
+      toast.error("বাজারের নাম অবশ্যই বাংলায় লিখতে হবে");
+      return;
+    }
+    if (!trimmedUpazila) {
+      toast.error("উপজেলার নাম দিন");
+      return;
+    }
+    if (!isBanglaText(trimmedUpazila)) {
+      toast.error("উপজেলার নাম অবশ্যই বাংলায় লিখতে হবে");
+      return;
+    }
+    if (!trimmedDistrict) {
+      toast.error("জেলার নাম দিন");
+      return;
+    }
+    if (!isBanglaText(trimmedDistrict)) {
+      toast.error("জেলার নাম অবশ্যই বাংলায় লিখতে হবে");
+      return;
+    }
+
     setIsAdding(true);
     try {
       const res = await fetch("/api/bazars", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: pendingBazarName }),
+        body: JSON.stringify({
+          name: trimmedName,
+          upazila: trimmedUpazila,
+          district: trimmedDistrict,
+        }),
       });
       const data = await res.json();
 
@@ -138,8 +171,14 @@ export function SearchableBazarSelect({
         setSearchQuery("");
         setShowConfirmModal(false);
         setPendingBazarName("");
+        setPendingUpazila("ছাগলনাইয়া");
+        setPendingDistrict("ফেনী");
       } else if (data.error === "BAZAR_EXISTS") {
         toast.error(t("error_bazar_exists" as TextKey) || "Bazar already exists!");
+      } else if (data.error === "UPAZILA_NAME_MUST_BE_BANGLA") {
+        toast.error("উপজেলার নাম বাংলায় হতে হবে");
+      } else if (data.error === "DISTRICT_NAME_MUST_BE_BANGLA") {
+        toast.error("জেলার নাম বাংলায় হতে হবে");
       } else {
         toast.error("Failed to add bazar.");
       }
@@ -272,7 +311,7 @@ export function SearchableBazarSelect({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-slate-900 font-black text-lg">
                 <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
-                <span>{t("confirm_add_bazar_title" as TextKey) || "বাজার যোগ নিশ্চিতকরণ"}</span>
+                <span>{t("confirm_add_bazar_title" as TextKey) || "নতুন বাজার যোগ করুন"}</span>
               </div>
               <AppButton
                 type="button"
@@ -289,16 +328,55 @@ export function SearchableBazarSelect({
               </AppButton>
             </div>
 
-            <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-2xl p-3 flex items-center gap-3">
-              <Store className="w-5 h-5 text-emerald-600 shrink-0" />
-              <span className="font-extrabold text-emerald-900 text-base">{pendingBazarName}</span>
-            </div>
-
             <p className="text-xs text-slate-600 leading-relaxed font-medium">
-              {t("confirm_add_bazar_desc" as TextKey) || "নতুন বাজারটি অ্যাডমিন অনুমোদনের জন্য জমা দেওয়া হবে। আপনি কি বাজারটি যোগ করতে নিশ্চিত?"}
+              নতুন বাজার যোগ করার জন্য বাজারের নাম, উপজেলা ও জেলার নাম দিন। বাজারটি অনুমোদনের জন্য জমা দেওয়া হবে।
             </p>
 
-            <div className="flex items-center gap-3 pt-2">
+            <div className="space-y-3 pt-1">
+              <div>
+                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block mb-1">
+                  বাজারের নাম <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={pendingBazarName}
+                    onChange={(e) => setPendingBazarName(e.target.value)}
+                    placeholder="যেমন: শুভপুর বাজার"
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block mb-1">
+                  উপজেলা <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={pendingUpazila}
+                  onChange={(e) => setPendingUpazila(e.target.value)}
+                  placeholder="যেমন: ছাগলনাইয়া"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block mb-1">
+                  জেলা <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={pendingDistrict}
+                  onChange={(e) => setPendingDistrict(e.target.value)}
+                  placeholder="যেমন: ফেনী"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 pt-3">
               <AppButton
                 type="button"
                 variant="outline"

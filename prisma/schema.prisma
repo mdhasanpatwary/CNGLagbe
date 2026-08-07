@@ -197,6 +197,8 @@ model RateLimit {
 model Bazar {
   id             String   @id @default(cuid())
   name           String   @unique
+  upazila        String?  @default("ছাগলনাইয়া")
+  district       String?  @default("ফেনী")
   isApproved     Boolean  @default(true)
   createdByPhone String?
   createdAt      DateTime @default(now())

@@ -112,12 +112,23 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { name } = await request.json();
+    const { name, upazila, district } = await request.json();
     if (!name) return NextResponse.json({ error: "Name is required" }, { status: 400 });
 
     const trimmedName = name.trim();
     if (!isBanglaText(trimmedName)) {
       return NextResponse.json({ error: "BAZAR_NAME_MUST_BE_BANGLA" }, { status: 400 });
+    }
+
+    const trimmedUpazila = upazila && typeof upazila === "string" && upazila.trim() ? upazila.trim() : "ছাগলনাইয়া";
+    const trimmedDistrict = district && typeof district === "string" && district.trim() ? district.trim() : "ফেনী";
+
+    if (!isBanglaText(trimmedUpazila)) {
+      return NextResponse.json({ error: "UPAZILA_NAME_MUST_BE_BANGLA" }, { status: 400 });
+    }
+
+    if (!isBanglaText(trimmedDistrict)) {
+      return NextResponse.json({ error: "DISTRICT_NAME_MUST_BE_BANGLA" }, { status: 400 });
     }
 
     // Check if duplicate name exists
@@ -152,6 +163,8 @@ export async function POST(request: Request) {
     const bazar = await prisma.bazar.create({
       data: {
         name: trimmedName,
+        upazila: trimmedUpazila,
+        district: trimmedDistrict,
         isApproved: isAdmin, // Approved by default for Admin, needs approval for public contributors
         createdByPhone
       },

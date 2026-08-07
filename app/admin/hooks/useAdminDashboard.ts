@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQueryState } from "nuqs";
+import { toast } from "sonner";
 import { useLang } from "@/hooks/useLang";
 import { User as UserType } from "@/lib/types/user";
 import { TextKey } from "@/constants/text";
@@ -52,9 +53,11 @@ export function useAdminDashboard() {
   const { t } = useLang();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [allUsers, setAllUsers] = useState<UserType[]>([]);
-  const [bazars, setBazars] = useState<{ id: string; name: string; isApproved: boolean }[]>([]);
+  const [bazars, setBazars] = useState<{ id: string; name: string; upazila?: string; district?: string; isApproved: boolean; driverCount?: number }[]>([]);
   const [newBazarName, setNewBazarName] = useState("");
-  const [editingBazar, setEditingBazar] = useState<{ id: string; name: string } | null>(null);
+  const [newBazarUpazila, setNewBazarUpazila] = useState("ছাগলনাইয়া");
+  const [newBazarDistrict, setNewBazarDistrict] = useState("ফেনী");
+  const [editingBazar, setEditingBazar] = useState<{ id: string; name: string; upazila?: string; district?: string } | null>(null);
   const [activeTabStr, setActiveTabStr] = useQueryState("tab", { defaultValue: "overview" });
   const activeTab = (activeTabStr as AdminTab) || "overview";
   const setActiveTab = (val: AdminTab) => setActiveTabStr(val);
@@ -270,23 +273,49 @@ export function useAdminDashboard() {
     }
   }, [bazarPage, debouncedBazarSearch, bazarFilter, activeTab]);
 
+  const getBazarErrorMessage = (errorCode: string) => {
+    switch (errorCode) {
+      case "BAZAR_NAME_MUST_BE_BANGLA":
+        return "বাজারের নাম অবশ্যই বাংলায় হতে হবে।";
+      case "UPAZILA_NAME_MUST_BE_BANGLA":
+        return "উপজেলার নাম অবশ্যই বাংলায় হতে হবে।";
+      case "DISTRICT_NAME_MUST_BE_BANGLA":
+        return "জেলার নাম অবশ্যই বাংলায় হতে হবে।";
+      case "BAZAR_EXISTS":
+        return "এই নামের একটি বাজার ইতিমধ্যে বিদ্যমান রয়েছে।";
+      default:
+        return errorCode || "অপারেশনটি ব্যর্থ হয়েছে।";
+    }
+  };
+
   const handleAddBazar = async () => {
     if (!newBazarName.trim()) return;
     try {
       const res = await fetch("/api/bazars", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newBazarName.trim() }),
+        body: JSON.stringify({
+          name: newBazarName.trim(),
+          upazila: newBazarUpazila.trim() || "ছাগলনাইয়া",
+          district: newBazarDistrict.trim() || "ফেনী",
+        }),
       });
       if (res.ok) {
         setNewBazarName("");
+        setNewBazarUpazila("ছাগলনাইয়া");
+        setNewBazarDistrict("ফেনী");
+        toast.success("নতুন বাজার সফলভাবে তৈরি করা হয়েছে");
         fetchBazars(bazarPage, debouncedBazarSearch, bazarFilter);
         const resStats = await fetch("/api/admin/stats");
         const dataStats = await resStats.json().catch(() => ({}));
         if (dataStats?.stats) setStats(dataStats.stats);
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        toast.error(getBazarErrorMessage(errorData?.error));
       }
     } catch (e) {
-      console.error(e);
+      console.error("Add bazar error:", e);
+      toast.error("নেটওয়ার্ক ত্রুটি ঘটেছে।");
     }
   };
 
@@ -298,14 +327,19 @@ export function useAdminDashboard() {
         body: JSON.stringify({ reason: reason || "", mergeToBazarName }),
       });
       if (res.ok) {
+        toast.success("বাজার ডিলিট করা হয়েছে");
         setBazars((prev) => prev.filter((b) => b.id !== id));
         fetchBazars(bazarPage, debouncedBazarSearch, bazarFilter);
         const resStats = await fetch("/api/admin/stats");
         const dataStats = await resStats.json().catch(() => ({}));
         if (dataStats?.stats) setStats(dataStats.stats);
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        toast.error(getBazarErrorMessage(errorData?.error || "Failed to delete bazar"));
       }
     } catch (e) {
-      console.error(e);
+      console.error("Delete bazar error:", e);
+      toast.error("নেটওয়ার্ক ত্রুটি ঘটেছে।");
     }
   };
 
@@ -315,14 +349,23 @@ export function useAdminDashboard() {
       const res = await fetch(`/api/bazars/${editingBazar.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editingBazar.name.trim() }),
+        body: JSON.stringify({
+          name: editingBazar.name.trim(),
+          upazila: editingBazar.upazila?.trim() || null,
+          district: editingBazar.district?.trim() || null,
+        }),
       });
       if (res.ok) {
+        toast.success("বাজার আপডেট করা হয়েছে");
         setEditingBazar(null);
         fetchBazars(bazarPage, debouncedBazarSearch, bazarFilter);
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        toast.error(getBazarErrorMessage(errorData?.error));
       }
     } catch (e) {
-      console.error(e);
+      console.error("Update bazar error:", e);
+      toast.error("নেটওয়ার্ক ত্রুটি ঘটেছে।");
     }
   };
 
@@ -332,13 +375,17 @@ export function useAdminDashboard() {
         method: "DELETE",
       });
       if (res.ok) {
+        toast.success("ওয়েটলিস্ট এন্ট্রি ডিলিট করা হয়েছে");
         fetchWaitlist(waitlistPage, debouncedWaitlistSearch, waitlistFilter);
         const resStats = await fetch("/api/admin/stats");
         const dataStats = await resStats.json().catch(() => ({}));
         if (dataStats?.stats) setStats(dataStats.stats);
+      } else {
+        toast.error("ওয়েটলিস্ট ডিলিট করা সম্ভব হয়নি");
       }
     } catch (e) {
       console.error("Delete waitlist entry error:", e);
+      toast.error("নেটওয়ার্ক ত্রুটি ঘটেছে");
     }
   };
 
@@ -351,6 +398,7 @@ export function useAdminDashboard() {
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
+        toast.success("ড্রাইভার অনুমোদন দেওয়া হয়েছে");
         setContributedDrivers((prev) => prev.map((d) => (d.id === id ? data : d)));
         const [resStats, resBazars] = await Promise.all([
           fetch("/api/admin/stats"),
@@ -367,11 +415,11 @@ export function useAdminDashboard() {
         }
       } else {
         const errorMsg = data?.error ? (typeof data.error === "string" ? data.error : JSON.stringify(data.error)) : "Failed to approve driver";
-        alert(errorMsg);
+        toast.error(errorMsg);
       }
     } catch (e) {
       console.error("Approve contributed driver error:", e);
-      alert("Network error while approving driver");
+      toast.error("Network error while approving driver");
     }
   };
 
@@ -381,17 +429,18 @@ export function useAdminDashboard() {
         method: "DELETE",
       });
       if (res.ok) {
+        toast.success("ড্রাইভার ডিলিট করা হয়েছে");
         setContributedDrivers((prev) => prev.filter((d) => d.id !== id));
         const resStats = await fetch("/api/admin/stats");
         const dataStats = await resStats.json().catch(() => ({}));
         if (dataStats?.stats) setStats(dataStats.stats);
       } else {
         const data = await res.json().catch(() => ({}));
-        alert(data?.error || "Failed to delete driver");
+        toast.error(data?.error || "Failed to delete driver");
       }
     } catch (e) {
       console.error("Delete contributed driver error:", e);
-      alert("Network error while deleting driver");
+      toast.error("Network error while deleting driver");
     }
   };
 
@@ -403,6 +452,7 @@ export function useAdminDashboard() {
     });
     if (res.ok) {
       const updated = await res.json();
+      toast.success("ড্রাইভার তথ্য আপডেট করা হয়েছে");
       setContributedDrivers((prev) => prev.map((d) => (d.id === id ? updated : d)));
       const resBazars = await fetch("/api/bazars?all=true", { cache: "no-store" });
       const dataBazars = await resBazars.json().catch(() => ([]));
@@ -414,7 +464,9 @@ export function useAdminDashboard() {
       return true;
     } else {
       const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.error ? (typeof errorData.error === "string" ? errorData.error : JSON.stringify(errorData.error)) : "Failed to update driver");
+      const errorMsg = errorData.error ? (typeof errorData.error === "string" ? errorData.error : JSON.stringify(errorData.error)) : "Failed to update driver";
+      toast.error(errorMsg);
+      throw new Error(errorMsg);
     }
   };
 
@@ -426,11 +478,16 @@ export function useAdminDashboard() {
         body: JSON.stringify({ isApproved: true }),
       });
       if (res.ok) {
+        toast.success("বাজার অনুমোদন দেওয়া হয়েছে");
         setBazars((prev) => prev.map((b) => (b.id === id ? { ...b, isApproved: true } : b)));
         fetchBazars(bazarPage, debouncedBazarSearch, bazarFilter);
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        toast.error(getBazarErrorMessage(errorData?.error));
       }
     } catch (e) {
       console.error("Approve bazar error:", e);
+      toast.error("নেটওয়ার্ক ত্রুটি ঘটেছে।");
     }
   };
 
@@ -441,13 +498,17 @@ export function useAdminDashboard() {
         method: "DELETE",
       });
       if (res.ok) {
+        toast.success("ইউজার ডিলিট করা হয়েছে");
         fetchUsers(userPage, debouncedUserSearch, userFilter);
         const resStats = await fetch("/api/admin/stats");
         const dataStats = await resStats.json().catch(() => ({}));
         if (dataStats?.stats) setStats(dataStats.stats);
+      } else {
+        toast.error("ইউজার ডিলিট করা সম্ভব হয়নি");
       }
     } catch (e) {
       console.error("Delete user error:", e);
+      toast.error("নেটওয়ার্ক ত্রুটি ঘটেছে");
     }
   };
 
@@ -460,6 +521,7 @@ export function useAdminDashboard() {
       });
       if (res.ok) {
         const updatedSetting = await res.json();
+        toast.success("সেটিং আপডেট করা হয়েছে");
         setSettings((prev) => {
           const exists = prev.find((s) => s.key === key);
           if (exists) {
@@ -467,9 +529,12 @@ export function useAdminDashboard() {
           }
           return [...prev, updatedSetting];
         });
+      } else {
+        toast.error("সেটিং আপডেট করা সম্ভব হয়নি");
       }
     } catch (e) {
       console.error("Update setting error:", e);
+      toast.error("নেটওয়ার্ক ত্রুটি ঘটেছে");
     }
   };
 
@@ -488,6 +553,10 @@ export function useAdminDashboard() {
     fetchBazars,
     newBazarName,
     setNewBazarName,
+    newBazarUpazila,
+    setNewBazarUpazila,
+    newBazarDistrict,
+    setNewBazarDistrict,
     editingBazar,
     setEditingBazar,
     activeTab,

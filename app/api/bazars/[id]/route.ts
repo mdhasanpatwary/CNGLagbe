@@ -8,10 +8,18 @@ export async function PATCH(
 ) {
   const { id } = await params;
   try {
-    const { name, isApproved } = await request.json();
+    const { name, upazila, district, isApproved } = await request.json();
 
-    if (name !== undefined && !isBanglaText(name.trim())) {
+    if (name !== undefined && name !== null && name.trim() && !isBanglaText(name.trim())) {
       return NextResponse.json({ error: "BAZAR_NAME_MUST_BE_BANGLA" }, { status: 400 });
+    }
+
+    if (upazila !== undefined && upazila !== null && upazila.trim() && !isBanglaText(upazila.trim())) {
+      return NextResponse.json({ error: "UPAZILA_NAME_MUST_BE_BANGLA" }, { status: 400 });
+    }
+
+    if (district !== undefined && district !== null && district.trim() && !isBanglaText(district.trim())) {
+      return NextResponse.json({ error: "DISTRICT_NAME_MUST_BE_BANGLA" }, { status: 400 });
     }
     
     // Wrap in transaction for atomicity: if driver update fails, bazar rename is rolled back
@@ -26,8 +34,21 @@ export async function PATCH(
           throw new Error("BAZAR_NOT_FOUND");
         }
 
-        const dataToUpdate: { name?: string; isApproved?: boolean } = {};
-        if (name !== undefined) dataToUpdate.name = name;
+        const dataToUpdate: { name?: string; upazila?: string; district?: string; isApproved?: boolean } = {};
+        if (name !== undefined) {
+          const trimmedName = name.trim();
+          if (trimmedName !== oldBazar.name) {
+            const existing = await tx.bazar.findUnique({
+              where: { name: trimmedName }
+            });
+            if (existing) {
+              throw new Error("BAZAR_EXISTS");
+            }
+          }
+          dataToUpdate.name = trimmedName;
+        }
+        if (upazila !== undefined) dataToUpdate.upazila = upazila ? upazila.trim() : null;
+        if (district !== undefined) dataToUpdate.district = district ? district.trim() : null;
         if (isApproved !== undefined) dataToUpdate.isApproved = isApproved;
 
         const updated = await tx.bazar.update({
@@ -36,14 +57,14 @@ export async function PATCH(
         });
 
         // Update all drivers and contributed drivers who have this bazar as their nearbyBazar, if name changed
-        if (name && name !== oldBazar.name) {
+        if (name && name.trim() !== oldBazar.name) {
           await tx.driver.updateMany({
             where: { nearbyBazar: oldBazar.name },
-            data: { nearbyBazar: name },
+            data: { nearbyBazar: name.trim() },
           });
           await tx.contributedDriver.updateMany({
             where: { nearbyBazar: oldBazar.name },
-            data: { nearbyBazar: name },
+            data: { nearbyBazar: name.trim() },
           });
         }
 
@@ -56,6 +77,9 @@ export async function PATCH(
   } catch (error) {
     if (error instanceof Error && error.message === "BAZAR_NOT_FOUND") {
       return NextResponse.json({ error: "Bazar not found" }, { status: 404 });
+    }
+    if (error instanceof Error && error.message === "BAZAR_EXISTS") {
+      return NextResponse.json({ error: "BAZAR_EXISTS" }, { status: 400 });
     }
     console.error("Update bazar error:", error);
     return NextResponse.json({ 

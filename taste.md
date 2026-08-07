@@ -468,9 +468,13 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Cache Invalidation on Driver Updates**: Updates and deletions of contributed drivers trigger `revalidatePath` for `/directory`, `/api/contributed-drivers`, `/api/bazars`, and `/` so production page and API caches reflect driver approval state instantly.
 - **Bazar Table Server-Side Pagination & Status Filters**: `GET /api/bazars` supports server-side pagination (`page`, `limit`), search, and status filtering (`all`, `pending`, `approved`). The Bazars tab displays 3 live metrics cards (Total Bazars, Approved Bazars, Pending Approval), status filter dropdown, and server-side pagination controls, preserving array backward-compatibility for non-paginated dropdown calls.
 
+## 🏪 Bazar Creation with Upazila and District (2026-08-07)
+- **Multi-Attribute Bazar Form**: When users or drivers add a new bazar from `SearchableBazarSelect` (or when admins create bazars), the submission modal collects **Bazar Name**, **Upazila Name**, and **District Name**.
+- **Pre-filled Default Values**: Upazila defaults to `"ছাগলনাইয়া"` and District defaults to `"ফেনী"`, which users can customize or keep as-is for rapid contribution.
+- **Strict Bangla Validation**: All three fields (`name`, `upazila`, `district`) are validated for Bangla text (`isBanglaText`) on both client and server API endpoints (`POST /api/bazars`, `PATCH /api/bazars/[id]`).
+- **Prisma Schema Update**: Added `upazila String? @default("ছাগলনাইয়া")` and `district String? @default("ফেনী")` to `model Bazar`.
+- **Admin Visibility & Editing**: The Admin Dashboard Bazars tab displays Upazila & District columns and allows editing both fields inline.
 
-
-
-
-
-
+## 🛠️ Admin Bazar Edit Error Handling & Validation (2026-08-07)
+- **Granular Error Feedback**: Admin Bazar update (`PATCH /api/bazars/[id]`) and add (`POST /api/bazars`) now catch validation failures (non-Bangla name/upazila/district with `isBanglaText`) and duplicate bazar names (`BAZAR_EXISTS`), returning clear 400 responses.
+- **Client-Side Alert Handling**: In `useAdminDashboard.ts`, `handleUpdateBazar`, `handleAddBazar`, `handleDeleteBazar`, and `handleApproveBazar` parse error codes (`BAZAR_NAME_MUST_BE_BANGLA`, `UPAZILA_NAME_MUST_BE_BANGLA`, `DISTRICT_NAME_MUST_BE_BANGLA`, `BAZAR_EXISTS`) and alert the admin with localized Bangla error messages rather than failing silently.

@@ -9,7 +9,7 @@ import { TextKey } from "@/constants/text";
 import { StatsCard } from "../shared";
 
 interface BazarsTabProps {
-  bazars: { id: string; name: string; isApproved: boolean; driverCount?: number }[];
+  bazars: { id: string; name: string; upazila?: string; district?: string; isApproved: boolean; driverCount?: number }[];
   search: string;
   setSearch: (val: string) => void;
   filter: string;
@@ -25,8 +25,8 @@ interface BazarsTabProps {
   };
   newBazarName: string;
   setNewBazarName: (name: string) => void;
-  editingBazar: { id: string; name: string } | null;
-  setEditingBazar: (bazar: { id: string; name: string } | null) => void;
+  editingBazar: { id: string; name: string; upazila?: string; district?: string } | null;
+  setEditingBazar: (bazar: { id: string; name: string; upazila?: string; district?: string } | null) => void;
   handleAddBazar: () => void;
   handleDeleteBazar: (id: string, reason?: string, mergeToBazarName?: string) => void;
   handleUpdateBazar: () => void;
@@ -185,6 +185,7 @@ export function BazarsTab({
             <TableHeader>
               <TableRow className="hover:bg-transparent border-none">
                 <TableHead className="px-8 py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("bazar_name")}</TableHead>
+                <TableHead className="px-8 py-5 text-xs font-black uppercase tracking-widest text-slate-400">উপজেলা / জেলা</TableHead>
                 <TableHead className="px-8 py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("bazar_status" as TextKey) || "Status"}</TableHead>
                 <TableHead className="px-8 py-5 text-xs font-black uppercase tracking-widest text-slate-400">{t("drivers")}</TableHead>
                 <TableHead className="px-8 py-5 text-right text-xs font-black uppercase tracking-widest text-slate-400">{t("actions")}</TableHead>
@@ -208,6 +209,32 @@ export function BazarsTab({
                       />
                     ) : (
                       <p className="font-black text-slate-900">{bazar.name}</p>
+                    )}
+                  </TableCell>
+                  <TableCell className="px-8 py-6">
+                    {editingBazar?.id === bazar.id ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={editingBazar.upazila || ""}
+                          onChange={(e) => setEditingBazar({ ...editingBazar, upazila: e.target.value })}
+                          placeholder="উপজেলা"
+                          className="h-9 px-2 rounded-lg border border-slate-300 text-xs bg-white w-24"
+                        />
+                        <input
+                          type="text"
+                          value={editingBazar.district || ""}
+                          onChange={(e) => setEditingBazar({ ...editingBazar, district: e.target.value })}
+                          placeholder="জেলা"
+                          className="h-9 px-2 rounded-lg border border-slate-300 text-xs bg-white w-20"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
+                        <span>{bazar.upazila || "ছাগলনাইয়া"}</span>
+                        <span className="text-slate-300">•</span>
+                        <span>{bazar.district || "ফেনী"}</span>
+                      </div>
                     )}
                   </TableCell>
                   <TableCell className="px-8 py-6">
