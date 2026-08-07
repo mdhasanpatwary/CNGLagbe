@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { getAuthenticatedAdmin } from "@/lib/auth";
@@ -47,7 +48,7 @@ async function handleUpdate(
     const result = updateSchema.safeParse(body);
 
     if (!result.success) {
-      return NextResponse.json({ error: result.error.format() }, { status: 400 });
+      return NextResponse.json({ error: "Validation error", details: result.error.format() }, { status: 400 });
     }
 
     const {
@@ -92,6 +93,34 @@ async function handleUpdate(
       data: dataToUpdate,
     });
 
+    // If driver is approved and has a nearbyBazar, auto-upsert & approve the bazar in the Bazar model
+    if (updated.isApproved && updated.nearbyBazar) {
+      try {
+        await prisma.bazar.upsert({
+          where: { name: updated.nearbyBazar },
+          create: {
+            name: updated.nearbyBazar,
+            isApproved: true,
+          },
+          update: {
+            isApproved: true,
+          },
+        });
+      } catch (bazarErr) {
+        console.error("Auto approve driver bazar error:", bazarErr);
+      }
+    }
+
+    // Purge cache for directory and API routes
+    try {
+      revalidatePath("/directory");
+      revalidatePath("/api/contributed-drivers");
+      revalidatePath("/api/bazars");
+      revalidatePath("/");
+    } catch {
+      // Ignore cache revalidation errors if outside request context
+    }
+
     return NextResponse.json(updated);
   } catch (error) {
     console.error("Admin update contributed driver error:", error);
@@ -113,6 +142,16 @@ export async function DELETE(
     await prisma.contributedDriver.delete({
       where: { id }
     });
+
+    try {
+      revalidatePath("/directory");
+      revalidatePath("/api/contributed-drivers");
+      revalidatePath("/api/bazars");
+      revalidatePath("/");
+    } catch {
+      // Ignore
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Admin delete contributed driver error:", error);

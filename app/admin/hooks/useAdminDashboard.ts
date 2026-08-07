@@ -86,8 +86,29 @@ export function useAdminDashboard() {
   const [contributedSearch, setContributedSearch] = useState("");
   const [debouncedContributedSearch, setDebouncedContributedSearch] = useState("");
   const [contributedFilter, setContributedFilter] = useState("all");
+  const [contributedPage, setContributedPage] = useState(1);
+  const [contributedMeta, setContributedMeta] = useState({
+    total: 0,
+    totalPages: 0,
+    approvedCount: 0,
+    pendingCount: 0,
+    totalAll: 0,
+  });
   const [isContributedEditModalOpen, setIsContributedEditModalOpen] = useState(false);
   const [editingContributedDriverData, setEditingContributedDriverData] = useState<ContributedDriver | null>(null);
+
+  // Bazars State
+  const [bazarSearch, setBazarSearch] = useState("");
+  const [debouncedBazarSearch, setDebouncedBazarSearch] = useState("");
+  const [bazarFilter, setBazarFilter] = useState("all");
+  const [bazarPage, setBazarPage] = useState(1);
+  const [bazarMeta, setBazarMeta] = useState({
+    total: 0,
+    totalPages: 0,
+    approvedCount: 0,
+    pendingCount: 0,
+    totalAll: 0,
+  });
 
   // Debounce Hooks
   useEffect(() => {
@@ -110,6 +131,13 @@ export function useAdminDashboard() {
     }, 1000);
     return () => clearTimeout(handler);
   }, [contributedSearch]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedBazarSearch(bazarSearch);
+    }, 1000);
+    return () => clearTimeout(handler);
+  }, [bazarSearch]);
 
   // Fetch functions
   const fetchUsers = async (page = 1, search = "", role = "ALL") => {
@@ -142,45 +170,64 @@ export function useAdminDashboard() {
     }
   };
 
-  const fetchContributedDrivers = async (search = "", filter = "all") => {
+  const fetchContributedDrivers = async (page = 1, search = "", filter = "all") => {
     try {
       // Endpoint app/api/admin/contributed-drivers/route.ts
-      const res = await fetch(`/api/admin/contributed-drivers?search=${search}&filter=${filter}`);
+      const res = await fetch(`/api/admin/contributed-drivers?page=${page}&limit=20&search=${search}&filter=${filter}`);
       const data = await res.json();
-      setContributedDrivers(Array.isArray(data) ? data : []);
+      setContributedDrivers(Array.isArray(data?.drivers) ? data.drivers : []);
+      setContributedMeta({
+        total: data?.meta?.total || 0,
+        totalPages: data?.meta?.totalPages || 0,
+        approvedCount: data?.meta?.approvedCount || 0,
+        pendingCount: data?.meta?.pendingCount || 0,
+        totalAll: data?.meta?.totalAll || 0,
+      });
     } catch (e) {
       console.error("Fetch contributed drivers error:", e);
+    }
+  };
+
+  const fetchBazars = async (page = 1, search = "", filter = "all") => {
+    try {
+      const res = await fetch(`/api/bazars?all=true&page=${page}&limit=20&search=${search}&filter=${filter}`, { cache: "no-store" });
+      const data = await res.json();
+      if (data && typeof data === "object" && "bazars" in data && Array.isArray(data.bazars)) {
+        setBazars(data.bazars);
+        setBazarMeta({
+          total: data.meta?.total || 0,
+          totalPages: data.meta?.totalPages || 0,
+          approvedCount: data.meta?.approvedCount || 0,
+          pendingCount: data.meta?.pendingCount || 0,
+          totalAll: data.meta?.totalAll || 0,
+        });
+      } else if (Array.isArray(data)) {
+        setBazars(data);
+      }
+    } catch (e) {
+      console.error("Fetch bazars error:", e);
     }
   };
 
   const fetchData = async (options?: { showLoading?: boolean }) => {
     if (options?.showLoading) setIsRefreshing(true);
     try {
-      const [resStats, resBazars, resSettings] = await Promise.all([
+      const [resStats, resSettings] = await Promise.all([
         fetch("/api/admin/stats"),
-        fetch("/api/bazars?all=true", { cache: "no-store" }),
         fetch("/api/admin/settings"),
       ]);
 
       const dataStats = await resStats.json().catch(() => ({}));
-      const dataBazars = await resBazars.json().catch(() => ([]));
       const dataSettings = await resSettings.json().catch(() => ([]));
 
       setStats(dataStats?.stats || null);
       setSettings(Array.isArray(dataSettings) ? dataSettings : []);
 
-      if (Array.isArray(dataBazars)) {
-        setBazars(dataBazars);
-      } else if (dataBazars && typeof dataBazars === "object" && "bazars" in dataBazars && Array.isArray((dataBazars as Record<string, unknown>).bazars)) {
-        setBazars((dataBazars as { bazars: { id: string; name: string; isApproved: boolean }[] }).bazars);
-      } else {
-        setBazars([]);
-      }
-
       await Promise.all([
         fetchUsers(userPage, debouncedUserSearch, userFilter),
         fetchWaitlist(waitlistPage, debouncedWaitlistSearch, waitlistFilter),
-        fetchContributedDrivers(debouncedContributedSearch, contributedFilter),
+        fetchContributedDrivers(contributedPage, debouncedContributedSearch, contributedFilter),
+        fetchBazars(bazarPage, debouncedBazarSearch, bazarFilter),
       ]);
     } catch (e: unknown) {
       console.error("Admin dashboard fetch error:", e);
@@ -212,9 +259,16 @@ export function useAdminDashboard() {
   useEffect(() => {
     if (activeTab === "contributed-drivers") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      fetchContributedDrivers(debouncedContributedSearch, contributedFilter);
+      fetchContributedDrivers(contributedPage, debouncedContributedSearch, contributedFilter);
     }
-  }, [debouncedContributedSearch, contributedFilter, activeTab]);
+  }, [contributedPage, debouncedContributedSearch, contributedFilter, activeTab]);
+
+  useEffect(() => {
+    if (activeTab === "bazars") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchBazars(bazarPage, debouncedBazarSearch, bazarFilter);
+    }
+  }, [bazarPage, debouncedBazarSearch, bazarFilter, activeTab]);
 
   const handleAddBazar = async () => {
     if (!newBazarName.trim()) return;
@@ -226,7 +280,10 @@ export function useAdminDashboard() {
       });
       if (res.ok) {
         setNewBazarName("");
-        fetchData({ showLoading: false });
+        fetchBazars(bazarPage, debouncedBazarSearch, bazarFilter);
+        const resStats = await fetch("/api/admin/stats");
+        const dataStats = await resStats.json().catch(() => ({}));
+        if (dataStats?.stats) setStats(dataStats.stats);
       }
     } catch (e) {
       console.error(e);
@@ -242,7 +299,10 @@ export function useAdminDashboard() {
       });
       if (res.ok) {
         setBazars((prev) => prev.filter((b) => b.id !== id));
-        fetchData({ showLoading: false });
+        fetchBazars(bazarPage, debouncedBazarSearch, bazarFilter);
+        const resStats = await fetch("/api/admin/stats");
+        const dataStats = await resStats.json().catch(() => ({}));
+        if (dataStats?.stats) setStats(dataStats.stats);
       }
     } catch (e) {
       console.error(e);
@@ -259,7 +319,7 @@ export function useAdminDashboard() {
       });
       if (res.ok) {
         setEditingBazar(null);
-        fetchData({ showLoading: false });
+        fetchBazars(bazarPage, debouncedBazarSearch, bazarFilter);
       }
     } catch (e) {
       console.error(e);
@@ -289,15 +349,29 @@ export function useAdminDashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isApproved: true }),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        const updated = await res.json();
-        setContributedDrivers((prev) => prev.map((d) => (d.id === id ? updated : d)));
-        const resStats = await fetch("/api/admin/stats");
+        setContributedDrivers((prev) => prev.map((d) => (d.id === id ? data : d)));
+        const [resStats, resBazars] = await Promise.all([
+          fetch("/api/admin/stats"),
+          fetch("/api/bazars?all=true", { cache: "no-store" }),
+        ]);
         const dataStats = await resStats.json().catch(() => ({}));
         if (dataStats?.stats) setStats(dataStats.stats);
+
+        const dataBazars = await resBazars.json().catch(() => ([]));
+        if (Array.isArray(dataBazars)) {
+          setBazars(dataBazars);
+        } else if (dataBazars && typeof dataBazars === "object" && "bazars" in dataBazars && Array.isArray((dataBazars as Record<string, unknown>).bazars)) {
+          setBazars((dataBazars as { bazars: { id: string; name: string; isApproved: boolean }[] }).bazars);
+        }
+      } else {
+        const errorMsg = data?.error ? (typeof data.error === "string" ? data.error : JSON.stringify(data.error)) : "Failed to approve driver";
+        alert(errorMsg);
       }
     } catch (e) {
       console.error("Approve contributed driver error:", e);
+      alert("Network error while approving driver");
     }
   };
 
@@ -311,9 +385,13 @@ export function useAdminDashboard() {
         const resStats = await fetch("/api/admin/stats");
         const dataStats = await resStats.json().catch(() => ({}));
         if (dataStats?.stats) setStats(dataStats.stats);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data?.error || "Failed to delete driver");
       }
     } catch (e) {
       console.error("Delete contributed driver error:", e);
+      alert("Network error while deleting driver");
     }
   };
 
@@ -326,10 +404,17 @@ export function useAdminDashboard() {
     if (res.ok) {
       const updated = await res.json();
       setContributedDrivers((prev) => prev.map((d) => (d.id === id ? updated : d)));
+      const resBazars = await fetch("/api/bazars?all=true", { cache: "no-store" });
+      const dataBazars = await resBazars.json().catch(() => ([]));
+      if (Array.isArray(dataBazars)) {
+        setBazars(dataBazars);
+      } else if (dataBazars && typeof dataBazars === "object" && "bazars" in dataBazars && Array.isArray((dataBazars as Record<string, unknown>).bazars)) {
+        setBazars((dataBazars as { bazars: { id: string; name: string; isApproved: boolean }[] }).bazars);
+      }
       return true;
     } else {
-      const errorData = await res.json();
-      throw new Error(errorData.error || "Failed to update driver");
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error ? (typeof errorData.error === "string" ? errorData.error : JSON.stringify(errorData.error)) : "Failed to update driver");
     }
   };
 
@@ -342,6 +427,7 @@ export function useAdminDashboard() {
       });
       if (res.ok) {
         setBazars((prev) => prev.map((b) => (b.id === id ? { ...b, isApproved: true } : b)));
+        fetchBazars(bazarPage, debouncedBazarSearch, bazarFilter);
       }
     } catch (e) {
       console.error("Approve bazar error:", e);
@@ -392,6 +478,14 @@ export function useAdminDashboard() {
     stats,
     allUsers,
     bazars,
+    bazarSearch,
+    setBazarSearch,
+    bazarFilter,
+    setBazarFilter,
+    bazarPage,
+    setBazarPage,
+    bazarMeta,
+    fetchBazars,
     newBazarName,
     setNewBazarName,
     editingBazar,
@@ -428,6 +522,10 @@ export function useAdminDashboard() {
     setContributedSearch,
     contributedFilter,
     setContributedFilter,
+    contributedPage,
+    setContributedPage,
+    contributedMeta,
+    fetchContributedDrivers,
     handleApproveContributedDriver,
     handleDeleteContributedDriver,
     handleUpdateContributedDriver,

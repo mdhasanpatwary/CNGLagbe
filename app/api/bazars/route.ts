@@ -6,31 +6,58 @@ import { getAuthUser } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
-    // NOTE: syncContributedDriversBazars() was removed from the hot path.
-    // It runs N+1 updates and re-executes on every serverless cold start.
-    // Trigger it via admin action or cron instead.
     const { searchParams } = new URL(request.url);
     const includeUnapproved = searchParams.get("all") === "true";
+    const pageParam = searchParams.get("page");
+    const limitParam = searchParams.get("limit");
+    const search = searchParams.get("search") || "";
+    const filter = searchParams.get("filter") || "all";
 
-    // Only return approved bazars for public views. Admin views get all bazars.
-    const where = includeUnapproved ? {} : { isApproved: true };
+    const isPaginatedCall = pageParam !== null || limitParam !== null || search !== "" || filter !== "all";
+
+    const page = pageParam ? Math.max(1, parseInt(pageParam, 10) || 1) : 1;
+    const limit = limitParam ? Math.max(1, parseInt(limitParam, 10) || 20) : (isPaginatedCall ? 20 : undefined);
+    const skip = limit ? (page - 1) * limit : undefined;
+
+    // Build Prisma filter for bazars
+    const where: Prisma.BazarWhereInput = {};
+
+    if (!includeUnapproved) {
+      where.isApproved = true;
+    } else {
+      if (filter === "pending") {
+        where.isApproved = false;
+      } else if (filter === "approved") {
+        where.isApproved = true;
+      }
+    }
+
+    if (search.trim()) {
+      where.name = { contains: search.trim(), mode: "insensitive" };
+    }
 
     const driverCountWhere: Prisma.ContributedDriverWhereInput = {
       nearbyBazar: { not: null },
       ...(includeUnapproved ? {} : { isApproved: true }),
     };
 
-    // Run both queries in parallel: bazars list + driver counts grouped by bazar
-    const [bazars, driverCounts] = await Promise.all([
+    // Run queries in parallel: bazars list + driver counts + stats metadata
+    const [bazars, driverCounts, total, approvedCount, pendingCount, totalAll] = await Promise.all([
       prisma.bazar.findMany({
         where,
         orderBy: { name: "asc" },
+        ...(limit ? { take: limit } : {}),
+        ...(skip ? { skip } : {}),
       }),
       prisma.contributedDriver.groupBy({
         by: ["nearbyBazar"],
         where: driverCountWhere,
         _count: { _all: true },
       }),
+      prisma.bazar.count({ where }),
+      prisma.bazar.count({ where: { isApproved: true } }),
+      prisma.bazar.count({ where: { isApproved: false } }),
+      prisma.bazar.count(),
     ]);
 
     // Build a lookup map: bazarName -> count
@@ -49,6 +76,26 @@ export async function GET(request: Request) {
     const headers: Record<string, string> = includeUnapproved
       ? { "Cache-Control": "no-store, max-age=0" }
       : { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" };
+
+    if (isPaginatedCall) {
+      const activeLimit = limit || 20;
+      const totalPages = Math.ceil(total / activeLimit);
+      return NextResponse.json(
+        {
+          bazars: bazarWithCounts,
+          meta: {
+            total,
+            totalPages,
+            approvedCount,
+            pendingCount,
+            totalAll,
+            page,
+            limit: activeLimit,
+          },
+        },
+        { headers }
+      );
+    }
 
     return NextResponse.json(bazarWithCounts, { headers });
   } catch (error) {

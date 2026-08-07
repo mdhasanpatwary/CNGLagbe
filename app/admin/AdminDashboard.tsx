@@ -23,6 +23,13 @@ export default function AdminDashboard() {
     stats,
     allUsers,
     bazars,
+    bazarSearch,
+    setBazarSearch,
+    bazarFilter,
+    setBazarFilter,
+    bazarPage,
+    setBazarPage,
+    bazarMeta,
     newBazarName,
     setNewBazarName,
     editingBazar,
@@ -58,6 +65,9 @@ export default function AdminDashboard() {
     setContributedSearch,
     contributedFilter,
     setContributedFilter,
+    contributedPage,
+    setContributedPage,
+    contributedMeta,
     handleApproveContributedDriver,
     handleDeleteContributedDriver,
     handleUpdateContributedDriver,
@@ -157,6 +167,9 @@ export default function AdminDashboard() {
             setSearch={setContributedSearch}
             filter={contributedFilter}
             setFilter={setContributedFilter}
+            page={contributedPage}
+            setPage={setContributedPage}
+            meta={contributedMeta}
             onApprove={handleApproveContributedDriver}
             onDelete={handleDeleteContributedDriver}
             onEdit={(driver) => {
@@ -170,6 +183,13 @@ export default function AdminDashboard() {
         {activeTab === "bazars" && (
           <BazarsTab
             bazars={bazars}
+            search={bazarSearch}
+            setSearch={setBazarSearch}
+            filter={bazarFilter}
+            setFilter={setBazarFilter}
+            page={bazarPage}
+            setPage={setBazarPage}
+            meta={bazarMeta}
             newBazarName={newBazarName}
             setNewBazarName={setNewBazarName}
             editingBazar={editingBazar}

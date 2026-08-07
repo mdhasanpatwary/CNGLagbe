@@ -463,8 +463,13 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Null Safety on Unmerged Deletion**: If a bazar is deleted without selecting a target merge bazar, drivers assigned to that deleted bazar automatically have their `nearbyBazar` field set to `null` to avoid orphaned bazar references while maintaining data consistency.
 - **Instant UI List Update & No-Store Caching**: Admin `GET /api/bazars?all=true` endpoint sends `Cache-Control: no-store` header (preventing HTTP/browser caching of stale lists in the admin panel) and `handleDeleteBazar` instantly updates state (`setBazars((prev) => prev.filter((b) => b.id !== id))`).
 
-## ⏱️ Prisma Interactive Transaction Timeouts (2026-08-05)
-- **Transaction Timeout Prevention (P2028)**: Prisma interactive transactions in `/api/bazars/[id]` specify explicit transaction configuration `{ maxWait: 10000, timeout: 20000 }`. This prevents `P2028 (Unable to start a transaction in the given time)` errors during heavy concurrent admin dashboard data loading.
+## 🚕 Contributed Driver Approval & Auto-Bazar Activation (2026-08-07)
+- **Auto-Bazar Approval on Driver Approval**: When an admin approves a contributed driver (`isApproved: true`), the backend automatically upserts and sets `isApproved: true` for the driver's `nearbyBazar` in the `Bazar` model if present. This guarantees that approving a driver immediately activates their bazar across public directory filters and bazar lists without requiring manual bazar approval.
+- **Cache Invalidation on Driver Updates**: Updates and deletions of contributed drivers trigger `revalidatePath` for `/directory`, `/api/contributed-drivers`, `/api/bazars`, and `/` so production page and API caches reflect driver approval state instantly.
+- **Bazar Table Server-Side Pagination & Status Filters**: `GET /api/bazars` supports server-side pagination (`page`, `limit`), search, and status filtering (`all`, `pending`, `approved`). The Bazars tab displays 3 live metrics cards (Total Bazars, Approved Bazars, Pending Approval), status filter dropdown, and server-side pagination controls, preserving array backward-compatibility for non-paginated dropdown calls.
+
+
+
 
 
 
