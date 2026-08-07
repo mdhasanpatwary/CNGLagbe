@@ -478,3 +478,8 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 ## 🛠️ Admin Bazar Edit Error Handling & Validation (2026-08-07)
 - **Granular Error Feedback**: Admin Bazar update (`PATCH /api/bazars/[id]`) and add (`POST /api/bazars`) now catch validation failures (non-Bangla name/upazila/district with `isBanglaText`) and duplicate bazar names (`BAZAR_EXISTS`), returning clear 400 responses.
 - **Client-Side Alert Handling**: In `useAdminDashboard.ts`, `handleUpdateBazar`, `handleAddBazar`, `handleDeleteBazar`, and `handleApproveBazar` parse error codes (`BAZAR_NAME_MUST_BE_BANGLA`, `UPAZILA_NAME_MUST_BE_BANGLA`, `DISTRICT_NAME_MUST_BE_BANGLA`, `BAZAR_EXISTS`) and alert the admin with localized Bangla error messages rather than failing silently.
+
+## 🚫 Guest User Driver Addition Restriction (2026-08-08)
+- **Strict Authentication Enforcement**: Guest (unauthenticated) users can no longer add drivers. Clicking "Add Driver" or the contribution banner on the homepage or directory page triggers a toast notification (`"ড্রাইভার যোগ করতে প্রথমে লগইন করুন।"`) and redirects the user immediately to `/login`.
+- **Backend API Protection**: `POST /api/contributed-drivers` checks `getAuthUser()`. If unauthenticated (`!session`), it returns `401 Unauthorized` (`{ error: "UNAUTHORIZED" }`), preventing unauthenticated driver additions at the API level.
+- **Form Submission Error Handler**: In `useDriverDirectory.ts`, if `onSubmit` receives a 401 response from the server, it displays the login toast notification and redirects to `/login`.

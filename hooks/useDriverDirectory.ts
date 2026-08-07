@@ -5,6 +5,7 @@ import { useForm, useWatch, FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contributedDriverSchema, ContributedDriverInput } from "@/lib/schemas/contributed-driver";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { useLang } from "@/hooks/useLang";
 import { TextKey } from "@/constants/text";
 import { supabase } from "@/lib/supabase";
@@ -37,6 +38,7 @@ interface UseDriverDirectoryOptions {
 
 export function useDriverDirectory({ isLanding = false, initialUser }: UseDriverDirectoryOptions) {
   const { t } = useLang();
+  const router = useRouter();
   const [drivers, setDrivers] = useState<ContributedDriver[]>([]);
   const [selectedBazar, setSelectedBazar] = useState("ALL");
   const [selectedVehicleType, setSelectedVehicleType] = useState("ALL");
@@ -319,6 +321,15 @@ export function useDriverDirectory({ isLanding = false, initialUser }: UseDriver
     setEditingDriver(null);
   }, [reset]);
 
+  const handleAddDriverClick = useCallback(() => {
+    if (!currentUser) {
+      toast.error(t("login_required_to_add_driver" as TextKey) || "ড্রাইভার যোগ করতে প্রথমে লগইন করুন।");
+      router.push("/login");
+      return;
+    }
+    setIsSubmitModalOpen(true);
+  }, [currentUser, router, t]);
+
   const onSubmit = async (data: ContributedDriverInput) => {
     setIsSubmitting(true);
     try {
@@ -340,6 +351,12 @@ export function useDriverDirectory({ isLanding = false, initialUser }: UseDriver
       });
 
       const resData = await res.json();
+
+      if (res.status === 401 || resData.error === "UNAUTHORIZED") {
+        toast.error(t("login_required_to_add_driver" as TextKey) || "ড্রাইভার যোগ করতে প্রথমে লগইন করুন।");
+        router.push("/login");
+        return;
+      }
 
       if (res.ok) {
         if (editingDriver) {
@@ -451,5 +468,6 @@ export function useDriverDirectory({ isLanding = false, initialUser }: UseDriver
     editingDriver,
     handleOpenEditModal,
     handleCloseSubmitModal,
+    handleAddDriverClick,
   };
 }

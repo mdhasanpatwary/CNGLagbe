@@ -33,7 +33,6 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
     setSearchQuery,
     isLoading,
     isSubmitModalOpen,
-    setIsSubmitModalOpen,
     isSubmitting,
     mounted,
     isFetchingNext,
@@ -64,6 +63,7 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
     editingDriver,
     handleOpenEditModal,
     handleCloseSubmitModal,
+    handleAddDriverClick,
   } = useDriverDirectory({ isLanding, initialUser });
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -96,7 +96,7 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
             </p>
           </div>
           <AppButton
-            onClick={() => setIsSubmitModalOpen(true)}
+            onClick={handleAddDriverClick}
             leftIcon={<Plus className="w-5 h-5" />}
             className="w-full sm:w-auto h-12 px-6 rounded-xl bg-primary hover:bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-500/10 hover:shadow-emerald-600/20 transition-all shrink-0"
           >
@@ -104,7 +104,7 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
           </AppButton>
         </div>
 
-        <ContributionBanner onAddClick={() => setIsSubmitModalOpen(true)} />
+        <ContributionBanner onAddClick={handleAddDriverClick} />
 
         {/* Navigation Tabs */}
         <div className="flex border-b border-slate-200 mb-8 items-end justify-between gap-2 sm:gap-4 shrink-0">
@@ -673,26 +673,6 @@ export function DriverDirectorySection({ isLanding = false, initialUser }: Drive
                 <p className="text-xs text-slate-500 font-medium leading-relaxed mb-2">
                   {t("contribute_desc" as TextKey) || "Help by adding driver numbers."}
                 </p>
-              )}
-
-              {!currentUser && (
-                <div className="bg-amber-50/60 border border-amber-200/60 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-in fade-in duration-200">
-                  <div className="flex gap-2.5 items-start">
-                    <Trophy className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                    <p className="text-xs font-semibold text-amber-900 leading-relaxed">
-                      {t("guest_contribution_prompt" as TextKey) || "Login to get credit on the leaderboard, or continue as a guest."}
-                    </p>
-                  </div>
-                  <Link href="/login" className="shrink-0">
-                    <AppButton
-                      type="button"
-                      variant="outline"
-                      className="h-8 text-xs px-3.5 border-amber-200 hover:border-amber-300 text-amber-950 bg-white/50 hover:bg-white rounded-lg font-bold min-h-[auto]"
-                    >
-                      {t("login_to_contribute" as TextKey) || "Login First"}
-                    </AppButton>
-                  </Link>
-                </div>
               )}
 
               <FormField

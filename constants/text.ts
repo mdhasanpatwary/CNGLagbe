@@ -849,6 +849,10 @@ export const TEXT = {
     en: "Add Driver",
     bn: "ড্রাইভার যোগ করুন"
   },
+  login_required_to_add_driver: {
+    en: "Please login first to add a driver.",
+    bn: "ড্রাইভার যোগ করতে প্রথমে লগইন করুন।"
+  },
   guest_contribution_prompt: {
     en: "Login to get credit on the leaderboard, or continue as a guest.",
     bn: "লিডারবোর্ডে অবদানকারী হিসেবে নাম যুক্ত করতে লগইন করুন, অথবা অতিথি হিসেবে চালিয়ে যান।"

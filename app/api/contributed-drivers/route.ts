@@ -199,31 +199,36 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "PHONE_EXISTS" }, { status: 400 });
     }
 
-    // Determine current session
+    // Determine current session — driver addition requires authentication
     const session = await getAuthUser();
+    if (!session) {
+      return NextResponse.json(
+        { error: "UNAUTHORIZED", message: "You must be logged in to add a driver" },
+        { status: 401 }
+      );
+    }
+
     let effectiveContributorName: string | null = null;
     let effectiveContributorPhone: string | null = null;
     let effectiveContributorPhotoUrl: string | null = null;
     const autoLoggedIn = false;
 
-    if (session) {
-      let dbUserOrDriver = null;
-      if (session.role === "USER" || session.role === "ADMIN") {
-        dbUserOrDriver = await prisma.user.findUnique({
-          where: { id: session.sub },
-          select: { name: true, phone: true, photoUrl: true }
-        });
-      } else if (session.role === "DRIVER") {
-        dbUserOrDriver = await prisma.driver.findUnique({
-          where: { id: session.sub },
-          select: { name: true, phone: true, photoUrl: true }
-        });
-      }
-      if (dbUserOrDriver) {
-        effectiveContributorName = dbUserOrDriver.name;
-        effectiveContributorPhone = dbUserOrDriver.phone;
-        effectiveContributorPhotoUrl = dbUserOrDriver.photoUrl || null;
-      }
+    let dbUserOrDriver = null;
+    if (session.role === "USER" || session.role === "ADMIN") {
+      dbUserOrDriver = await prisma.user.findUnique({
+        where: { id: session.sub },
+        select: { name: true, phone: true, photoUrl: true }
+      });
+    } else if (session.role === "DRIVER") {
+      dbUserOrDriver = await prisma.driver.findUnique({
+        where: { id: session.sub },
+        select: { name: true, phone: true, photoUrl: true }
+      });
+    }
+    if (dbUserOrDriver) {
+      effectiveContributorName = dbUserOrDriver.name;
+      effectiveContributorPhone = dbUserOrDriver.phone;
+      effectiveContributorPhotoUrl = dbUserOrDriver.photoUrl || null;
     }
 
     // Check system setting for auto approve
