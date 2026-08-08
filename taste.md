@@ -494,3 +494,10 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Root Cause**: `useAuthUser` hook had a `document.cookie` check for `auth_token=` to skip the `/api/auth/me` network request for unauthenticated visitors. However, `auth_token` is set as `httpOnly: true` in `lib/auth.ts`, which means JavaScript's `document.cookie` can **never** see it. This caused the hook to always short-circuit to `setUser(null)` even for authenticated users.
 - **Fix**: Removed the `document.cookie` early-exit check entirely. The hook now always calls `/api/auth/me` to determine auth state. The server-side endpoint can read the `httpOnly` cookie and return the user data correctly.
 - **Impact**: After login, the header now correctly shows the user's profile avatar/menu instead of the login button.
+
+## 📱 Profile Contributed Drivers Management (2026-08-08)
+- **Profile Contributed Drivers Display**: Logged-in users can view all drivers they have added/contributed to the directory directly from their Profile page (`/profile`).
+- **Submission Count & Status Badges**: Displays a count badge (e.g., "আপনার যুক্ত করা ড্রাইভার (৩ জন)") and visually differentiates between approved ("অনুমোদিত" - green) and pending approval ("অনুমোদন অপেক্ষমাণ" - amber) driver entries.
+- **Deletion with Confirmation**: Users can delete their contributed driver entries directly from their profile. Includes a confirmation modal warning dialog before deletion (`delete_driver_confirm`) and optimistic state updates upon successful deletion via `DELETE /api/contributed-drivers/[id]`.
+- **Backend Authorization**: `GET /api/profile/contributed-drivers` and `/api/contributed-drivers/[id]` strictly enforce that users can only view, edit, or delete driver entries where `contributorPhone` matches their session phone number.
+

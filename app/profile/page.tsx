@@ -19,6 +19,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { profileSchema, type ProfileInput } from "@/lib/schemas/profile";
 import { ProfileSkeleton } from "@/components/ui/AppSkeletons";
+import { MyContributedDriversCard } from "@/components/profile/MyContributedDriversCard";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -262,6 +263,9 @@ export default function ProfilePage() {
             </form>
           </CardContent>
         </Card>
+
+        {/* User's Contributed Drivers Section */}
+        <MyContributedDriversCard />
       </main>
     </div>
   );

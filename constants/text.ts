@@ -1170,6 +1170,30 @@ export const TEXT = {
     en: "Contribute Number",
     bn: "নম্বর যোগ করুন"
   },
+  my_contributed_drivers: {
+    en: "Your Contributed Drivers",
+    bn: "আপনার যুক্ত করা ড্রাইভার"
+  },
+  no_contributed_drivers_yet: {
+    en: "You have not added any drivers yet.",
+    bn: "আপনি এখনো কোনো ড্রাইভার যুক্ত করেননি।"
+  },
+  delete_driver_confirm: {
+    en: "Are you sure you want to delete this driver?",
+    bn: "আপনি কি নিশ্চিত যে এই ড্রাইভারের তথ্য মুছে ফেলতে চান?"
+  },
+  delete_driver_title: {
+    en: "Delete Driver",
+    bn: "ড্রাইভার মুছে ফেলুন"
+  },
+  status_approved: {
+    en: "Approved",
+    bn: "অনুমোদিত"
+  },
+  status_pending: {
+    en: "Pending Approval",
+    bn: "অনুমোদন অপেক্ষমাণ"
+  },
 } as const;
 
 
