@@ -501,3 +501,9 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Deletion with Confirmation**: Users can delete their contributed driver entries directly from their profile. Includes a confirmation modal warning dialog before deletion (`delete_driver_confirm`) and optimistic state updates upon successful deletion via `DELETE /api/contributed-drivers/[id]`.
 - **Backend Authorization**: `GET /api/profile/contributed-drivers` and `/api/contributed-drivers/[id]` strictly enforce that users can only view, edit, or delete driver entries where `contributorPhone` matches their session phone number.
 
+## 🗺️ Sitemap Canonical Domain Enforcement & 404 Route Cleanup (2026-09-28)
+- **Localhost Guard**: In `app/sitemap.ts`, added a defensive `getBaseUrl()` resolver that ensures `baseUrl` defaults strictly to `https://www.cnglagbe.com` if `process.env.NEXT_PUBLIC_BASE_URL` is undefined, empty, or configured to `localhost`. This prevents accidental environment variable leakage from corrupting production sitemap URLs and failing Google Search Console indexing.
+- **Zero-404 Route Enforcement**: Omitted `/terms` and `/privacy` from `app/sitemap.ts` since those pages do not currently exist in `app/`. Only valid, high-value public pages (`/` and `/directory`) are indexed to ensure Googlebot crawls with zero 404 errors.
+- **Daily Revalidation**: Added `export const revalidate = 86400` to `app/sitemap.ts` so Next.js revalidates the sitemap once every 24 hours instead of keeping a stale static build snapshot indefinitely.
+
+
