@@ -60,6 +60,7 @@ export async function GET(request: Request) {
     headers: {
       "Content-Type": "application/manifest+json",
       "Cache-Control": "public, max-age=0, must-revalidate",
+      "X-Robots-Tag": "noindex",
     },
   });
 }
