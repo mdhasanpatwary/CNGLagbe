@@ -506,4 +506,7 @@ The goal is to ensure these specific "tastes" (design preferences, UX choices, a
 - **Zero-404 Route Enforcement**: Omitted `/terms` and `/privacy` from `app/sitemap.ts` since those pages do not currently exist in `app/`. Only valid, high-value public pages (`/` and `/directory`) are indexed to ensure Googlebot crawls with zero 404 errors.
 - **Daily Revalidation**: Added `export const revalidate = 86400` to `app/sitemap.ts` so Next.js revalidates the sitemap once every 24 hours instead of keeping a stale static build snapshot indefinitely.
 
-
+## 🔍 SEO & GSC 404 Resolution (2026-10-01)
+- **Legacy Driver Redirects**: Added permanent redirect rules (`async redirects()`) in `next.config.ts` mapping `/driver/:path*` permanently (301) to `/`. This resolves Google Search Console 404 errors for legacy driver URLs (`/driver`, `/driver/dashboard`) without requiring dead routes in `app/`.
+- **Favicon Resolution**: Added multi-size `favicon.ico` (16x16, 32x32, 48x48) in both `public/` and `app/` and updated `app/layout.tsx` metadata `icons` to include `shortcut: "/favicon.ico"`. This fixes GSC 404 crawlers requesting `/favicon.ico?<hash>` on web and bot requests.
+- **Obsolete Build Hashes**: Acknowledged that stale `_next/static/media/*.woff2` 404s were transient artifacts from older May 2026 build font hashes that naturally expire as Googlebot drops stale asset references.
